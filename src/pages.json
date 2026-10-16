@@ -1,0 +1,31 @@
+{
+  "pages": [
+    {
+      "path": "pages/member/index",
+      "style": { "navigationBarTitleText": "会员中心" }
+    },
+    {
+      "path": "pages/ktv/booking",
+      "style": { "navigationBarTitleText": "KTV订房" }
+    },
+    {
+      "path": "pages/hotel/booking",
+      "style": { "navigationBarTitleText": "酒店订房" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "A380",
+    "navigationBarBackgroundColor": "#1f4b99",
+    "backgroundColor": "#f5f6f8"
+  },
+  "tabBar": {
+    "color": "#6b7280",
+    "selectedColor": "#1f4b99",
+    "list": [
+      { "pagePath": "pages/member/index", "text": "会员" },
+      { "pagePath": "pages/ktv/booking", "text": "KTV" },
+      { "pagePath": "pages/hotel/booking", "text": "酒店" }
+    ]
+  }
+}
