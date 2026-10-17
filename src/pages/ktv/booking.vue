@@ -4,25 +4,21 @@
       <picker :range="shopNameList" @change="onShopChange">
         <view class="field">门店：{{ currentShopName }}</view>
       </picker>
-      <picker :range="roomNameList" @change="onRoomChange">
-        <view class="field">包厢：{{ currentRoomName }}</view>
+      <picker :range="roomTypeNameList" @change="onRoomTypeChange">
+        <view class="field">包厢类型：{{ currentRoomTypeName }}</view>
       </picker>
-      <picker mode="date" @change="onDateChange">
-        <view class="field">日期：{{ bookingDate || '请选择' }}</view>
+      <picker :range="slotLabelList" @change="onSlotChange">
+        <view class="field">开唱：{{ currentSlotLabel }}</view>
       </picker>
-      <picker mode="time" @change="onStartTimeChange">
-        <view class="field">开始：{{ startTime || '请选择' }}</view>
-      </picker>
-      <picker mode="time" @change="onEndTimeChange">
-        <view class="field">结束：{{ endTime || '请选择' }}</view>
-      </picker>
-      <view class="price" v-if="currentRoomPrice !== ''">包厢费 {{ currentRoomPrice }} 元，提交后立即扣余额</view>
+      <input class="field" type="number" v-model="durationHours" placeholder="唱几小时" />
+      <view class="price" v-if="currentBookingAmount !== ''">包厢费 {{ currentBookingAmount }} 元，提交后立即扣余额</view>
       <button type="primary" @click="submitBooking">提交预订</button>
     </view>
     <view class="section-title">我的订单</view>
     <view v-for="order in orderList" :key="order.bookingOrderId" class="order-row">
-      <text class="order-title">{{ order.roomName }} {{ order.bookingDate }}</text>
-      <text class="order-sub">{{ order.startTime }} - {{ order.endTime }} {{ statusLabel(order.orderStatus) }}</text>
+      <text class="order-title">{{ order.roomTypeName }} {{ order.bookingDate }}</text>
+      <text v-if="isEmpty(order.roomName) !== true" class="order-sub">包厢 {{ order.roomName }}</text>
+      <text class="order-sub">{{ order.startTime }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时 {{ statusLabel(order.orderStatus) }}</text>
       <text class="order-sub">核销码 {{ order.verifyCode }} 金额 {{ order.amount }}</text>
     </view>
   </view>
@@ -30,19 +26,19 @@
 
 <script>
 import { request } from '../../utils/request.js';
-import { PageSetting, ShopType, statusLabel } from '../../utils/constants.js';
+import { KtvBookingHour, KtvBookingSlot, PageSetting, ShopType, statusLabel } from '../../utils/constants.js';
 import { isEmpty } from '../../utils/tools.js';
 
 export default {
   data() {
     return {
       shopList: [],
-      roomList: [],
+      roomTypeList: [],
       shopIndex: 0,
-      roomIndex: 0,
-      bookingDate: '',
-      startTime: '',
-      endTime: '',
+      roomTypeIndex: 0,
+      slotList: [],
+      slotIndex: 0,
+      durationHours: '',
       orderList: [],
     };
   },
@@ -54,10 +50,10 @@ export default {
       return this.shopList.map((shop) => shop.shopName);
     },
     /**
-     * 包厢名称列表。
+     * 包厢类型名称列表。
      */
-    roomNameList() {
-      return this.roomList.map((room) => `${room.roomName} ${room.price}元`);
+    roomTypeNameList() {
+      return this.roomTypeList.map((roomType) => `${roomType.typeName} ${roomType.hourlyPrice}元`);
     },
     /**
      * 当前选中的门店名称。
@@ -67,30 +63,61 @@ export default {
       return isEmpty(shop) ? '请选择' : shop.shopName;
     },
     /**
-     * 当前选中的包厢名称。
+     * 当前选中的包厢类型名称。
      */
-    currentRoomName() {
-      const room = this.roomList[this.roomIndex];
-      return isEmpty(room) ? '请选择' : room.roomName;
+    currentRoomTypeName() {
+      const roomType = this.roomTypeList[this.roomTypeIndex];
+      return isEmpty(roomType) ? '请选择' : roomType.typeName;
     },
     /**
-     * 当前包厢价格。
+     * 开唱刻度的展示文字。
      */
-    currentRoomPrice() {
-      const room = this.roomList[this.roomIndex];
-      return isEmpty(room) ? '' : room.price;
+    slotLabelList() {
+      return this.slotList.map((slot) => slot.label);
+    },
+    /**
+     * 当前选中的开唱刻度。
+     */
+    currentSlotLabel() {
+      const slot = this.slotList[this.slotIndex];
+      return isEmpty(slot) ? '请选择' : slot.label;
+    },
+    /**
+     * 当前预订金额。小时数不合法时不显示。
+     */
+    currentBookingAmount() {
+      const roomType = this.roomTypeList[this.roomTypeIndex];
+      const durationHours = Number(this.durationHours);
+      if (isEmpty(roomType) || Number.isInteger(durationHours) !== true || durationHours < KtvBookingHour.MIN || durationHours > KtvBookingHour.MAX) {
+        return '';
+      }
+      return (Number(roomType.hourlyPrice) * durationHours).toFixed(2);
     },
   },
   /**
    * 打开页面时加载 KTV 门店和我的订单。
    */
   onShow() {
+    this.refreshSlots();
     this.loadPage();
   },
   methods: {
     statusLabel,
+    isEmpty,
     /**
-     * 加载门店、包厢和订单。
+     * 结束钟点不晚于开唱钟点时，表示已经跨到第二天。
+     */
+    formatBookingEnd(order) {
+      if (isEmpty(order.endTime) || isEmpty(order.startTime)) {
+        return '';
+      }
+      if (order.endTime <= order.startTime) {
+        return `次日 ${order.endTime}`;
+      }
+      return order.endTime;
+    },
+    /**
+     * 加载门店、包厢类型和订单。
      */
     async loadPage() {
       this.shopList = await request({
@@ -98,7 +125,7 @@ export default {
         method: 'GET',
         data: { shopType: ShopType.KTV },
       });
-      await this.loadRooms();
+      await this.loadRoomTypes();
       const orderPage = await request({
         url: '/app/ktv/booking-orders',
         method: 'GET',
@@ -107,72 +134,112 @@ export default {
       this.orderList = isEmpty(orderPage) ? [] : orderPage.list;
     },
     /**
-     * 按当前门店加载可售包厢。
+     * 按当前门店加载可预订的包厢类型。
      */
-    async loadRooms() {
+    async loadRoomTypes() {
       const shop = this.shopList[this.shopIndex];
       if (isEmpty(shop)) {
-        this.roomList = [];
+        this.roomTypeList = [];
         return;
       }
-      this.roomList = await request({
-        url: '/app/ktv/rooms',
+      this.roomTypeList = await request({
+        url: '/app/ktv/room-types',
         method: 'GET',
         data: { shopId: shop.shopId },
       });
-      this.roomIndex = 0;
+      this.roomTypeIndex = 0;
     },
     /**
-     * 切换门店后重载包厢。
+     * 切换门店后重载包厢类型。
      */
     async onShopChange(event) {
       this.shopIndex = Number(event.detail.value);
-      await this.loadRooms();
+      await this.loadRoomTypes();
     },
     /**
-     * 选择包厢。
+     * 选择包厢类型。
      */
-    onRoomChange(event) {
-      this.roomIndex = Number(event.detail.value);
+    onRoomTypeChange(event) {
+      this.roomTypeIndex = Number(event.detail.value);
     },
     /**
-     * 选择预订日期。
+     * 按当前时间重算 8 个开唱刻度。原来的选择还在列表里就保留。
      */
-    onDateChange(event) {
-      this.bookingDate = event.detail.value;
+    refreshSlots() {
+      const previousSlot = this.slotList[this.slotIndex];
+      const previousKey = isEmpty(previousSlot) ? '' : previousSlot.slotKey;
+      this.slotList = this.buildSlotList(new Date());
+      const matchedIndex = this.slotList.findIndex((slot) => slot.slotKey === previousKey);
+      this.slotIndex = matchedIndex >= 0 ? matchedIndex : 0;
     },
     /**
-     * 选择开始时间。
+     * 从可预约的第一档开唱时间起，生成全部刻度。
      */
-    onStartTimeChange(event) {
-      this.startTime = this.normalizeTime(event.detail.value);
-    },
-    /**
-     * 选择结束时间。
-     */
-    onEndTimeChange(event) {
-      this.endTime = this.normalizeTime(event.detail.value);
-    },
-    /**
-     * 时间选择器只有时分时补上秒。
-     */
-    normalizeTime(timeText) {
-      if (isEmpty(timeText)) {
-        return '';
+    buildSlotList(now) {
+      const stepMilliseconds = KtvBookingSlot.STEP_MINUTES * 60 * 1000;
+      const leadMilliseconds = KtvBookingSlot.LEAD_MINUTES * 60 * 1000;
+      // 1. 正好落在刻度上时，这个刻度已经不大于当前时间，再往后推一档
+      let nextSlotTime = Math.ceil(now.getTime() / stepMilliseconds) * stepMilliseconds;
+      if (nextSlotTime <= now.getTime()) {
+        nextSlotTime += stepMilliseconds;
       }
-      if (timeText.length === 5) {
-        return `${timeText}:00`;
+      // 2. 离下一档不足 15 分钟时，从再下一档开始
+      if (nextSlotTime - now.getTime() < leadMilliseconds) {
+        nextSlotTime += stepMilliseconds;
       }
-      return timeText;
+      // 3. 连续取出 8 个刻度，跨过当天的显示明天
+      const todayText = this.formatDate(now);
+      const slotList = [];
+      for (let slotIndex = 0; slotIndex < KtvBookingSlot.COUNT; slotIndex += 1) {
+        const slotTime = new Date(nextSlotTime + slotIndex * stepMilliseconds);
+        const bookingDate = this.formatDate(slotTime);
+        const startTime = this.formatClockTime(slotTime);
+        const dayLabel = bookingDate === todayText ? '今天' : '明天';
+        slotList.push({
+          bookingDate,
+          startTime,
+          slotKey: `${bookingDate} ${startTime}`,
+          label: `${dayLabel} ${startTime.slice(0, 5)}`,
+        });
+      }
+      return slotList;
     },
     /**
-     * 提交预订。服务端会校验包厢归属并扣余额。
+     * 格式化成本地日期。
+     */
+    formatDate(dateTime) {
+      const monthText = String(dateTime.getMonth() + 1).padStart(2, '0');
+      const dayText = String(dateTime.getDate()).padStart(2, '0');
+      return `${dateTime.getFullYear()}-${monthText}-${dayText}`;
+    },
+    /**
+     * 格式化成本地钟点，秒固定为 0。
+     */
+    formatClockTime(dateTime) {
+      const hourText = String(dateTime.getHours()).padStart(2, '0');
+      const minuteText = String(dateTime.getMinutes()).padStart(2, '0');
+      return `${hourText}:${minuteText}:00`;
+    },
+    /**
+     * 选择开唱刻度。
+     */
+    onSlotChange(event) {
+      this.slotIndex = Number(event.detail.value);
+    },
+    /**
+     * 提交预订。服务端按包厢类型占名额并扣余额。
      */
     async submitBooking() {
       const shop = this.shopList[this.shopIndex];
-      const room = this.roomList[this.roomIndex];
-      if (isEmpty(shop) || isEmpty(room) || isEmpty(this.bookingDate) || isEmpty(this.startTime) || isEmpty(this.endTime)) {
+      const roomType = this.roomTypeList[this.roomTypeIndex];
+      const slot = this.slotList[this.slotIndex];
+      const durationHours = Number(this.durationHours);
+      if (isEmpty(shop) || isEmpty(roomType) || isEmpty(slot)) {
         uni.showToast({ title: '请完整填写预订信息', icon: 'none' });
+        return;
+      }
+      if (Number.isInteger(durationHours) !== true || durationHours < KtvBookingHour.MIN || durationHours > KtvBookingHour.MAX) {
+        uni.showToast({ title: '演唱小时数必须在1到24之间', icon: 'none' });
         return;
       }
       await request({
@@ -180,10 +247,10 @@ export default {
         method: 'POST',
         data: {
           shopId: shop.shopId,
-          roomId: room.id,
-          bookingDate: this.bookingDate,
-          startTime: this.startTime,
-          endTime: this.endTime,
+          roomTypeId: roomType.id,
+          bookingDate: slot.bookingDate,
+          startTime: slot.startTime,
+          durationHours,
         },
       });
       uni.showToast({ title: '预订成功', icon: 'success' });

@@ -20,6 +20,17 @@ export const FinanceDirection = {
   OUT: 'OUT',
 };
 
+export const KtvBookingHour = {
+  MIN: 1,
+  MAX: 24,
+};
+
+export const KtvBookingSlot = {
+  COUNT: 8,
+  STEP_MINUTES: 30,
+  LEAD_MINUTES: 15,
+};
+
 export const PageSetting = {
   DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 20,
