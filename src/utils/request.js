@@ -1,41 +1,57 @@
 import { getAuthToken } from './gv-sdk.js';
 import { HttpStatusCode, ResponseCode } from './constants.js';
 import { isEmpty } from './tools.js';
+import { showToast } from './toast.js';
 
 /**
  * 请求业务接口，并自动带上宿主签发的 Authorization。
  */
 export function request(options) {
   return getAuthToken().then((accessToken) => {
-    return new Promise((resolve, reject) => {
-      uni.request({
-        url: options.url,
-        method: options.method || 'GET',
-        data: options.data || {},
-        header: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        success(response) {
-          if (response.statusCode === HttpStatusCode.UNAUTHORIZED) {
-            uni.showToast({ title: '请从聊天App重新进入', icon: 'none' });
-            reject(response);
-            return;
-          }
-          const responseBody = response.data || {};
-          if (responseBody.code !== ResponseCode.SUCCESS) {
-            const failMessage = isEmpty(responseBody.message) ? '请求失败' : responseBody.message;
-            uni.showToast({ title: failMessage, icon: 'none' });
-            reject(responseBody);
-            return;
-          }
-          resolve(responseBody.data);
-        },
-        fail(error) {
-          uni.showToast({ title: '网络异常', icon: 'none' });
-          reject(error);
-        },
+    const method = isEmpty(options.method) ? 'GET' : options.method;
+    const requestData = isEmpty(options.data) ? {} : options.data;
+    // 1. GET 把参数拼到地址上，其它方法放在请求体里
+    let requestUrl = options.url;
+    let requestBody;
+    if (method === 'GET') {
+      const queryText = new URLSearchParams(requestData).toString();
+      if (isEmpty(queryText) !== true) {
+        requestUrl = `${requestUrl}?${queryText}`;
+      }
+    } else {
+      requestBody = JSON.stringify(requestData);
+    }
+    // 2. 按统一响应码处理成功、未登录和失败
+    return fetch(requestUrl, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: requestBody,
+    }).then((response) => {
+      if (response.status === HttpStatusCode.UNAUTHORIZED) {
+        showToast('请从聊天App重新进入');
+        return Promise.reject(response);
+      }
+      return response.json().then((responseBody) => {
+        const body = isEmpty(responseBody) ? {} : responseBody;
+        if (body.code !== ResponseCode.SUCCESS) {
+          const failMessage = isEmpty(body.message) ? '请求失败' : body.message;
+          showToast(failMessage);
+          return Promise.reject(body);
+        }
+        return body.data;
+      }).catch((error) => {
+        if (isEmpty(error) !== true && error.code !== undefined) {
+          return Promise.reject(error);
+        }
+        showToast('网络异常');
+        return Promise.reject(error);
       });
+    }, () => {
+      showToast('网络异常');
+      return Promise.reject(new Error('网络异常'));
     });
   });
 }

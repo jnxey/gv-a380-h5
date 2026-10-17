@@ -2,7 +2,7 @@ import { createHmac, randomUUID } from 'crypto';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import uni from '@dcloudio/vite-plugin-uni';
+import vue from '@vitejs/plugin-vue';
 
 const apiProxyTarget = 'http://127.0.0.1:3200';
 const devMemberId = '1';
@@ -56,7 +56,7 @@ export default defineConfig(({ command }) => {
     defineEnv['import.meta.env.VITE_DEV_MEMBER_TOKEN'] = JSON.stringify(signDevMemberToken(jwtSecret));
   }
   return {
-    plugins: [uni()],
+    plugins: [vue()],
     define: defineEnv,
     server: {
       port: 5174,

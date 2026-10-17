@@ -36,6 +36,23 @@ export const PageSetting = {
   DEFAULT_PAGE_SIZE: 20,
 };
 
+export const H5PagePath = {
+  MEMBER: '/pages/member/index',
+  KTV_BOOKING: '/pages/ktv/booking',
+  HOTEL_BOOKING: '/pages/hotel/booking',
+};
+
+export const PageTitle = {
+  DEFAULT: 'A380',
+  MEMBER: '会员中心',
+  KTV_BOOKING: 'KTV订房',
+  HOTEL_BOOKING: '酒店订房',
+};
+
+export const BookingShopQuery = {
+  SHOP_CODE: 'shopCode',
+};
+
 export const statusLabelMap = {
   RECHARGE: '充值',
   KTV_BOOKING: 'KTV预订',

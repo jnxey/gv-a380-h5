@@ -1,0 +1,11 @@
+---
+description: gv-a380 关联项目的本地路径
+alwaysApply: true
+---
+
+# 关联项目路径
+
+当前仓库是 H5 端。需要对照服务端或后台时，使用下面的本地目录，不要再向用户确认路径。
+
+- 服务端：`D:\Work\app-work\demo\gv-a380-server`
+- 后台：`D:\Work\app-work\demo\gv-a380-admin`
