@@ -26,7 +26,7 @@ export const KtvBookingHour = {
 };
 
 export const KtvBookingSlot = {
-  COUNT: 8,
+  DAY_COUNT: 5,
   STEP_MINUTES: 30,
   LEAD_MINUTES: 15,
 };
@@ -52,6 +52,7 @@ export const KtvRoomCoverName = {
 export const KtvDateLabel = {
   TODAY: '今天',
   TOMORROW: '明天',
+  WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
 };
 
 export const PageSetting = {

@@ -85,10 +85,12 @@
           :class="{ active: slot.slotKey === selectedSlotKey }"
           @click="selectArrivalSlot(slot.slotKey)"
         >
-          {{ formatArrivalLabel(slot) }}
+          {{ formatStartClock(slot) }}
         </button>
       </div>
       <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
+      <label>离店时间</label>
+      <p class="leave-time">{{ leaveTimeText }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
       <div class="actions">
         <button class="ghost" type="button" @click="closeForm">返回</button>
@@ -140,6 +142,7 @@ const currentShop = ref(null);
 const roomTypeList = ref([]);
 const selectedRoomTypeId = ref('');
 const slotList = ref([]);
+const slotBaseTime = ref(new Date());
 const selectedBookingDate = ref('');
 const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
 const selectedSlotKey = ref('');
@@ -183,31 +186,26 @@ const shopMetaText = computed(() => {
 });
 
 /**
- * 日期按钮只来自现有开唱刻度，同一天只保留一个。
+ * 日期按钮固定近 5 天。今天、明天单独标，后面三天标星期。
  */
 const dateOptionList = computed(() => {
-  const now = new Date();
-  const todayText = formatDate(now);
-  const tomorrowDate = new Date(now.getTime());
-  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  const tomorrowText = formatDate(tomorrowDate);
+  const now = slotBaseTime.value;
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dateList = [];
-  for (let slotIndex = 0; slotIndex < slotList.value.length; slotIndex += 1) {
-    const slot = slotList.value[slotIndex];
-    const alreadyAdded = dateList.some((dateOption) => dateOption.bookingDate === slot.bookingDate);
-    if (alreadyAdded) {
-      continue;
-    }
-    let dayLabel = slot.bookingDate.slice(5);
-    if (slot.bookingDate === todayText) {
+  for (let dayOffset = 0; dayOffset < KtvBookingSlot.DAY_COUNT; dayOffset += 1) {
+    const dateTime = new Date(todayStart.getTime());
+    dateTime.setDate(todayStart.getDate() + dayOffset);
+    const bookingDate = formatDate(dateTime);
+    let dayLabel = KtvDateLabel.WEEKDAY_LIST[dateTime.getDay()];
+    if (dayOffset === 0) {
       dayLabel = KtvDateLabel.TODAY;
-    } else if (slot.bookingDate === tomorrowText) {
+    } else if (dayOffset === 1) {
       dayLabel = KtvDateLabel.TOMORROW;
     }
     dateList.push({
-      bookingDate: slot.bookingDate,
+      bookingDate,
       dayLabel,
-      dayNumber: Number(slot.bookingDate.slice(8, 10)),
+      dayNumber: dateTime.getDate(),
     });
   }
   return dateList;
@@ -228,6 +226,16 @@ const arrivalSlotList = computed(() => {
     }
   }
   return arrivalList;
+});
+
+/**
+ * 当前选中进店刻度对应的离店钟点。跨过零点时标成次日。
+ */
+const leaveTimeText = computed(() => {
+  if (isEmpty(selectedArrivalSlot.value)) {
+    return '';
+  }
+  return formatLeaveTime(selectedArrivalSlot.value);
 });
 
 /**
@@ -423,11 +431,13 @@ function formatClockTime(dateTime) {
 }
 
 /**
- * 从可预约的第一档开唱时间起，生成全部刻度。
+ * 生成近 5 天可预约的半小时刻度。今天只留剩余刻度，后四天是全天。
  */
 function buildSlotList(now) {
   const stepMilliseconds = KtvBookingSlot.STEP_MINUTES * 60 * 1000;
   const leadMilliseconds = KtvBookingSlot.LEAD_MINUTES * 60 * 1000;
+  const minutesPerDay = 24 * 60;
+  const slotsPerDay = minutesPerDay / KtvBookingSlot.STEP_MINUTES;
   // 1. 正好落在刻度上时，这个刻度已经不大于当前时间，再往后推一档
   let nextSlotTime = Math.ceil(now.getTime() / stepMilliseconds) * stepMilliseconds;
   if (nextSlotTime <= now.getTime()) {
@@ -437,29 +447,45 @@ function buildSlotList(now) {
   if (nextSlotTime - now.getTime() < leadMilliseconds) {
     nextSlotTime += stepMilliseconds;
   }
-  // 3. 连续取出 8 个刻度，跨过当天的显示明天
   const todayText = formatDate(now);
   const builtSlotList = [];
-  for (let slotPosition = 0; slotPosition < KtvBookingSlot.COUNT; slotPosition += 1) {
-    const slotTime = new Date(nextSlotTime + slotPosition * stepMilliseconds);
-    const bookingDate = formatDate(slotTime);
+  // 3. 今天从第一档可用刻度收到当天结束
+  let todaySlotTime = nextSlotTime;
+  while (formatDate(new Date(todaySlotTime)) === todayText) {
+    const slotTime = new Date(todaySlotTime);
     const startTime = formatClockTime(slotTime);
-    const dayLabel = bookingDate === todayText ? KtvDateLabel.TODAY : KtvDateLabel.TOMORROW;
     builtSlotList.push({
-      bookingDate,
+      bookingDate: todayText,
       startTime,
-      slotKey: `${bookingDate} ${startTime}`,
-      label: `${dayLabel} ${startTime.slice(0, 5)}`,
+      slotKey: `${todayText} ${startTime}`,
     });
+    todaySlotTime += stepMilliseconds;
+  }
+  // 4. 后四天每天从 00:00 到 23:30
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let dayOffset = 1; dayOffset < KtvBookingSlot.DAY_COUNT; dayOffset += 1) {
+    const dayStart = new Date(todayStart.getTime());
+    dayStart.setDate(todayStart.getDate() + dayOffset);
+    for (let slotIndex = 0; slotIndex < slotsPerDay; slotIndex += 1) {
+      const slotTime = new Date(dayStart.getTime() + slotIndex * stepMilliseconds);
+      const bookingDate = formatDate(slotTime);
+      const startTime = formatClockTime(slotTime);
+      builtSlotList.push({
+        bookingDate,
+        startTime,
+        slotKey: `${bookingDate} ${startTime}`,
+      });
+    }
   }
   return builtSlotList;
 }
 
 /**
- * 按当前时间重算 8 个开唱刻度。
+ * 按当前时间重算近 5 天的开唱刻度。
  */
 function refreshSlots() {
-  slotList.value = buildSlotList(new Date());
+  slotBaseTime.value = new Date();
+  slotList.value = buildSlotList(slotBaseTime.value);
   ensureSelection();
 }
 
@@ -475,6 +501,32 @@ function ensureSelection() {
   if (durationStillExists !== true) {
     selectedDurationHours.value = KtvBookingDuration.DEFAULT_HOURS;
   }
+}
+
+/**
+ * 进店钟点，只保留时和分。
+ */
+function formatStartClock(slot) {
+  return slot.startTime.slice(0, 5);
+}
+
+/**
+ * 按进店钟点和演唱时长算出离店钟点。唱完不晚于开唱时标成次日。
+ */
+function formatLeaveTime(slot) {
+  const startText = slot.startTime.slice(0, 5);
+  const hourValue = Number(slot.startTime.slice(0, 2));
+  const minuteValue = Number(slot.startTime.slice(3, 5));
+  const totalMinutes = hourValue * 60 + minuteValue + selectedDurationHours.value * 60;
+  const minutesPerDay = 24 * 60;
+  const endMinutes = totalMinutes % minutesPerDay;
+  const endHourText = String(Math.floor(endMinutes / 60)).padStart(2, '0');
+  const endMinuteText = String(endMinutes % 60).padStart(2, '0');
+  const endText = `${endHourText}:${endMinuteText}`;
+  if (endText <= startText) {
+    return `次日 ${endText}`;
+  }
+  return endText;
 }
 
 /**
@@ -686,24 +738,15 @@ watch(
   background: #f5f6f8;
 }
 .dates,
-.chips,
-.slots {
+.chips {
   display: flex;
   gap: 8px;
 }
-.dates {
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-}
-.dates::-webkit-scrollbar,
-.chips::-webkit-scrollbar,
-.slots::-webkit-scrollbar {
-  display: none;
-}
-.chips,
-.slots {
+.chips {
   flex-wrap: wrap;
+}
+.chips::-webkit-scrollbar {
+  display: none;
 }
 .dates button,
 .chips button,
@@ -715,7 +758,8 @@ watch(
   font: inherit;
 }
 .dates button {
-  flex: 0 0 64px;
+  flex: 1 1 0;
+  min-width: 0;
   padding: 10px 0 8px;
   border-radius: 14px;
   background: #fff;
@@ -753,9 +797,20 @@ watch(
   color: #111827;
   font-size: 13px;
 }
+.slots {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
 .slots button {
-  flex: 0 0 auto;
+  width: 100%;
+  padding: 8px 0;
   background: #e8eef8;
+}
+.leave-time {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 .chips button.active,
 .slots button.active {
