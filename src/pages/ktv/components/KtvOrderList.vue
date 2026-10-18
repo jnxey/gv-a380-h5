@@ -5,15 +5,9 @@
       <h2>{{ order.roomTypeName }}</h2>
       <span>{{ statusLabel(order.orderStatus) }}</span>
     </div>
-    <div class="order-time-line">
-      <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }}</p>
-      <div class="order-amount-line">
-        <span>{{ order.durationHours }}小时</span>
-        <strong>¥{{ order.amount }}</strong>
-      </div>
-    </div>
+    <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
     <div class="order-foot">
-      <p class="order-no">{{ order.orderNo }}</p>
+      <strong class="order-amount">¥{{ order.amount }}</strong>
       <button v-if="isEmpty(order.verifyCode) !== true" class="verify-button" type="button" @click="openVerifyCode(order)">
         核销码
       </button>
@@ -23,10 +17,15 @@
     <button type="button" :disabled="previousPageDisabled" @click="emit('change-page', orderPageNumber - 1)">上一页</button>
     <button type="button" :disabled="nextPageDisabled" @click="emit('change-page', orderPageNumber + 1)">下一页</button>
   </div>
-  <div v-if="isEmpty(openedVerifyCode) !== true" class="verify-mask" @click="closeVerifyCode">
+  <div v-if="isEmpty(openedOrder) !== true" class="verify-mask" @click="closeVerifyCode">
     <section class="verify-card" @click.stop>
       <img v-if="isEmpty(verifyCodeImageUrl) !== true" class="verify-image" :src="verifyCodeImageUrl" alt="" />
-      <p class="verify-value">{{ openedVerifyCode }}</p>
+      <p class="verify-value">{{ openedOrder.verifyCode }}</p>
+      <div class="verify-detail">
+        <div>{{ openedOrder.roomTypeName }} {{ statusLabel(openedOrder.orderStatus) }}</div>
+        <div>{{ openedOrder.bookingDate }} {{ formatClockText(openedOrder.startTime) }} - {{ formatBookingEnd(openedOrder) }} {{ openedOrder.durationHours }}小时</div>
+        <div class="verify-amount">¥{{ openedOrder.amount }}</div>
+      </div>
       <button class="verify-close" type="button" @click="closeVerifyCode">关闭</button>
     </section>
   </div>
@@ -57,7 +56,7 @@ const props = defineProps({
 
 const emit = defineEmits(['change-page']);
 
-const openedVerifyCode = ref('');
+const openedOrder = ref(null);
 const verifyCodeImageUrl = ref('');
 
 /**
@@ -101,13 +100,13 @@ function formatBookingEnd(order) {
 }
 
 /**
- * 打开核销码弹窗，并按核销码生成二维码。
+ * 打开核销码弹窗，记下这笔订单并生成二维码。
  */
 async function openVerifyCode(order) {
   if (isEmpty(order) || isEmpty(order.verifyCode)) {
     return;
   }
-  openedVerifyCode.value = order.verifyCode;
+  openedOrder.value = order;
   verifyCodeImageUrl.value = await QRCode.toDataURL(order.verifyCode, {
     margin: 1,
     width: 180,
@@ -118,7 +117,7 @@ async function openVerifyCode(order) {
  * 关闭核销码弹窗。
  */
 function closeVerifyCode() {
-  openedVerifyCode.value = '';
+  openedOrder.value = null;
   verifyCodeImageUrl.value = '';
 }
 </script>
@@ -151,7 +150,11 @@ function closeVerifyCode() {
   color: #6b7280;
   font-size: 13px;
 }
-.order-time-line,
+.order-sub {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
 .order-foot {
   display: flex;
   align-items: center;
@@ -159,27 +162,8 @@ function closeVerifyCode() {
   gap: 8px;
   margin-top: 8px;
 }
-.order-sub,
-.order-no {
-  margin: 0;
-  color: #6b7280;
-}
-.order-sub {
-  font-size: 13px;
-}
-.order-no {
-  min-width: 0;
-  font-size: 11px;
-}
-.order-amount-line {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: baseline;
-  gap: 6px;
-  color: #6b7280;
-  font-size: 13px;
-}
-.order-amount-line strong {
+.order-amount,
+.verify-amount {
   color: #6d28d9;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
@@ -241,6 +225,13 @@ function closeVerifyCode() {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 2px;
+}
+.verify-detail {
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
 }
 .verify-close {
   width: 100%;
