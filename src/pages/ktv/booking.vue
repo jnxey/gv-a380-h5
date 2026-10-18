@@ -1,24 +1,30 @@
 <template>
-  <div class="page" :class="{ 'page-with-bar': bookingStep !== KtvBookingStep.SUCCESS }">
+  <div class="page" :class="{ 'page-with-bar': showBookingBar }">
     <section v-if="bookingStep !== KtvBookingStep.SUCCESS">
       <KtvStoreHeader :current-shop="currentShop" />
       <div class="panel">
-        <KtvDatePicker
-          :date-option-list="dateOptionList"
-          :selected-booking-date="selectedBookingDate"
-          @select="selectBookingDate"
-        />
-        <KtvDurationPicker :selected-duration-hours="selectedDurationHours" @select="selectDuration" />
-        <KtvRoomList
-          :current-shop="currentShop"
-          :room-type-list="roomTypeList"
-          :selected-room-type-id="selectedRoomTypeId"
-          :format-room-amount="formatRoomAmount"
-          @select="selectRoomType"
-        />
-        <KtvOrderList :order-list="orderList" />
+        <KtvContentTabs :selected-content-tab="selectedContentTab" @select="selectContentTab" />
+        <template v-if="selectedContentTab === KtvContentTab.BOOKING">
+          <KtvDatePicker
+            :date-option-list="dateOptionList"
+            :selected-booking-date="selectedBookingDate"
+            @select="selectBookingDate"
+          />
+          <KtvDurationPicker :selected-duration-hours="selectedDurationHours" @select="selectDuration" />
+          <KtvRoomList
+            :current-shop="currentShop"
+            :room-type-list="roomTypeList"
+            :selected-room-type-id="selectedRoomTypeId"
+            :format-room-amount="formatRoomAmount"
+            @select="selectRoomType"
+          />
+        </template>
+        <KtvOrderList v-if="selectedContentTab === KtvContentTab.ORDER" :order-list="orderList" />
+        <KtvReviewEmpty v-if="selectedContentTab === KtvContentTab.REVIEW" />
+        <KtvShopDetail v-if="selectedContentTab === KtvContentTab.SHOP" :current-shop="currentShop" />
       </div>
       <KtvBookingBar
+        v-if="showBookingBar"
         :summary-text="bottomSummaryText"
         :amount-text="bottomAmountText"
         :booking-disabled="isEmpty(selectedRoomType)"
@@ -53,10 +59,13 @@ import { request } from '../../utils/request.js';
 import KtvBookingBar from './components/KtvBookingBar.vue';
 import KtvBookingSheet from './components/KtvBookingSheet.vue';
 import KtvBookingSuccess from './components/KtvBookingSuccess.vue';
+import KtvContentTabs from './components/KtvContentTabs.vue';
 import KtvDatePicker from './components/KtvDatePicker.vue';
 import KtvDurationPicker from './components/KtvDurationPicker.vue';
 import KtvOrderList from './components/KtvOrderList.vue';
+import KtvReviewEmpty from './components/KtvReviewEmpty.vue';
 import KtvRoomList from './components/KtvRoomList.vue';
+import KtvShopDetail from './components/KtvShopDetail.vue';
 import KtvStoreHeader from './components/KtvStoreHeader.vue';
 import {
   BookingShopQuery,
@@ -64,6 +73,7 @@ import {
   KtvBookingHour,
   KtvBookingSlot,
   KtvBookingStep,
+  KtvContentTab,
   KtvDateLabel,
   PageSetting,
   ShopType,
@@ -149,8 +159,19 @@ const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
 const selectedSlotKey = ref('');
 const formError = ref('');
 const bookingStep = ref(KtvBookingStep.LIST);
+const selectedContentTab = ref(KtvContentTab.BOOKING);
 const successSummary = ref(null);
 const orderList = ref([]);
+
+/**
+ * 底部预约栏只在预定 Tab，并且还没进入成功页时出现。
+ */
+const showBookingBar = computed(() => {
+  if (bookingStep.value === KtvBookingStep.SUCCESS) {
+    return false;
+  }
+  return selectedContentTab.value === KtvContentTab.BOOKING;
+});
 
 /**
  * 当前选中的包厢类型。没点过卡片时为空。
@@ -474,6 +495,13 @@ function formatArrivalLabel(slot) {
 }
 
 /**
+ * 切换内容区 Tab。
+ */
+function selectContentTab(contentTab) {
+  selectedContentTab.value = contentTab;
+}
+
+/**
  * 选择日期。
  */
 function selectBookingDate(bookingDate) {
@@ -489,9 +517,13 @@ function selectDuration(hourCount) {
 }
 
 /**
- * 选择包厢类型。
+ * 选择包厢类型。再次点击已选中的类型时取消选中。
  */
 function selectRoomType(roomTypeId) {
+  if (selectedRoomTypeId.value === roomTypeId) {
+    selectedRoomTypeId.value = '';
+    return;
+  }
   selectedRoomTypeId.value = roomTypeId;
 }
 

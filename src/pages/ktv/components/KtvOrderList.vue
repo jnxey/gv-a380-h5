@@ -1,5 +1,4 @@
 <template>
-  <p class="section-label">我的订单</p>
   <p v-if="isEmpty(orderList)" class="empty">暂无订单</p>
   <div v-for="order in orderList" :key="order.id" class="order-row">
     <span class="order-title">{{ order.orderNo }} {{ statusLabel(order.orderStatus) }}</span>
@@ -35,12 +34,6 @@ function formatBookingEnd(order) {
 </script>
 
 <style scoped>
-.section-label {
-  margin: 16px 0 8px;
-  color: #6b7280;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-}
 .empty {
   margin: 24px 0;
   color: #6b7280;

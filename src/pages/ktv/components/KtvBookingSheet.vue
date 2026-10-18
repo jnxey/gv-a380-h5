@@ -1,7 +1,6 @@
 <template>
   <div class="mask" @click="emit('close')"></div>
   <section v-if="isEmpty(selectedRoomType) !== true" class="sheet">
-    <button class="close" type="button" @click="emit('close')">×</button>
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
@@ -152,21 +151,6 @@ function formatStartClock(slot) {
 .sheet h2 {
   margin: 0 0 4px;
   font-size: 18px;
-}
-.close {
-  position: absolute;
-  top: -36px;
-  right: 16px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.72);
-  color: rgba(17, 24, 39, 0.72);
-  font: inherit;
-  font-size: 16px;
-  line-height: 24px;
 }
 .hint {
   margin: 0 0 14px;

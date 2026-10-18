@@ -37,6 +37,24 @@ export const KtvBookingStep = {
   SUCCESS: 'success',
 };
 
+export const KtvContentTab = {
+  BOOKING: 'booking',
+  ORDER: 'order',
+  REVIEW: 'review',
+  SHOP: 'shop',
+};
+
+export const KtvContentTabItemList = [
+  { contentTab: KtvContentTab.BOOKING, label: '预定' },
+  { contentTab: KtvContentTab.ORDER, label: '订单' },
+  { contentTab: KtvContentTab.REVIEW, label: '评价' },
+  { contentTab: KtvContentTab.SHOP, label: '店铺' },
+];
+
+export const AppIconName = {
+  REVIEW: 'REVIEW',
+};
+
 export const KtvBookingDuration = {
   HOUR_LIST: [2, 3, 4, 6],
   DEFAULT_HOURS: 3,
