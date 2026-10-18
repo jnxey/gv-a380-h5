@@ -1,52 +1,136 @@
 <template>
-  <div class="page">
-    <div class="card">
-      <div class="field">门店：{{ currentShopName }}</div>
-      <label class="field">
-        包厢类型：
-        <select :value="String(roomTypeIndex)" @change="onRoomTypeChange">
-          <option v-if="roomTypeNameList.length === 0" value="0">请选择</option>
-          <option
-            v-for="(roomTypeName, roomTypeOptionIndex) in roomTypeNameList"
-            :key="roomTypeOptionIndex"
-            :value="String(roomTypeOptionIndex)"
+  <div class="page" :class="{ 'page-with-bar': bookingStep !== KtvBookingStep.SUCCESS }">
+    <section v-if="bookingStep !== KtvBookingStep.SUCCESS">
+      <header v-if="isEmpty(currentShop) !== true" class="store">
+        <h1>{{ currentShop.shopName }}</h1>
+        <p class="meta">{{ shopMetaText }}</p>
+      </header>
+
+      <div class="panel">
+        <div class="dates">
+          <button
+            v-for="dateOption in dateOptionList"
+            :key="dateOption.bookingDate"
+            type="button"
+            :class="{ active: dateOption.bookingDate === selectedBookingDate }"
+            @click="selectBookingDate(dateOption.bookingDate)"
           >
-            {{ roomTypeName }}
-          </option>
-        </select>
-      </label>
-      <label class="field">
-        开唱：
-        <select :value="String(slotIndex)" @change="onSlotChange">
-          <option v-if="slotLabelList.length === 0" value="0">请选择</option>
-          <option
-            v-for="(slotLabel, slotOptionIndex) in slotLabelList"
-            :key="slotOptionIndex"
-            :value="String(slotOptionIndex)"
+            <span class="weekday">{{ dateOption.dayLabel }}</span>
+            <strong>{{ dateOption.dayNumber }}</strong>
+          </button>
+        </div>
+
+        <p class="section-label">欢唱时长</p>
+        <div class="chips">
+          <button
+            v-for="hourCount in KtvBookingDuration.HOUR_LIST"
+            :key="hourCount"
+            type="button"
+            :class="{ active: hourCount === selectedDurationHours }"
+            @click="selectDuration(hourCount)"
           >
-            {{ slotLabel }}
-          </option>
-        </select>
-      </label>
-      <input class="field" type="number" v-model="durationHours" placeholder="唱几小时" />
-      <div class="price" v-if="currentBookingAmount !== ''">包厢费 {{ currentBookingAmount }} 元，提交后立即扣余额</div>
-      <button class="submit-button" type="button" @click="submitBooking">提交预订</button>
-    </div>
-    <div class="section-title">我的订单</div>
-    <div v-for="order in orderList" :key="order.bookingOrderId" class="order-row">
-      <span class="order-title">{{ order.roomTypeName }} {{ order.bookingDate }}</span>
-      <span v-if="isEmpty(order.roomName) !== true" class="order-sub">包厢 {{ order.roomName }}</span>
-      <span class="order-sub">{{ order.startTime }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时 {{ statusLabel(order.orderStatus) }}</span>
-      <span class="order-sub">核销码 {{ order.verifyCode }} 金额 {{ order.amount }}</span>
-    </div>
+            {{ hourCount }} 小时
+          </button>
+        </div>
+
+        <p class="section-label">包厢</p>
+        <p v-if="isEmpty(currentShop) !== true && isEmpty(roomTypeList)" class="empty">暂无可预订包厢</p>
+        <ul class="rooms">
+          <li
+            v-for="roomType in roomTypeList"
+            :key="roomType.id"
+            class="room"
+            :class="{ picked: roomType.id === selectedRoomTypeId }"
+            @click="selectRoomType(roomType.id)"
+          >
+            <div class="cover" :style="coverStyle(roomType)"></div>
+            <div>
+              <h2>{{ roomType.typeName }}</h2>
+              <div class="price-line">
+                <strong>¥{{ formatRoomAmount(roomType) }}</strong>
+              </div>
+            </div>
+          </li>
+        </ul>
+
+        <p class="section-label">我的订单</p>
+        <p v-if="isEmpty(orderList)" class="empty">暂无订单</p>
+        <div v-for="order in orderList" :key="order.id" class="order-row">
+          <span class="order-title">{{ order.orderNo }} {{ statusLabel(order.orderStatus) }}</span>
+          <span class="order-sub">{{ order.bookingDate }} {{ order.startTime }} - {{ formatBookingEnd(order) }}</span>
+          <span class="order-sub">{{ order.durationHours }}小时 ¥{{ order.amount }} 核销码 {{ order.verifyCode }}</span>
+        </div>
+      </div>
+
+      <div class="bar">
+        <div>
+          <p>{{ bottomSummaryText }}</p>
+          <strong v-if="isEmpty(selectedRoomType) !== true">{{ bottomAmountText }}</strong>
+        </div>
+        <button class="book" type="button" :disabled="isEmpty(selectedRoomType)" @click="openForm">去预约</button>
+      </div>
+    </section>
+
+    <div v-if="bookingStep === KtvBookingStep.FORM" class="mask" @click="closeForm"></div>
+    <section v-if="bookingStep === KtvBookingStep.FORM && isEmpty(selectedRoomType) !== true" class="sheet">
+      <div class="handle"></div>
+      <h2>{{ selectedRoomType.typeName }}</h2>
+      <p class="hint">{{ formHintText }}</p>
+      <label>到店时间</label>
+      <div class="slots">
+        <button
+          v-for="slot in arrivalSlotList"
+          :key="slot.slotKey"
+          type="button"
+          :class="{ active: slot.slotKey === selectedSlotKey }"
+          @click="selectArrivalSlot(slot.slotKey)"
+        >
+          {{ formatArrivalLabel(slot) }}
+        </button>
+      </div>
+      <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
+      <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
+      <div class="actions">
+        <button class="ghost" type="button" @click="closeForm">返回</button>
+        <button class="solid" type="button" @click="submitBooking">确认预约</button>
+      </div>
+    </section>
+
+    <section v-if="bookingStep === KtvBookingStep.SUCCESS && isEmpty(successSummary) !== true" class="success">
+      <div class="badge">✓</div>
+      <h1>预约已提交</h1>
+      <p class="order-no">单号 {{ successSummary.orderNo }}</p>
+      <div class="summary">
+        <div>核销码 {{ successSummary.verifyCode }}</div>
+        <div>{{ successSummary.shopName }} · {{ successSummary.roomTypeName }}</div>
+        <div>{{ successSummary.bookingDate }} {{ successSummary.arrivalLabel }}</div>
+        <div>¥{{ successSummary.amount }}</div>
+      </div>
+      <button type="button" @click="bookAgain">再约一间</button>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import largeCover from '../../assets/ktv/ktv-large.jpg';
+import mediumCover from '../../assets/ktv/ktv-medium.jpg';
+import smallCover from '../../assets/ktv/ktv-small.jpg';
+import vipCover from '../../assets/ktv/ktv-vip.jpg';
 import { request } from '../../utils/request.js';
-import { BookingShopQuery, KtvBookingHour, KtvBookingSlot, PageSetting, ShopType, statusLabel } from '../../utils/constants.js';
+import {
+  BookingShopQuery,
+  KtvBookingDuration,
+  KtvBookingHour,
+  KtvBookingSlot,
+  KtvBookingStep,
+  KtvDateLabel,
+  KtvRoomCoverName,
+  PageSetting,
+  ShopType,
+  statusLabel,
+} from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { isEmpty } from '../../utils/tools.js';
 
@@ -54,43 +138,139 @@ const currentRoute = useRoute();
 const shopCode = ref('');
 const currentShop = ref(null);
 const roomTypeList = ref([]);
-const roomTypeIndex = ref(0);
+const selectedRoomTypeId = ref('');
 const slotList = ref([]);
-const slotIndex = ref(0);
-const durationHours = ref('');
+const selectedBookingDate = ref('');
+const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
+const selectedSlotKey = ref('');
+const formError = ref('');
+const bookingStep = ref(KtvBookingStep.LIST);
+const successSummary = ref(null);
 const orderList = ref([]);
 
 /**
- * 包厢类型名称列表。
+ * 当前选中的包厢类型。没点过卡片时为空。
  */
-const roomTypeNameList = computed(() => {
-  return roomTypeList.value.map((roomType) => `${roomType.typeName} ${roomType.hourlyPrice}元`);
+const selectedRoomType = computed(() => {
+  if (isEmpty(selectedRoomTypeId.value)) {
+    return null;
+  }
+  for (let roomTypeIndex = 0; roomTypeIndex < roomTypeList.value.length; roomTypeIndex += 1) {
+    const roomType = roomTypeList.value[roomTypeIndex];
+    if (isEmpty(roomType) !== true && roomType.id === selectedRoomTypeId.value) {
+      return roomType;
+    }
+  }
+  return null;
 });
 
 /**
- * 当前锁定门店的名称。
+ * 门店地址和电话。缺哪一项就只显示另一项。
  */
-const currentShopName = computed(() => {
-  return isEmpty(currentShop.value) ? '' : currentShop.value.shopName;
-});
-
-/**
- * 开唱刻度的展示文字。
- */
-const slotLabelList = computed(() => {
-  return slotList.value.map((slot) => slot.label);
-});
-
-/**
- * 当前预订金额。小时数不合法时不显示。
- */
-const currentBookingAmount = computed(() => {
-  const roomType = roomTypeList.value[roomTypeIndex.value];
-  const durationHourCount = Number(durationHours.value);
-  if (isEmpty(roomType) || Number.isInteger(durationHourCount) !== true || durationHourCount < KtvBookingHour.MIN || durationHourCount > KtvBookingHour.MAX) {
+const shopMetaText = computed(() => {
+  if (isEmpty(currentShop.value)) {
     return '';
   }
-  return (Number(roomType.hourlyPrice) * durationHourCount).toFixed(2);
+  const addressText = isEmpty(currentShop.value.address) ? '' : currentShop.value.address;
+  const phoneText = isEmpty(currentShop.value.contactPhone) ? '' : currentShop.value.contactPhone;
+  if (isEmpty(addressText)) {
+    return phoneText;
+  }
+  if (isEmpty(phoneText)) {
+    return addressText;
+  }
+  return `${addressText} · ${phoneText}`;
+});
+
+/**
+ * 日期按钮只来自现有开唱刻度，同一天只保留一个。
+ */
+const dateOptionList = computed(() => {
+  const now = new Date();
+  const todayText = formatDate(now);
+  const tomorrowDate = new Date(now.getTime());
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowText = formatDate(tomorrowDate);
+  const dateList = [];
+  for (let slotIndex = 0; slotIndex < slotList.value.length; slotIndex += 1) {
+    const slot = slotList.value[slotIndex];
+    const alreadyAdded = dateList.some((dateOption) => dateOption.bookingDate === slot.bookingDate);
+    if (alreadyAdded) {
+      continue;
+    }
+    let dayLabel = slot.bookingDate.slice(5);
+    if (slot.bookingDate === todayText) {
+      dayLabel = KtvDateLabel.TODAY;
+    } else if (slot.bookingDate === tomorrowText) {
+      dayLabel = KtvDateLabel.TOMORROW;
+    }
+    dateList.push({
+      bookingDate: slot.bookingDate,
+      dayLabel,
+      dayNumber: Number(slot.bookingDate.slice(8, 10)),
+    });
+  }
+  return dateList;
+});
+
+/**
+ * 所选日期上全部已经可预约的半小时刻度。
+ */
+const arrivalSlotList = computed(() => {
+  if (isEmpty(selectedBookingDate.value)) {
+    return [];
+  }
+  const arrivalList = [];
+  for (let slotIndex = 0; slotIndex < slotList.value.length; slotIndex += 1) {
+    const slot = slotList.value[slotIndex];
+    if (slot.bookingDate === selectedBookingDate.value) {
+      arrivalList.push(slot);
+    }
+  }
+  return arrivalList;
+});
+
+/**
+ * 当前选中的到店刻度。
+ */
+const selectedArrivalSlot = computed(() => {
+  for (let slotIndex = 0; slotIndex < arrivalSlotList.value.length; slotIndex += 1) {
+    const slot = arrivalSlotList.value[slotIndex];
+    if (slot.slotKey === selectedSlotKey.value) {
+      return slot;
+    }
+  }
+  return null;
+});
+
+/**
+ * 底部栏左侧的类型和时长。没选类型时提示去选。
+ */
+const bottomSummaryText = computed(() => {
+  if (isEmpty(selectedRoomType.value)) {
+    return '请选择包厢';
+  }
+  return `${selectedRoomType.value.typeName} · ${selectedDurationHours.value}小时`;
+});
+
+/**
+ * 底部金额。按包厢小时价乘时长。
+ */
+const bottomAmountText = computed(() => {
+  if (isEmpty(selectedRoomType.value)) {
+    return '';
+  }
+  return `¥${formatRoomAmount(selectedRoomType.value)}`;
+});
+
+/**
+ * 弹层副标题：门店、日期、时长和金额。
+ */
+const formHintText = computed(() => {
+  if (isEmpty(currentShop.value) || isEmpty(selectedRoomType.value)) {
+    return '';
+  }
+  return `${currentShop.value.shopName} · ${selectedBookingDate.value} · ${selectedDurationHours.value} 小时 · ${bottomAmountText.value}`;
 });
 
 /**
@@ -135,12 +315,55 @@ function findShopByCode(shopList) {
 }
 
 /**
+ * 按类型名挑封面。对不上小包、中包、大包、VIP 时不配图。
+ */
+function resolveRoomCover(typeName) {
+  if (isEmpty(typeName)) {
+    return '';
+  }
+  const upperName = typeName.toUpperCase();
+  if (upperName.indexOf(KtvRoomCoverName.VIP) >= 0) {
+    return vipCover;
+  }
+  if (typeName.indexOf(KtvRoomCoverName.LARGE) >= 0) {
+    return largeCover;
+  }
+  if (typeName.indexOf(KtvRoomCoverName.MEDIUM) >= 0) {
+    return mediumCover;
+  }
+  if (typeName.indexOf(KtvRoomCoverName.SMALL) >= 0) {
+    return smallCover;
+  }
+  return '';
+}
+
+/**
+ * 封面背景。没有对应图片时留给样式里的纯色。
+ */
+function coverStyle(roomType) {
+  const coverUrl = resolveRoomCover(roomType.typeName);
+  if (isEmpty(coverUrl)) {
+    return {};
+  }
+  return { backgroundImage: `url("${coverUrl}")` };
+}
+
+/**
+ * 当前时长下的包厢总价。
+ */
+function formatRoomAmount(roomType) {
+  const amount = Number(roomType.hourlyPrice) * selectedDurationHours.value;
+  return amount.toFixed(2);
+}
+
+/**
  * 按当前门店加载可预订的包厢类型。
  */
 async function loadRoomTypes() {
   const shop = currentShop.value;
   if (isEmpty(shop)) {
     roomTypeList.value = [];
+    selectedRoomTypeId.value = '';
     return;
   }
   roomTypeList.value = await request({
@@ -148,7 +371,9 @@ async function loadRoomTypes() {
     method: 'GET',
     data: { shopId: shop.shopId },
   });
-  roomTypeIndex.value = 0;
+  if (isEmpty(selectedRoomType.value)) {
+    selectedRoomTypeId.value = '';
+  }
 }
 
 /**
@@ -166,6 +391,7 @@ async function loadPage() {
     const toastTitle = isEmpty(shopCode.value) ? '缺少门店编号' : '门店不存在';
     showToast(toastTitle);
     roomTypeList.value = [];
+    selectedRoomTypeId.value = '';
   } else {
     await loadRoomTypes();
   }
@@ -176,13 +402,6 @@ async function loadPage() {
     data: { page: PageSetting.DEFAULT_PAGE, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
   });
   orderList.value = isEmpty(orderPage) ? [] : orderPage.list;
-}
-
-/**
- * 选择包厢类型。
- */
-function onRoomTypeChange(event) {
-  roomTypeIndex.value = Number(event.target.value);
 }
 
 /**
@@ -225,7 +444,7 @@ function buildSlotList(now) {
     const slotTime = new Date(nextSlotTime + slotPosition * stepMilliseconds);
     const bookingDate = formatDate(slotTime);
     const startTime = formatClockTime(slotTime);
-    const dayLabel = bookingDate === todayText ? '今天' : '明天';
+    const dayLabel = bookingDate === todayText ? KtvDateLabel.TODAY : KtvDateLabel.TOMORROW;
     builtSlotList.push({
       bookingDate,
       startTime,
@@ -237,40 +456,121 @@ function buildSlotList(now) {
 }
 
 /**
- * 按当前时间重算 8 个开唱刻度。原来的选择还在列表里就保留。
+ * 按当前时间重算 8 个开唱刻度。
  */
 function refreshSlots() {
-  const previousSlot = slotList.value[slotIndex.value];
-  const previousKey = isEmpty(previousSlot) ? '' : previousSlot.slotKey;
   slotList.value = buildSlotList(new Date());
-  const matchedIndex = slotList.value.findIndex((slot) => slot.slotKey === previousKey);
-  slotIndex.value = matchedIndex >= 0 ? matchedIndex : 0;
+  ensureSelection();
 }
 
 /**
- * 选择开唱刻度。
+ * 日期和时长还在可选范围里就保留，否则回到第一项。
  */
-function onSlotChange(event) {
-  slotIndex.value = Number(event.target.value);
+function ensureSelection() {
+  const dateStillExists = dateOptionList.value.some((dateOption) => dateOption.bookingDate === selectedBookingDate.value);
+  if (dateStillExists !== true && dateOptionList.value.length > 0) {
+    selectedBookingDate.value = dateOptionList.value[0].bookingDate;
+  }
+  const durationStillExists = KtvBookingDuration.HOUR_LIST.some((hourCount) => hourCount === selectedDurationHours.value);
+  if (durationStillExists !== true) {
+    selectedDurationHours.value = KtvBookingDuration.DEFAULT_HOURS;
+  }
 }
 
 /**
- * 提交预订。服务端按包厢类型占名额并扣余额。
+ * 到店时段文字。唱完钟点不晚于开唱钟点时标成次日。
+ */
+function formatArrivalLabel(slot) {
+  const startText = slot.startTime.slice(0, 5);
+  const hourValue = Number(slot.startTime.slice(0, 2));
+  const minuteValue = Number(slot.startTime.slice(3, 5));
+  const totalMinutes = hourValue * 60 + minuteValue + selectedDurationHours.value * 60;
+  const minutesPerDay = 24 * 60;
+  const endMinutes = totalMinutes % minutesPerDay;
+  const endHourText = String(Math.floor(endMinutes / 60)).padStart(2, '0');
+  const endMinuteText = String(endMinutes % 60).padStart(2, '0');
+  const endText = `${endHourText}:${endMinuteText}`;
+  if (endText <= startText) {
+    return `${startText}-次日${endText}`;
+  }
+  return `${startText}-${endText}`;
+}
+
+/**
+ * 选择日期。
+ */
+function selectBookingDate(bookingDate) {
+  selectedBookingDate.value = bookingDate;
+  ensureSelection();
+}
+
+/**
+ * 选择演唱时长。
+ */
+function selectDuration(hourCount) {
+  selectedDurationHours.value = hourCount;
+}
+
+/**
+ * 选择包厢类型。
+ */
+function selectRoomType(roomTypeId) {
+  selectedRoomTypeId.value = roomTypeId;
+}
+
+/**
+ * 选择到店时间。
+ */
+function selectArrivalSlot(slotKey) {
+  selectedSlotKey.value = slotKey;
+}
+
+/**
+ * 打开预约弹层。到店时间默认落在当天第一档可预约刻度。
+ */
+function openForm() {
+  if (isEmpty(selectedRoomType.value)) {
+    return;
+  }
+  const arrivalStillExists = arrivalSlotList.value.some((slot) => slot.slotKey === selectedSlotKey.value);
+  if (arrivalStillExists !== true) {
+    selectedSlotKey.value = isEmpty(arrivalSlotList.value) ? '' : arrivalSlotList.value[0].slotKey;
+  }
+  formError.value = '';
+  bookingStep.value = KtvBookingStep.FORM;
+}
+
+/**
+ * 关闭预约弹层，回到选房。
+ */
+function closeForm() {
+  formError.value = '';
+  bookingStep.value = KtvBookingStep.LIST;
+}
+
+/**
+ * 提交预订。只提交门店、包厢类型、开唱时间和时长。
  */
 async function submitBooking() {
   const shop = currentShop.value;
-  const roomType = roomTypeList.value[roomTypeIndex.value];
-  const slot = slotList.value[slotIndex.value];
-  const durationHourCount = Number(durationHours.value);
-  if (isEmpty(shop) || isEmpty(roomType) || isEmpty(slot)) {
-    showToast('请完整填写预订信息');
+  const roomType = selectedRoomType.value;
+  const slot = selectedArrivalSlot.value;
+  const durationHourCount = selectedDurationHours.value;
+  // 1. 先做本地校验，缺项时停在弹层里
+  if (isEmpty(shop) || isEmpty(roomType)) {
+    formError.value = '请完整填写预订信息';
+    return;
+  }
+  if (isEmpty(slot)) {
+    formError.value = '当前日期没有可预约时间';
     return;
   }
   if (Number.isInteger(durationHourCount) !== true || durationHourCount < KtvBookingHour.MIN || durationHourCount > KtvBookingHour.MAX) {
-    showToast('演唱小时数必须在1到24之间');
+    formError.value = '演唱小时数必须在1到24之间';
     return;
   }
-  await request({
+  // 2. 提交体只带门店、包厢类型、开唱时间和时长
+  const createdOrder = await request({
     url: '/app/ktv/booking-orders',
     method: 'POST',
     data: {
@@ -281,57 +581,388 @@ async function submitBooking() {
       durationHours: durationHourCount,
     },
   });
-  showToast('预订成功');
+  // 3. 成功后记下接口返回的单号、核销码和金额
+  const fallbackAmount = formatRoomAmount(roomType);
+  successSummary.value = {
+    orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
+    verifyCode: isEmpty(createdOrder) ? '' : createdOrder.verifyCode,
+    amount: isEmpty(createdOrder) ? fallbackAmount : createdOrder.amount,
+    shopName: shop.shopName,
+    roomTypeName: roomType.typeName,
+    bookingDate: slot.bookingDate,
+    arrivalLabel: formatArrivalLabel(slot),
+  };
+  bookingStep.value = KtvBookingStep.SUCCESS;
+}
+
+/**
+ * 再约一间时回到选房，并刷新我的订单。
+ */
+async function bookAgain() {
+  bookingStep.value = KtvBookingStep.LIST;
+  selectedRoomTypeId.value = '';
+  selectedSlotKey.value = '';
+  formError.value = '';
+  successSummary.value = null;
+  refreshSlots();
   await loadPage();
+}
+
+/**
+ * 地址里的门店编号变了就重新锁定门店。同一页组件会被复用。
+ */
+function reloadForShopCode() {
+  bookingStep.value = KtvBookingStep.LIST;
+  successSummary.value = null;
+  readShopCode();
+  refreshSlots();
+  loadPage();
 }
 
 /**
  * 打开页面时记下门店编号，并加载 KTV 门店和我的订单。
  */
 onMounted(() => {
-  readShopCode();
-  refreshSlots();
-  loadPage();
+  reloadForShopCode();
 });
+
+watch(
+  () => {
+    if (isEmpty(currentRoute.params)) {
+      return '';
+    }
+    const routeShopCode = currentRoute.params[BookingShopQuery.SHOP_CODE];
+    return isEmpty(routeShopCode) ? '' : routeShopCode;
+  },
+  (nextShopCode, previousShopCode) => {
+    if (nextShopCode === previousShopCode) {
+      return;
+    }
+    reloadForShopCode();
+  },
+);
 </script>
 
-<style>
+<style scoped>
 .page {
-  padding: 12px;
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  color: #111827;
 }
-.card,
+.page-with-bar {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+.store,
+.panel,
+.bar,
+.sheet,
+.room,
+.order-row,
+.success {
+  box-sizing: border-box;
+}
+.store {
+  padding: 22px 16px 28px;
+  color: #f4f7ff;
+  background: linear-gradient(160deg, #1f4b99 0%, #16356e 100%);
+}
+.store h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+}
+.meta {
+  margin: 8px 0 0;
+  color: rgba(244, 247, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.panel {
+  margin-top: -12px;
+  padding: 16px 16px 8px;
+  border-radius: 18px 18px 0 0;
+  background: #f5f6f8;
+}
+.dates,
+.chips,
+.slots {
+  display: flex;
+  gap: 8px;
+}
+.dates {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.dates::-webkit-scrollbar,
+.chips::-webkit-scrollbar,
+.slots::-webkit-scrollbar {
+  display: none;
+}
+.chips,
+.slots {
+  flex-wrap: wrap;
+}
+.dates button,
+.chips button,
+.slots button,
+.book,
+.actions button,
+.success button {
+  border: 0;
+  font: inherit;
+}
+.dates button {
+  flex: 0 0 64px;
+  padding: 10px 0 8px;
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+  color: #111827;
+}
+.weekday {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+}
+.dates strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 18px;
+}
+.dates button.active {
+  background: #1f4b99;
+  color: #fff;
+}
+.dates button.active .weekday {
+  color: rgba(255, 255, 255, 0.72);
+}
+.section-label {
+  margin: 16px 0 8px;
+  color: #6b7280;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.chips button,
+.slots button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  font-size: 13px;
+}
+.slots button {
+  flex: 0 0 auto;
+  background: #e8eef8;
+}
+.chips button.active,
+.slots button.active {
+  background: #1f4b99;
+  color: #fff;
+}
+.rooms {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.room {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: #fff;
+}
+.room.picked {
+  border-color: #1f4b99;
+}
+.cover {
+  height: 72px;
+  border-radius: 12px;
+  background-color: #1f4b99;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.room h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+}
+.price-line strong,
+.bar strong {
+  color: #1f4b99;
+  font-variant-numeric: tabular-nums;
+}
+.price-line strong {
+  font-size: 18px;
+}
+.empty {
+  margin: 24px 0;
+  color: #6b7280;
+  text-align: center;
+}
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+  z-index: 10;
+}
+.bar p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+.bar strong {
+  font-size: 20px;
+}
+.book {
+  border-radius: 999px;
+  padding: 12px 22px;
+  background: #1f4b99;
+  color: #fff;
+  font-size: 15px;
+}
+.book:disabled {
+  opacity: 0.4;
+}
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 12, 24, 0.46);
+  z-index: 20;
+}
+.sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  background: #fff;
+  z-index: 21;
+}
+.handle {
+  width: 36px;
+  height: 4px;
+  margin: 6px auto 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+.sheet h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+.hint {
+  margin: 0 0 14px;
+  color: #6b7280;
+  font-size: 13px;
+}
+.sheet label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.actions button {
+  flex: 1;
+  padding: 13px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+.ghost {
+  background: #e8eef8;
+  color: #111827;
+}
+.solid {
+  background: #1f4b99;
+  color: #fff;
+}
+.form-error {
+  margin: 8px 0 0;
+  color: #b45309;
+  font-size: 13px;
+}
 .order-row {
   background: #fff;
-  border-radius: 6px;
+  border-radius: 16px;
   padding: 12px;
   margin-bottom: 8px;
 }
-.field,
-.price,
 .order-title,
 .order-sub {
   display: block;
-  margin-bottom: 8px;
-}
-.field select,
-.field input {
-  width: 100%;
-  margin-top: 6px;
-  box-sizing: border-box;
-}
-.section-title {
-  font-weight: 600;
-  margin: 6px 0;
 }
 .order-sub {
+  margin-top: 4px;
   color: #6b7280;
 }
-.submit-button {
-  width: 100%;
-  border: 0;
-  border-radius: 4px;
+.success {
+  min-height: 70vh;
+  padding: 48px 24px;
+  text-align: center;
+  background: #fff;
+}
+.badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eef8f1;
+  color: #178a45;
+  font-size: 30px;
+}
+.success h1 {
+  margin: 0;
+  font-size: 24px;
+}
+.order-no {
+  margin: 8px 0 20px;
+  color: #6b7280;
+}
+.summary {
+  margin: 0 auto 24px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f5f6f8;
+  text-align: left;
+  line-height: 1.8;
+}
+.success button {
+  border-radius: 999px;
+  padding: 12px 28px;
   background: #1f4b99;
   color: #fff;
-  padding: 10px 0;
+  font-size: 15px;
 }
 </style>

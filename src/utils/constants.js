@@ -31,6 +31,29 @@ export const KtvBookingSlot = {
   LEAD_MINUTES: 15,
 };
 
+export const KtvBookingStep = {
+  LIST: 'list',
+  FORM: 'form',
+  SUCCESS: 'success',
+};
+
+export const KtvBookingDuration = {
+  HOUR_LIST: [2, 3, 4, 6],
+  DEFAULT_HOURS: 3,
+};
+
+export const KtvRoomCoverName = {
+  SMALL: '小包',
+  MEDIUM: '中包',
+  LARGE: '大包',
+  VIP: 'VIP',
+};
+
+export const KtvDateLabel = {
+  TODAY: '今天',
+  TOMORROW: '明天',
+};
+
 export const PageSetting = {
   DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 20,
