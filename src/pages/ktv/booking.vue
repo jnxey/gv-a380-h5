@@ -6,7 +6,10 @@
         <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-mask"></div>
         <div class="store-body">
           <h1>{{ currentShop.shopName }}</h1>
-          <p v-if="isEmpty(businessHoursText) !== true" class="meta">{{ businessHoursText }}</p>
+          <p v-if="isEmpty(businessHoursText) !== true" class="meta">
+            {{ businessHoursText }}
+            <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
+          </p>
           <p v-if="isEmpty(shopAddressText) !== true" class="meta">{{ shopAddressText }}</p>
           <p v-if="isEmpty(shopPhoneText) !== true" class="meta">{{ shopPhoneText }}</p>
         </div>
@@ -138,9 +141,76 @@ import {
   PageSetting,
   ShopType,
   statusLabel,
+  timeZoneLabel,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { isEmpty } from '../../utils/tools.js';
+
+/**
+ * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
+ */
+function timeZoneOffsetMinutes(timeZoneOffset, now) {
+  if (isEmpty(timeZoneOffset)) {
+    return -now.getTimezoneOffset();
+  }
+  const signText = timeZoneOffset.slice(0, 1);
+  const hourText = timeZoneOffset.slice(1, 3);
+  const minuteText = timeZoneOffset.slice(4, 6);
+  const hourCount = Number(hourText);
+  const minuteCount = Number(minuteText);
+  if (Number.isFinite(hourCount) !== true || Number.isFinite(minuteCount) !== true) {
+    return -now.getTimezoneOffset();
+  }
+  const absoluteMinutes = hourCount * 60 + minuteCount;
+  if (signText === '-') {
+    return -absoluteMinutes;
+  }
+  return absoluteMinutes;
+}
+
+/**
+ * 把当前时刻平移成门店钟面。日期和钟点读 UTC 字段，避免本机时区。
+ */
+function toShopWallClock(now, timeZoneOffset) {
+  const offsetMinutes = timeZoneOffsetMinutes(timeZoneOffset, now);
+  const offsetMilliseconds = offsetMinutes * 60 * 1000;
+  return new Date(now.getTime() + offsetMilliseconds);
+}
+
+/**
+ * 到店钟点是否落在营业时间内。开始包含，结束不包含。没有营业时间时整天可约。
+ */
+function isInsideBusinessHours(startTime, businessHours) {
+  if (isEmpty(businessHours) || isEmpty(businessHours.startTime) || isEmpty(businessHours.endTime)) {
+    return true;
+  }
+  const clockText = startTime.slice(0, 5);
+  if (clockText < businessHours.startTime) {
+    return false;
+  }
+  if (clockText >= businessHours.endTime) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * 格式化成门店钟面日期。入参须是平移后的钟面时间。
+ */
+function formatDate(dateTime) {
+  const monthText = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
+  const dayText = String(dateTime.getUTCDate()).padStart(2, '0');
+  return `${dateTime.getUTCFullYear()}-${monthText}-${dayText}`;
+}
+
+/**
+ * 格式化成门店钟点，秒固定为 0。入参须是平移后的钟面时间。
+ */
+function formatClockTime(dateTime) {
+  const hourText = String(dateTime.getUTCHours()).padStart(2, '0');
+  const minuteText = String(dateTime.getUTCMinutes()).padStart(2, '0');
+  return `${hourText}:${minuteText}:00`;
+}
 
 const currentRoute = useRoute();
 const shopCode = ref('');
@@ -213,6 +283,16 @@ const businessHoursText = computed(() => {
 });
 
 /**
+ * 门店时区标签。没有时区时不显示。
+ */
+const shopTimeZoneText = computed(() => {
+  if (isEmpty(currentShop.value) || isEmpty(currentShop.value.timeZone)) {
+    return '';
+  }
+  return timeZoneLabel(currentShop.value.timeZone);
+});
+
+/**
  * 门店地址。没有地址时不显示。
  */
 const shopAddressText = computed(() => {
@@ -233,17 +313,19 @@ const shopPhoneText = computed(() => {
 });
 
 /**
- * 日期按钮固定近 5 天。今天、明天单独标，后面三天标星期。
+ * 日期按钮固定近 5 天。今天、明天单独标，后面三天标星期。日期按门店时区。
  */
 const dateOptionList = computed(() => {
   const now = slotBaseTime.value;
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const timeZoneOffset = isEmpty(currentShop.value) ? '' : currentShop.value.timeZone;
+  const shopNow = toShopWallClock(now, timeZoneOffset);
+  const todayStart = new Date(Date.UTC(shopNow.getUTCFullYear(), shopNow.getUTCMonth(), shopNow.getUTCDate()));
   const dateList = [];
   for (let dayOffset = 0; dayOffset < KtvBookingSlot.DAY_COUNT; dayOffset += 1) {
     const dateTime = new Date(todayStart.getTime());
-    dateTime.setDate(todayStart.getDate() + dayOffset);
+    dateTime.setUTCDate(todayStart.getUTCDate() + dayOffset);
     const bookingDate = formatDate(dateTime);
-    let dayLabel = KtvDateLabel.WEEKDAY_LIST[dateTime.getDay()];
+    let dayLabel = KtvDateLabel.WEEKDAY_LIST[dateTime.getUTCDay()];
     if (dayOffset === 0) {
       dayLabel = KtvDateLabel.TODAY;
     } else if (dayOffset === 1) {
@@ -252,7 +334,7 @@ const dateOptionList = computed(() => {
     dateList.push({
       bookingDate,
       dayLabel,
-      dayNumber: dateTime.getDate(),
+      dayNumber: dateTime.getUTCDate(),
     });
   }
   return dateList;
@@ -442,6 +524,7 @@ async function loadPage() {
     data: { shopType: ShopType.KTV },
   });
   currentShop.value = findShopByCode(shopList);
+  refreshSlots();
   if (isEmpty(currentShop.value)) {
     const toastTitle = isEmpty(shopCode.value) ? '缺少门店编号' : '门店不存在';
     showToast(toastTitle);
@@ -460,41 +543,24 @@ async function loadPage() {
 }
 
 /**
- * 格式化成本地日期。
+ * 生成近 5 天可预约的半小时刻度。今天只留剩余刻度，后四天是全天，再按营业时间过滤。
  */
-function formatDate(dateTime) {
-  const monthText = String(dateTime.getMonth() + 1).padStart(2, '0');
-  const dayText = String(dateTime.getDate()).padStart(2, '0');
-  return `${dateTime.getFullYear()}-${monthText}-${dayText}`;
-}
-
-/**
- * 格式化成本地钟点，秒固定为 0。
- */
-function formatClockTime(dateTime) {
-  const hourText = String(dateTime.getHours()).padStart(2, '0');
-  const minuteText = String(dateTime.getMinutes()).padStart(2, '0');
-  return `${hourText}:${minuteText}:00`;
-}
-
-/**
- * 生成近 5 天可预约的半小时刻度。今天只留剩余刻度，后四天是全天。
- */
-function buildSlotList(now) {
+function buildSlotList(now, timeZoneOffset, businessHours) {
+  const shopNow = toShopWallClock(now, timeZoneOffset);
   const stepMilliseconds = KtvBookingSlot.STEP_MINUTES * 60 * 1000;
   const leadMilliseconds = KtvBookingSlot.LEAD_MINUTES * 60 * 1000;
   const minutesPerDay = 24 * 60;
   const slotsPerDay = minutesPerDay / KtvBookingSlot.STEP_MINUTES;
   // 1. 正好落在刻度上时，这个刻度已经不大于当前时间，再往后推一档
-  let nextSlotTime = Math.ceil(now.getTime() / stepMilliseconds) * stepMilliseconds;
-  if (nextSlotTime <= now.getTime()) {
+  let nextSlotTime = Math.ceil(shopNow.getTime() / stepMilliseconds) * stepMilliseconds;
+  if (nextSlotTime <= shopNow.getTime()) {
     nextSlotTime += stepMilliseconds;
   }
   // 2. 离下一档不足 15 分钟时，从再下一档开始
-  if (nextSlotTime - now.getTime() < leadMilliseconds) {
+  if (nextSlotTime - shopNow.getTime() < leadMilliseconds) {
     nextSlotTime += stepMilliseconds;
   }
-  const todayText = formatDate(now);
+  const todayText = formatDate(shopNow);
   const builtSlotList = [];
   // 3. 今天从第一档可用刻度收到当天结束
   let todaySlotTime = nextSlotTime;
@@ -509,10 +575,10 @@ function buildSlotList(now) {
     todaySlotTime += stepMilliseconds;
   }
   // 4. 后四天每天从 00:00 到 23:30
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayStart = new Date(Date.UTC(shopNow.getUTCFullYear(), shopNow.getUTCMonth(), shopNow.getUTCDate()));
   for (let dayOffset = 1; dayOffset < KtvBookingSlot.DAY_COUNT; dayOffset += 1) {
     const dayStart = new Date(todayStart.getTime());
-    dayStart.setDate(todayStart.getDate() + dayOffset);
+    dayStart.setUTCDate(todayStart.getUTCDate() + dayOffset);
     for (let slotIndex = 0; slotIndex < slotsPerDay; slotIndex += 1) {
       const slotTime = new Date(dayStart.getTime() + slotIndex * stepMilliseconds);
       const bookingDate = formatDate(slotTime);
@@ -524,15 +590,25 @@ function buildSlotList(now) {
       });
     }
   }
-  return builtSlotList;
+  // 5. 只留营业时间内的到店刻度。没有营业时间时整天都保留
+  const openSlotList = [];
+  for (let builtIndex = 0; builtIndex < builtSlotList.length; builtIndex += 1) {
+    const builtSlot = builtSlotList[builtIndex];
+    if (isInsideBusinessHours(builtSlot.startTime, businessHours)) {
+      openSlotList.push(builtSlot);
+    }
+  }
+  return openSlotList;
 }
 
 /**
- * 按当前时间重算近 5 天的开唱刻度。
+ * 按当前时间和门店时区重算近 5 天的开唱刻度。
  */
 function refreshSlots() {
   slotBaseTime.value = new Date();
-  slotList.value = buildSlotList(slotBaseTime.value);
+  const timeZoneOffset = isEmpty(currentShop.value) ? '' : currentShop.value.timeZone;
+  const businessHours = isEmpty(currentShop.value) ? null : currentShop.value.businessHours;
+  slotList.value = buildSlotList(slotBaseTime.value, timeZoneOffset, businessHours);
   ensureSelection();
 }
 
@@ -796,6 +872,17 @@ watch(
   color: rgba(245, 243, 255, 0.78);
   font-size: 13px;
   line-height: 1.6;
+}
+.time-zone-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(245, 243, 255, 0.18);
+  color: #f5f3ff;
+  font-size: 12px;
+  line-height: 20px;
+  vertical-align: 1px;
 }
 .panel {
   position: relative;
