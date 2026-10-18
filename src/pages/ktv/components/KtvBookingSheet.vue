@@ -1,8 +1,8 @@
 <template>
   <div class="mask" @click="emit('close')"></div>
   <section v-if="isEmpty(selectedRoomType) !== true" class="sheet">
+    <button class="close" type="button" @click="emit('close')">×</button>
     <div class="sheet-body">
-      <div class="handle"></div>
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
       <label>到店时间</label>
@@ -43,33 +43,33 @@ import { isEmpty } from '../../../utils/tools.js';
 
 const ArrivalSlotFold = {
   COLUMN_COUNT: 5,
-  COLLAPSED_ROW_COUNT: 3,
+  COLLAPSED_ROW_COUNT: 3
 };
 
 const props = defineProps({
   selectedRoomType: {
-    default: null,
+    default: null
   },
   formHintText: {
-    default: '',
+    default: ''
   },
   arrivalSlotList: {
     default() {
       return [];
-    },
+    }
   },
   selectedSlotKey: {
-    default: '',
+    default: ''
   },
   leaveTimeText: {
-    default: '',
+    default: ''
   },
   amountText: {
-    default: '',
+    default: ''
   },
   formError: {
-    default: '',
-  },
+    default: ''
+  }
 });
 
 const emit = defineEmits(['close', 'select-slot', 'submit']);
@@ -136,7 +136,7 @@ function formatStartClock(slot) {
   flex-direction: column;
   width: min(520px, 100%);
   max-height: 88vh;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 22px 22px 0 0;
   background: #fff;
   z-index: 21;
@@ -149,16 +149,24 @@ function formatStartClock(slot) {
   overflow: auto;
   padding: 8px 16px 16px;
 }
-.handle {
-  width: 36px;
-  height: 4px;
-  margin: 6px auto 12px;
-  border-radius: 999px;
-  background: #e5e7eb;
-}
 .sheet h2 {
   margin: 0 0 4px;
   font-size: 18px;
+}
+.close {
+  position: absolute;
+  top: -36px;
+  right: 16px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(17, 24, 39, 0.72);
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
 }
 .hint {
   margin: 0 0 14px;
