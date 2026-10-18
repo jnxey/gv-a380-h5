@@ -20,15 +20,15 @@ import { AppIconName } from '../../../utils/constants.js';
 .review-icon {
   display: inline-grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
   background: #ede9fe;
   color: #6d28d9;
 }
 .review-icon :deep(.app-icon) {
-  width: 28px;
-  height: 28px;
+  width: 56px;
+  height: 56px;
 }
 .review-empty p {
   margin: 12px 0 0;

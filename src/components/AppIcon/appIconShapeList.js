@@ -10,7 +10,15 @@ export const appIconShapeListByName = {
   [AppIconName.REVIEW]: [
     {
       shapeKind: AppIconShapeKind.PATH,
-      pathData: 'M5 6.5h14a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2H10l-3.2 3V17H5a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2z',
+      pathData: 'M12 4.2 19.6 8 12 11.8 4.4 8Z',
+    },
+    {
+      shapeKind: AppIconShapeKind.PATH,
+      pathData: 'M4.4 8v7.4L12 19.2V11.8',
+    },
+    {
+      shapeKind: AppIconShapeKind.PATH,
+      pathData: 'M19.6 8v7.4L12 19.2',
     },
   ],
 };
