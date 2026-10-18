@@ -21,8 +21,8 @@ import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
   currentShop: {
-    default: null,
-  },
+    default: null
+  }
 });
 
 /**
@@ -110,13 +110,13 @@ const shopPhoneText = computed(() => {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  filter: blur(18px);
+  filter: blur(8px);
   transform: scale(1.08);
 }
 .store-mask {
   position: absolute;
   inset: 0;
-  background: rgba(76, 29, 149, 0.55);
+  background: rgba(0, 0, 0, 0.5);
 }
 .store-body {
   position: relative;
