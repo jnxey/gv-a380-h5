@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { request } from '../../utils/request.js';
 import KtvBookingBar from './components/KtvBookingBar.vue';
@@ -86,6 +86,7 @@ import {
   ShopType,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
+import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
 import { isEmpty } from '../../utils/tools.js';
 
 /**
@@ -659,10 +660,29 @@ function reloadForShopCode() {
 }
 
 /**
+ * 确认预约打开时锁住底页滚动，离开后恢复。
+ */
+function syncPageScrollLock() {
+  if (bookingStep.value === KtvBookingStep.FORM) {
+    lockPageScroll();
+    return;
+  }
+  unlockPageScroll();
+}
+
+/**
  * 打开页面时记下门店编号，并加载 KTV 门店和我的订单。
  */
 onMounted(() => {
   reloadForShopCode();
+});
+
+onUnmounted(() => {
+  unlockPageScroll();
+});
+
+watch(bookingStep, () => {
+  syncPageScrollLock();
 });
 
 watch(

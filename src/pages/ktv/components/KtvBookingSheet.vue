@@ -124,6 +124,7 @@ function formatStartClock(slot) {
   inset: 0;
   background: rgba(18, 12, 24, 0.46);
   z-index: 20;
+  overscroll-behavior: none;
 }
 .sheet {
   box-sizing: border-box;
@@ -136,6 +137,7 @@ function formatStartClock(slot) {
   width: min(520px, 100%);
   max-height: 88vh;
   overflow: visible;
+  overscroll-behavior: none;
   border-radius: 22px 22px 0 0;
   background: #fff;
   z-index: 21;
@@ -146,6 +148,7 @@ function formatStartClock(slot) {
   min-height: 0;
   max-height: 60vh;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 8px 16px 16px;
 }
 .sheet h2 {
