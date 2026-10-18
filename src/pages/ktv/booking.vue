@@ -19,7 +19,14 @@
             @select="selectRoomType"
           />
         </template>
-        <KtvOrderList v-if="selectedContentTab === KtvContentTab.ORDER" :order-list="orderList" />
+        <KtvOrderList
+          v-if="selectedContentTab === KtvContentTab.ORDER"
+          :order-list="orderList"
+          :order-page-number="orderPageNumber"
+          :order-total="orderTotal"
+          :order-page-size="PageSetting.DEFAULT_PAGE_SIZE"
+          @change-page="changeOrderPage"
+        />
         <KtvReviewEmpty v-if="selectedContentTab === KtvContentTab.REVIEW" />
         <KtvShopDetail v-if="selectedContentTab === KtvContentTab.SHOP" :current-shop="currentShop" />
       </div>
@@ -162,6 +169,8 @@ const bookingStep = ref(KtvBookingStep.LIST);
 const selectedContentTab = ref(KtvContentTab.BOOKING);
 const successSummary = ref(null);
 const orderList = ref([]);
+const orderPageNumber = ref(PageSetting.DEFAULT_PAGE);
+const orderTotal = ref(0);
 
 /**
  * 底部预约栏只在预定 Tab，并且还没进入成功页时出现。
@@ -363,13 +372,34 @@ async function loadPage() {
   } else {
     await loadRoomTypes();
   }
-  // 2. 我的订单与门店编号无关，仍然加载
+  // 2. 我的订单与门店编号无关，仍然从第 1 页加载
+  await loadMemberOrders(PageSetting.DEFAULT_PAGE);
+}
+
+/**
+ * 按页查询当前会员的预订订单。
+ */
+async function loadMemberOrders(pageNumber) {
   const orderPage = await request({
     url: '/app/ktv/booking-orders',
     method: 'GET',
-    data: { page: PageSetting.DEFAULT_PAGE, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
+    data: { page: pageNumber, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
   });
-  orderList.value = isEmpty(orderPage) ? [] : orderPage.list;
+  orderPageNumber.value = pageNumber;
+  if (isEmpty(orderPage)) {
+    orderList.value = [];
+    orderTotal.value = 0;
+    return;
+  }
+  orderList.value = isEmpty(orderPage.list) ? [] : orderPage.list;
+  orderTotal.value = orderPage.total;
+}
+
+/**
+ * 切换订单页。
+ */
+async function changeOrderPage(pageNumber) {
+  await loadMemberOrders(pageNumber);
 }
 
 /**
