@@ -32,6 +32,7 @@
       :arrival-slot-list="arrivalSlotList"
       :selected-slot-key="selectedSlotKey"
       :leave-time-text="leaveTimeText"
+      :amount-text="bottomAmountText"
       :form-error="formError"
       @select-slot="selectArrivalSlot"
       @close="closeForm"
