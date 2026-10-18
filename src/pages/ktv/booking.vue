@@ -125,10 +125,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import largeCover from '../../assets/ktv/ktv-large.jpg';
-import mediumCover from '../../assets/ktv/ktv-medium.jpg';
-import smallCover from '../../assets/ktv/ktv-small.jpg';
-import vipCover from '../../assets/ktv/ktv-vip.jpg';
 import { request } from '../../utils/request.js';
 import {
   BookingShopQuery,
@@ -137,7 +133,6 @@ import {
   KtvBookingSlot,
   KtvBookingStep,
   KtvDateLabel,
-  KtvRoomCoverName,
   PageSetting,
   ShopType,
   statusLabel,
@@ -452,37 +447,17 @@ function findShopByCode(shopList) {
 }
 
 /**
- * 按类型名挑封面。对不上小包、中包、大包、VIP 时不配图。
- */
-function resolveRoomCover(typeName) {
-  if (isEmpty(typeName)) {
-    return '';
-  }
-  const upperName = typeName.toUpperCase();
-  if (upperName.indexOf(KtvRoomCoverName.VIP) >= 0) {
-    return vipCover;
-  }
-  if (typeName.indexOf(KtvRoomCoverName.LARGE) >= 0) {
-    return largeCover;
-  }
-  if (typeName.indexOf(KtvRoomCoverName.MEDIUM) >= 0) {
-    return mediumCover;
-  }
-  if (typeName.indexOf(KtvRoomCoverName.SMALL) >= 0) {
-    return smallCover;
-  }
-  return '';
-}
-
-/**
- * 封面背景。没有对应图片时留给样式里的纯色。
+ * 封面背景。用包厢类型的第一张图，没有图片时留给样式里的紫色。
  */
 function coverStyle(roomType) {
-  const coverUrl = resolveRoomCover(roomType.typeName);
-  if (isEmpty(coverUrl)) {
+  if (isEmpty(roomType) || isEmpty(roomType.imageList)) {
     return {};
   }
-  return { backgroundImage: `url("${coverUrl}")` };
+  const firstRoomTypeImage = roomType.imageList[0];
+  if (isEmpty(firstRoomTypeImage) || isEmpty(firstRoomTypeImage.imageUrl)) {
+    return {};
+  }
+  return { backgroundImage: `url("${firstRoomTypeImage.imageUrl}")` };
 }
 
 /**
@@ -988,7 +963,7 @@ watch(
   background: #fff;
 }
 .room.picked {
-  border-color: #6d28d9;
+  box-shadow: 0 0 0 2px #6d28d9;
 }
 .cover {
   height: 72px;
