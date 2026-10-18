@@ -526,10 +526,13 @@ function formatArrivalLabel(slot) {
 }
 
 /**
- * 切换内容区 Tab。
+ * 切换内容区 Tab。进入订单时重新拉取当前页。
  */
-function selectContentTab(contentTab) {
+async function selectContentTab(contentTab) {
   selectedContentTab.value = contentTab;
+  if (contentTab === KtvContentTab.ORDER) {
+    await loadMemberOrders(orderPageNumber.value);
+  }
 }
 
 /**
