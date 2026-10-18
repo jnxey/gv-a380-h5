@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <header class="page-head">{{ pageTitle }}</header>
+    <header v-if="showPageHead" class="page-head">{{ pageTitle }}</header>
     <router-view />
   </div>
 </template>
@@ -8,7 +8,7 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { PageTitle } from './utils/constants.js';
+import { H5PagePath, PageTitle } from './utils/constants.js';
 import { isEmpty } from './utils/tools.js';
 
 const currentRoute = useRoute();
@@ -21,6 +21,17 @@ const pageTitle = computed(() => {
     return PageTitle.DEFAULT;
   }
   return currentRoute.meta.title;
+});
+
+/**
+ * KTV 预定页不显示标题栏。浏览器标题仍使用页面标题。
+ */
+const showPageHead = computed(() => {
+  const routePath = currentRoute.path;
+  if (isEmpty(routePath)) {
+    return true;
+  }
+  return routePath.indexOf(H5PagePath.KTV_BOOKING) !== 0;
 });
 
 watch(pageTitle, (title) => {
