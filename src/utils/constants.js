@@ -51,6 +51,18 @@ export const KtvContentTabItemList = [
   { contentTab: KtvContentTab.SHOP, label: '店铺' }
 ];
 
+export const KtvPullRefreshState = {
+  IDLE: 'idle',
+  PULLING: 'pulling',
+  READY: 'ready',
+  REFRESHING: 'refreshing'
+};
+
+export const KtvPullRefreshSetting = {
+  THRESHOLD: 56,
+  MAX_DISTANCE: 120
+};
+
 export const AppIconName = {
   REVIEW: 'REVIEW'
 };

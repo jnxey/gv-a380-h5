@@ -35,13 +35,15 @@ function readServerEnvValue(key) {
 function signDevMemberToken(secret) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const nowSeconds = Math.floor(Date.now() / 1000);
-  const payload = Buffer.from(JSON.stringify({
-    sub: devMemberId,
-    accountType: memberAccountType,
-    jti: randomUUID(),
-    iat: nowSeconds,
-    exp: nowSeconds + devTokenLifetimeSeconds,
-  })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({
+      sub: devMemberId,
+      accountType: memberAccountType,
+      jti: randomUUID(),
+      iat: nowSeconds,
+      exp: nowSeconds + devTokenLifetimeSeconds
+    })
+  ).toString('base64url');
   const signature = createHmac('sha256', secret).update(`${header}.${payload}`).digest('base64url');
   return `${header}.${payload}.${signature}`;
 }
@@ -59,17 +61,18 @@ export default defineConfig(({ command }) => {
     plugins: [vue()],
     define: defineEnv,
     server: {
+      host: '0.0.0.0',
       port: 5174,
       proxy: {
         '/app': {
           target: apiProxyTarget,
-          changeOrigin: true,
+          changeOrigin: true
         },
         '/uploads': {
           target: apiProxyTarget,
-          changeOrigin: true,
-        },
-      },
-    },
+          changeOrigin: true
+        }
+      }
+    }
   };
 });

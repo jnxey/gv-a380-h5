@@ -1,6 +1,7 @@
 <template>
   <div class="page" :class="{ 'page-with-bar': showBookingBar }">
     <section v-if="bookingStep !== KtvBookingStep.SUCCESS">
+      <KtvPullRefresh v-if="bookingStep === KtvBookingStep.LIST" :refreshing="pageRefreshing" @refresh="refreshPage" />
       <KtvStoreHeader :current-shop="currentShop" />
       <div class="panel">
         <KtvContentTabs :selected-content-tab="selectedContentTab" @select="selectContentTab" />
@@ -72,6 +73,7 @@ import KtvContentTabs from './components/KtvContentTabs.vue';
 import KtvDatePicker from './components/KtvDatePicker.vue';
 import KtvDurationPicker from './components/KtvDurationPicker.vue';
 import KtvOrderList from './components/KtvOrderList.vue';
+import KtvPullRefresh from './components/KtvPullRefresh.vue';
 import KtvReviewEmpty from './components/KtvReviewEmpty.vue';
 import KtvRoomList from './components/KtvRoomList.vue';
 import KtvShopDetail from './components/KtvShopDetail.vue';
@@ -175,6 +177,7 @@ const successSummary = ref(null);
 const orderList = ref([]);
 const orderPageNumber = ref(PageSetting.DEFAULT_PAGE);
 const orderTotal = ref(0);
+const pageRefreshing = ref(false);
 
 /**
  * 底部预约栏只在预定 Tab，并且还没进入成功页时出现。
@@ -388,6 +391,21 @@ async function loadPage() {
   }
   // 2. 我的订单与门店编号无关，仍然从第 1 页加载
   await loadMemberOrders(PageSetting.DEFAULT_PAGE);
+}
+
+/**
+ * 下拉松开后刷新整页。门店、时段、包厢和订单都重新加载。
+ */
+async function refreshPage() {
+  if (pageRefreshing.value === true) {
+    return;
+  }
+  pageRefreshing.value = true;
+  try {
+    await loadPage();
+  } finally {
+    pageRefreshing.value = false;
+  }
 }
 
 /**
