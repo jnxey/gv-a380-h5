@@ -4,7 +4,7 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
-      <label>到店时间</label>
+      <label>{{ arrivalTimeLabel }}</label>
       <div class="slots">
         <button
           v-for="slot in visibleArrivalSlotList"
@@ -51,6 +51,9 @@ const props = defineProps({
   },
   formHintText: {
     default: ''
+  },
+  arrivalTimeLabel: {
+    default: '到店时间'
   },
   arrivalSlotList: {
     default() {

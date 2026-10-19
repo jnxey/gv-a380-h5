@@ -1,76 +1,76 @@
 export const ResponseCode = {
-  SUCCESS: 0,
+  SUCCESS: 0
 };
 
 export const HttpStatusCode = {
-  UNAUTHORIZED: 401,
+  UNAUTHORIZED: 401
 };
 
 export const ShopType = {
   KTV: 'KTV',
-  HOTEL: 'HOTEL',
+  HOTEL: 'HOTEL'
 };
 
 export const FinanceBizType = {
-  RECHARGE: 'RECHARGE',
+  RECHARGE: 'RECHARGE'
 };
 
 export const FinanceDirection = {
   IN: 'IN',
-  OUT: 'OUT',
+  OUT: 'OUT'
 };
 
 export const KtvBookingHour = {
   MIN: 1,
-  MAX: 24,
+  MAX: 24
 };
 
 export const KtvBookingSlot = {
   DAY_COUNT: 5,
   STEP_MINUTES: 30,
-  LEAD_MINUTES: 15,
+  LEAD_MINUTES: 15
 };
 
 export const KtvBookingStep = {
   LIST: 'list',
   FORM: 'form',
-  SUCCESS: 'success',
+  SUCCESS: 'success'
 };
 
 export const KtvContentTab = {
   BOOKING: 'booking',
   ORDER: 'order',
   REVIEW: 'review',
-  SHOP: 'shop',
+  SHOP: 'shop'
 };
 
 export const KtvContentTabItemList = [
   { contentTab: KtvContentTab.BOOKING, label: '预定' },
   { contentTab: KtvContentTab.ORDER, label: '订单' },
   { contentTab: KtvContentTab.REVIEW, label: '评价' },
-  { contentTab: KtvContentTab.SHOP, label: '店铺' },
+  { contentTab: KtvContentTab.SHOP, label: '店铺' }
 ];
 
 export const AppIconName = {
-  REVIEW: 'REVIEW',
+  REVIEW: 'REVIEW'
 };
 
 export const KtvBookingDuration = {
   HOUR_LIST: [2, 3, 4, 6],
-  DEFAULT_HOURS: 3,
+  DEFAULT_HOURS: 2
 };
 
 export const KtvRoomCoverName = {
   SMALL: '小包',
   MEDIUM: '中包',
   LARGE: '大包',
-  VIP: 'VIP',
+  VIP: 'VIP'
 };
 
 export const KtvDateLabel = {
   TODAY: '今天',
   TOMORROW: '明天',
-  WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+  WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 };
 
 /**
@@ -113,7 +113,7 @@ export const TimeZoneOptionList = [
   { offset: '+12:00', name: '奥克兰' },
   { offset: '+12:45', name: '查塔姆' },
   { offset: '+13:00', name: '努库阿洛法' },
-  { offset: '+14:00', name: '基里巴斯' },
+  { offset: '+14:00', name: '基里巴斯' }
 ];
 
 /**
@@ -129,24 +129,24 @@ export function timeZoneLabel(timeZoneOffset) {
 
 export const PageSetting = {
   DEFAULT_PAGE: 1,
-  DEFAULT_PAGE_SIZE: 20,
+  DEFAULT_PAGE_SIZE: 5
 };
 
 export const H5PagePath = {
   MEMBER: '/pages/member/index',
   KTV_BOOKING: '/pages/ktv/booking',
-  HOTEL_BOOKING: '/pages/hotel/booking',
+  HOTEL_BOOKING: '/pages/hotel/booking'
 };
 
 export const PageTitle = {
   DEFAULT: 'A380',
   MEMBER: '会员中心',
   KTV_BOOKING: 'KTV订房',
-  HOTEL_BOOKING: '酒店订房',
+  HOTEL_BOOKING: '酒店订房'
 };
 
 export const BookingShopQuery = {
-  SHOP_CODE: 'shopCode',
+  SHOP_CODE: 'shopCode'
 };
 
 export const statusLabelMap = {
@@ -167,7 +167,7 @@ export const statusLabelMap = {
   SMALL: '小包',
   MEDIUM: '中包',
   LARGE: '大床/大包',
-  TWIN: '双床',
+  TWIN: '双床'
 };
 
 /**

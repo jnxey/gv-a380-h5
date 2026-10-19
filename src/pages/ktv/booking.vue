@@ -26,6 +26,7 @@
           :order-total="orderTotal"
           :order-page-size="PageSetting.DEFAULT_PAGE_SIZE"
           @change-page="changeOrderPage"
+          @refresh-order="refreshClosedOrder"
         />
         <KtvReviewEmpty v-if="selectedContentTab === KtvContentTab.REVIEW" />
         <KtvShopDetail v-if="selectedContentTab === KtvContentTab.SHOP" :current-shop="currentShop" />
@@ -42,6 +43,7 @@
       v-if="bookingStep === KtvBookingStep.FORM"
       :selected-room-type="selectedRoomType"
       :form-hint-text="formHintText"
+      :arrival-time-label="arrivalTimeLabel"
       :arrival-slot-list="arrivalSlotList"
       :selected-slot-key="selectedSlotKey"
       :leave-time-text="leaveTimeText"
@@ -84,6 +86,7 @@ import {
   KtvDateLabel,
   PageSetting,
   ShopType,
+  timeZoneLabel,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
@@ -298,6 +301,16 @@ const formHintText = computed(() => {
 });
 
 /**
+ * 到店时间标签。有门店时区时附在后面。
+ */
+const arrivalTimeLabel = computed(() => {
+  if (isEmpty(currentShop.value) || isEmpty(currentShop.value.timeZone)) {
+    return '到店时间';
+  }
+  return `到店时间 · ${timeZoneLabel(currentShop.value.timeZone)}`;
+});
+
+/**
  * 从路由路径读取门店编号。本页只服务这一家门店。
  */
 function readShopCode() {
@@ -401,6 +414,13 @@ async function loadMemberOrders(pageNumber) {
  */
 async function changeOrderPage(pageNumber) {
   await loadMemberOrders(pageNumber);
+}
+
+/**
+ * 关掉核销码弹窗后，按当前页重新拉取订单。
+ */
+async function refreshClosedOrder() {
+  await loadMemberOrders(orderPageNumber.value);
 }
 
 /**

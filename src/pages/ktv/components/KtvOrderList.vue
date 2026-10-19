@@ -54,7 +54,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['change-page']);
+const emit = defineEmits(['change-page', 'refresh-order']);
 
 const openedOrder = ref(null);
 const verifyCodeImageUrl = ref('');
@@ -114,11 +114,16 @@ async function openVerifyCode(order) {
 }
 
 /**
- * 关闭核销码弹窗。
+ * 关闭核销码弹窗，并通知页面刷新这笔订单。
  */
 function closeVerifyCode() {
+  const bookingOrderId = isEmpty(openedOrder.value) ? '' : openedOrder.value.bookingOrderId;
   openedOrder.value = null;
   verifyCodeImageUrl.value = '';
+  if (isEmpty(bookingOrderId)) {
+    return;
+  }
+  emit('refresh-order', bookingOrderId);
 }
 </script>
 
