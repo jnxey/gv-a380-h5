@@ -22,3 +22,34 @@ export function getA380MiniappSign() {
     return Promise.reject(new Error('请从聊天App打开'));
   });
 }
+
+/** 已经通知过宿主进入应用。 */
+let miniProgramEntered = false;
+
+/**
+ * 页面挂载后通知宿主关掉小程序加载动画。
+ * 浏览器里没有 GV_SDK 时不调用；SDK 晚到则等 gv-sdk-ready。只通知一次，失败不提示。
+ */
+export function enterMiniProgramApp() {
+  tryEnterMiniProgramApp();
+  if (miniProgramEntered) {
+    return;
+  }
+  window.addEventListener('gv-sdk-ready', tryEnterMiniProgramApp);
+}
+
+/**
+ * SDK 已就绪时调用 enterApp。未就绪则留下一次监听。
+ */
+function tryEnterMiniProgramApp() {
+  if (miniProgramEntered) {
+    return;
+  }
+  const bridge = window.GV_SDK;
+  if (isEmpty(bridge) || isFunction(bridge.enterApp) !== true) {
+    return;
+  }
+  miniProgramEntered = true;
+  window.removeEventListener('gv-sdk-ready', tryEnterMiniProgramApp);
+  Promise.resolve(bridge.enterApp()).catch(() => {});
+}

@@ -5,6 +5,7 @@ import HotelBookingPage from './pages/hotel/booking.vue';
 import KtvBookingPage from './pages/ktv/booking.vue';
 import MemberPage from './pages/member/index.vue';
 import { BookingShopQuery, H5PagePath, PageTitle } from './utils/constants.js';
+import { enterMiniProgramApp } from './utils/gv-sdk.js';
 
 /**
  * 创建页面路由。订房入口把门店编号放在路径最后一段。
@@ -49,3 +50,4 @@ function createPageRouter() {
 const app = createApp(App);
 app.use(createPageRouter());
 app.mount('#app');
+enterMiniProgramApp();
