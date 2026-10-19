@@ -1,7 +1,37 @@
 <template>
-  <div class="pull-refresh" :class="{ following: pullFollowingFinger }" :style="{ height: `${pullDistance}px` }">
+  <div
+    class="pull-refresh"
+    :class="{ following: pullFollowingFinger }"
+    :style="{ height: `${pullDistance}px`, '--pull-progress': pullProgress }"
+  >
     <div v-if="pullRefreshState !== KtvPullRefreshState.IDLE" class="pull-refresh-body">
-      <span class="pull-arrow" :class="pullRefreshState"></span>
+      <svg
+        class="pull-mark"
+        :class="pullRefreshState"
+        :viewBox="`0 0 ${KtvPullRefreshSetting.RING_SIZE} ${KtvPullRefreshSetting.RING_SIZE}`"
+      >
+        <circle
+          class="pull-ring-face"
+          :cx="KtvPullRefreshSetting.RING_CENTER"
+          :cy="KtvPullRefreshSetting.RING_CENTER"
+          :r="KtvPullRefreshSetting.RING_RADIUS"
+        />
+        <circle
+          class="pull-ring-track"
+          :cx="KtvPullRefreshSetting.RING_CENTER"
+          :cy="KtvPullRefreshSetting.RING_CENTER"
+          :r="KtvPullRefreshSetting.RING_RADIUS"
+        />
+        <circle
+          class="pull-ring-progress"
+          :cx="KtvPullRefreshSetting.RING_CENTER"
+          :cy="KtvPullRefreshSetting.RING_CENTER"
+          :r="KtvPullRefreshSetting.RING_RADIUS"
+          :stroke-dasharray="ringCircumference"
+          :stroke-dashoffset="ringDashOffset"
+        />
+        <path class="pull-arrow-path" d="M18 11.5v11M13.2 17.2 18 22.5l4.8-5.3" />
+      </svg>
       <span>{{ pullRefreshText }}</span>
     </div>
   </div>
@@ -22,9 +52,34 @@ const emit = defineEmits(['refresh']);
 const pullDistance = ref(0);
 const pullRefreshState = ref(KtvPullRefreshState.IDLE);
 const pullFollowingFinger = ref(false);
+const ringCircumference = 2 * Math.PI * KtvPullRefreshSetting.RING_RADIUS;
 
 let touchStartY = 0;
 let touchPulling = false;
+
+/**
+ * 下拉进度。0 到 1，刷新中保持画满。
+ */
+const pullProgress = computed(() => {
+  if (pullRefreshState.value === KtvPullRefreshState.REFRESHING) {
+    return 1;
+  }
+  if (pullDistance.value <= 0) {
+    return 0;
+  }
+  const progress = pullDistance.value / KtvPullRefreshSetting.THRESHOLD;
+  if (progress > 1) {
+    return 1;
+  }
+  return progress;
+});
+
+/**
+ * 进度环缺口。拉得越多，缺口越小。
+ */
+const ringDashOffset = computed(() => {
+  return ringCircumference * (1 - pullProgress.value);
+});
 
 /**
  * 指示文案。下拉中、松开和刷新中各一句。
@@ -66,7 +121,7 @@ function handleTouchStart(event) {
 }
 
 /**
- * 手指向下拉时撑高指示条。
+ * 手指向下拉时撑高指示条。到阈值前跟手，超过后放慢。
  */
 function handleTouchMove(event) {
   if (touchPulling !== true) {
@@ -88,9 +143,13 @@ function handleTouchMove(event) {
   }
   event.preventDefault();
   pullFollowingFinger.value = true;
-  const nextDistance = Math.min(pullDelta, KtvPullRefreshSetting.MAX_DISTANCE);
-  pullDistance.value = nextDistance;
-  if (nextDistance >= KtvPullRefreshSetting.THRESHOLD) {
+  let nextDistance = pullDelta;
+  if (pullDelta > KtvPullRefreshSetting.THRESHOLD) {
+    const extraDistance = pullDelta - KtvPullRefreshSetting.THRESHOLD;
+    nextDistance = KtvPullRefreshSetting.THRESHOLD + extraDistance * KtvPullRefreshSetting.RESISTANCE;
+  }
+  pullDistance.value = Math.min(nextDistance, KtvPullRefreshSetting.MAX_DISTANCE);
+  if (pullDistance.value >= KtvPullRefreshSetting.THRESHOLD) {
     pullRefreshState.value = KtvPullRefreshState.READY;
     return;
   }
@@ -148,7 +207,7 @@ onUnmounted(() => {
 <style scoped>
 .pull-refresh {
   overflow: hidden;
-  transition: height 0.2s ease;
+  transition: height 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .pull-refresh.following {
   transition: none;
@@ -161,27 +220,65 @@ onUnmounted(() => {
   height: 100%;
   color: #6d28d9;
   font-size: 13px;
+  font-weight: 500;
+  opacity: var(--pull-progress);
+  transform: scale(calc(0.86 + 0.14 * var(--pull-progress)));
 }
-.pull-arrow {
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid #6d28d9;
-  border-bottom: 2px solid #6d28d9;
-  transform: rotate(45deg) translateY(-2px);
+.pull-mark {
+  width: 28px;
+  height: 28px;
+  overflow: visible;
 }
-.pull-arrow.ready {
-  transform: rotate(-135deg) translateY(-1px);
+.pull-mark.ready {
+  animation: pull-ready 0.28s ease;
 }
-.pull-arrow.refreshing {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #ede9fe;
-  border-top-color: #6d28d9;
-  border-right-color: #ede9fe;
-  border-bottom-color: #ede9fe;
-  border-radius: 50%;
-  transform: none;
-  animation: pull-spin 0.8s linear infinite;
+.pull-ring-face {
+  fill: #f5f3ff;
+}
+.pull-ring-track,
+.pull-ring-progress {
+  fill: none;
+  stroke-width: 2.4;
+}
+.pull-ring-track {
+  stroke: #ddd6fe;
+}
+.pull-ring-progress {
+  stroke: #6d28d9;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+.pull-arrow-path {
+  fill: none;
+  stroke: #6d28d9;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(calc(var(--pull-progress) * 180deg));
+  transition: transform 0.12s ease;
+}
+.pull-mark.refreshing .pull-ring-progress {
+  stroke-dasharray: 24 64;
+  stroke-dashoffset: 0;
+  animation: pull-spin 0.7s linear infinite;
+}
+.pull-mark.refreshing .pull-arrow-path {
+  opacity: 0;
+}
+@keyframes pull-ready {
+  0% {
+    transform: scale(0.92);
+  }
+  55% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 @keyframes pull-spin {
   from {

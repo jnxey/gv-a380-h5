@@ -60,7 +60,11 @@ export const KtvPullRefreshState = {
 
 export const KtvPullRefreshSetting = {
   THRESHOLD: 56,
-  MAX_DISTANCE: 120
+  MAX_DISTANCE: 120,
+  RESISTANCE: 0.35,
+  RING_SIZE: 36,
+  RING_CENTER: 18,
+  RING_RADIUS: 14
 };
 
 export const AppIconName = {
