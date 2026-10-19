@@ -138,7 +138,7 @@ function formatStartClock(slot) {
   display: flex;
   flex-direction: column;
   width: min(520px, 100%);
-  max-height: 88vh;
+  max-height: calc(100vh - var(--safe-area-inset-top));
   overflow: visible;
   overscroll-behavior: none;
   border-radius: 22px 22px 0 0;
@@ -248,7 +248,7 @@ function formatStartClock(slot) {
   display: flex;
   flex: 0 0 auto;
   gap: 10px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 16px calc(12px + var(--safe-area-inset-bottom));
   background: #fff;
 }
 .actions button {

@@ -203,12 +203,16 @@ function closeVerifyCode() {
   opacity: 0.4;
 }
 .verify-mask {
+  box-sizing: border-box;
   position: fixed;
   inset: 0;
   z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
+  padding-top: calc(16px + var(--safe-area-inset-top));
+  padding-bottom: calc(16px + var(--safe-area-inset-bottom));
   background: rgba(18, 12, 24, 0.46);
 }
 .verify-card {
