@@ -8,15 +8,27 @@
         {{ businessHoursText }}
         <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
       </p>
-      <p v-if="isEmpty(shopAddressText) !== true" class="meta">{{ shopAddressText }}</p>
-      <p v-if="isEmpty(shopPhoneText) !== true" class="meta">{{ shopPhoneText }}</p>
+      <p v-if="isEmpty(shopAddressText) !== true" class="meta">
+        {{ shopAddressText }}
+        <button v-if="hasShopLocation" type="button" class="meta-action" @click="openShopMap">
+          <AppIcon :icon-name="AppIconName.MAP" />
+        </button>
+      </p>
+      <p v-if="isEmpty(shopPhoneText) !== true" class="meta">
+        {{ shopPhoneText }}
+        <button type="button" class="meta-action" @click="callShopPhone">
+          <AppIcon :icon-name="AppIconName.PHONE" />
+        </button>
+      </p>
     </div>
   </header>
 </template>
 
 <script setup>
 import { computed } from 'vue';
-import { timeZoneLabel } from '../../../utils/constants.js';
+import AppIcon from '../../../components/AppIcon/AppIcon.vue';
+import { AppIconName, timeZoneLabel } from '../../../utils/constants.js';
+import { makeShopPhoneCall, openShopLocation } from '../../../utils/gv-sdk.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -93,6 +105,55 @@ const shopPhoneText = computed(() => {
   }
   return props.currentShop.contactPhone;
 });
+
+/**
+ * 门店纬度。没有有效数字时返回 null。
+ */
+const shopLatitude = computed(() => {
+  return readShopCoordinate('latitude');
+});
+
+/**
+ * 门店经度。没有有效数字时返回 null。
+ */
+const shopLongitude = computed(() => {
+  return readShopCoordinate('longitude');
+});
+
+/**
+ * 经纬度都有时才显示地图按钮。
+ */
+const hasShopLocation = computed(() => {
+  return shopLatitude.value !== null && shopLongitude.value !== null;
+});
+
+/**
+ * 从门店位置里读取一个有限数字坐标。
+ */
+function readShopCoordinate(fieldName) {
+  if (isEmpty(props.currentShop) || isEmpty(props.currentShop.shopAddress)) {
+    return null;
+  }
+  const coordinate = props.currentShop.shopAddress[fieldName];
+  if (typeof coordinate !== 'number' || Number.isFinite(coordinate) !== true) {
+    return null;
+  }
+  return coordinate;
+}
+
+/**
+ * 打开宿主里的地图，定位到这家门店。
+ */
+function openShopMap() {
+  openShopLocation(shopLatitude.value, shopLongitude.value);
+}
+
+/**
+ * 让宿主确认后拨打这家门店的电话。
+ */
+function callShopPhone() {
+  makeShopPhoneCall(shopPhoneText.value);
+}
 </script>
 
 <style scoped>
@@ -127,6 +188,10 @@ const shopPhoneText = computed(() => {
   line-height: 1.2;
 }
 .meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 8px 0 0;
   color: rgba(245, 243, 255, 0.78);
   font-size: 13px;
@@ -134,13 +199,27 @@ const shopPhoneText = computed(() => {
 }
 .time-zone-tag {
   display: inline-block;
-  margin-left: 8px;
   padding: 0 8px;
   border-radius: 999px;
   background: rgba(245, 243, 255, 0.18);
   color: #f5f3ff;
   font-size: 12px;
   line-height: 20px;
-  vertical-align: 1px;
+}
+.meta-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(245, 243, 255, 0.18);
+  color: #f5f3ff;
+}
+.meta-action :deep(.app-icon) {
+  width: 14px;
+  height: 14px;
 }
 </style>

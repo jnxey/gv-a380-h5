@@ -65,14 +65,16 @@ export const KtvPullRefreshState = {
 export const KtvPullRefreshSetting = {
   THRESHOLD: 56,
   MAX_DISTANCE: 120,
-  RESISTANCE: 0.35,
+  RESISTANCE: 0.4,
   RING_SIZE: 36,
   RING_CENTER: 18,
   RING_RADIUS: 14
 };
 
 export const AppIconName = {
-  REVIEW: 'REVIEW'
+  REVIEW: 'REVIEW',
+  MAP: 'MAP',
+  PHONE: 'PHONE'
 };
 
 export const KtvBookingDuration = {

@@ -121,7 +121,7 @@ function handleTouchStart(event) {
 }
 
 /**
- * 手指向下拉时撑高指示条。到阈值前跟手，超过后放慢。
+ * 手指向下拉时撑高指示条。从第一下就按阻力放慢，超过阈值后继续用同一系数。
  */
 function handleTouchMove(event) {
   if (touchPulling !== true) {
@@ -143,11 +143,7 @@ function handleTouchMove(event) {
   }
   event.preventDefault();
   pullFollowingFinger.value = true;
-  let nextDistance = pullDelta;
-  if (pullDelta > KtvPullRefreshSetting.THRESHOLD) {
-    const extraDistance = pullDelta - KtvPullRefreshSetting.THRESHOLD;
-    nextDistance = KtvPullRefreshSetting.THRESHOLD + extraDistance * KtvPullRefreshSetting.RESISTANCE;
-  }
+  const nextDistance = pullDelta * KtvPullRefreshSetting.RESISTANCE;
   pullDistance.value = Math.min(nextDistance, KtvPullRefreshSetting.MAX_DISTANCE);
   if (pullDistance.value >= KtvPullRefreshSetting.THRESHOLD) {
     pullRefreshState.value = KtvPullRefreshState.READY;
@@ -207,6 +203,7 @@ onUnmounted(() => {
 <style scoped>
 .pull-refresh {
   overflow: hidden;
+  background: linear-gradient(180deg, #7453f3 0%, #540fbf 42%, #3b117c 100%);
   transition: height 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .pull-refresh.following {
@@ -218,7 +215,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   height: 100%;
-  color: #6d28d9;
+  color: #f5f3ff;
   font-size: 13px;
   font-weight: 500;
   opacity: var(--pull-progress);
@@ -233,7 +230,7 @@ onUnmounted(() => {
   animation: pull-ready 0.28s ease;
 }
 .pull-ring-face {
-  fill: #f5f3ff;
+  fill: rgba(245, 243, 255, 0.16);
 }
 .pull-ring-track,
 .pull-ring-progress {
@@ -241,10 +238,10 @@ onUnmounted(() => {
   stroke-width: 2.4;
 }
 .pull-ring-track {
-  stroke: #ddd6fe;
+  stroke: rgba(245, 243, 255, 0.35);
 }
 .pull-ring-progress {
-  stroke: #6d28d9;
+  stroke: #f5f3ff;
   stroke-linecap: round;
   transform-box: fill-box;
   transform-origin: center;
@@ -252,7 +249,7 @@ onUnmounted(() => {
 }
 .pull-arrow-path {
   fill: none;
-  stroke: #6d28d9;
+  stroke: #f5f3ff;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;

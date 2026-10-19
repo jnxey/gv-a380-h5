@@ -53,3 +53,37 @@ function tryEnterMiniProgramApp() {
   window.removeEventListener('gv-sdk-ready', tryEnterMiniProgramApp);
   Promise.resolve(bridge.enterApp()).catch(() => {});
 }
+
+/**
+ * 打开宿主地图。没有 GV_SDK 时提示从聊天 App 打开。用户关闭地图不提示。
+ */
+export function openShopLocation(latitude, longitude) {
+  const openLocation = readGvSdkMethod('openLocation');
+  if (openLocation === null) {
+    return;
+  }
+  Promise.resolve(openLocation({ latitude, longitude })).catch(() => {});
+}
+
+/**
+ * 让宿主确认后拨号。没有 GV_SDK 时提示从聊天 App 打开。用户取消不提示。
+ */
+export function makeShopPhoneCall(phone) {
+  const makePhoneCall = readGvSdkMethod('makePhoneCall');
+  if (makePhoneCall === null) {
+    return;
+  }
+  Promise.resolve(makePhoneCall({ phone })).catch(() => {});
+}
+
+/**
+ * 取出宿主上的一个方法。没有这个方法时提示，并返回 null。
+ */
+function readGvSdkMethod(methodName) {
+  const bridge = window.GV_SDK;
+  if (isEmpty(bridge) || isFunction(bridge[methodName]) !== true) {
+    showToast('请从聊天App打开');
+    return null;
+  }
+  return bridge[methodName].bind(bridge);
+}
