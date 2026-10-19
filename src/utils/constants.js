@@ -6,6 +6,10 @@ export const HttpStatusCode = {
   UNAUTHORIZED: 401
 };
 
+export const MiniappSignLifetime = {
+  REFRESH_AFTER_MILLISECONDS: 90 * 60 * 1000
+};
+
 export const ShopType = {
   KTV: 'KTV',
   HOTEL: 'HOTEL'

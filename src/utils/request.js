@@ -1,4 +1,4 @@
-import { getA380MiniappSign } from './gv-sdk.js';
+import { getMiniappSign } from './miniapp-sign.js';
 import { HttpStatusCode, ResponseCode } from './constants.js';
 import { isEmpty } from './tools.js';
 import { showToast } from './toast.js';
@@ -7,7 +7,7 @@ import { showToast } from './toast.js';
  * 请求业务接口，并自动带上宿主签发的小程序身份签名。
  */
 export function request(options) {
-  return getA380MiniappSign().then((cipherText) => {
+  return getMiniappSign().then((cipherText) => {
     const method = isEmpty(options.method) ? 'GET' : options.method;
     const requestData = isEmpty(options.data) ? {} : options.data;
     // 1. GET 把参数拼到地址上，其它方法放在请求体里
