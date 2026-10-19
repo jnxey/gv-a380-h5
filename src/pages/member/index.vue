@@ -1,10 +1,9 @@
 <template>
   <div class="page">
     <div class="balance-card">
-      <span class="name">{{ memberSummary.memberName }} {{ memberSummary.memberNo }}</span>
+      <span class="name">{{ memberSummary.username }}</span>
       <span class="label">余额（元）</span>
       <span class="balance">{{ memberSummary.balance }}</span>
-      <span class="points">积分 {{ memberSummary.points }}</span>
     </div>
     <div class="section-title">充值记录</div>
     <div v-if="rechargeList.length === 0" class="empty">暂无充值记录</div>
@@ -36,10 +35,8 @@ import { FinanceBizType, FinanceDirection, PageSetting, statusLabel } from '../.
 import { isEmpty } from '../../utils/tools.js';
 
 const memberSummary = ref({
-  memberName: '',
-  memberNo: '',
+  username: '',
   balance: '0.00',
-  points: 0,
 });
 const rechargeList = ref([]);
 const billList = ref([]);
@@ -100,7 +97,6 @@ onMounted(() => {
 }
 .name,
 .label,
-.points,
 .balance {
   display: block;
 }
