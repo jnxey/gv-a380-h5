@@ -1,0 +1,81 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #f5f6f8;
+  color: #111827;
+  font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a,
+button,
+img {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+a,
+button,
+input,
+textarea,
+select,
+label {
+  touch-action: manipulation;
+}
+
+*:focus,
+*:focus-visible {
+  outline: none;
+}
+
+.page-head {
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  background: #1f4b99;
+  color: #fff;
+  font-size: 16px;
+}
+
+.app-toast {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(17, 24, 39, 0.86);
+  color: #fff;
+  font-size: 14px;
+  z-index: 20;
+}

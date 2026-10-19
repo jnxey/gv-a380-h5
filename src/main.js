@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
+import './styles/base.css';
 import App from './App.vue';
 import HotelBookingPage from './pages/hotel/booking.vue';
 import KtvBookingPage from './pages/ktv/booking.vue';
