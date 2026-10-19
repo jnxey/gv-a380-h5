@@ -162,7 +162,7 @@ function callShopPhone() {
   position: relative;
   overflow: hidden;
   padding: 16px 16px 28px;
-  padding-top: calc(16px + var(--safe-area-inset-top));
+  padding-top: calc(32px + var(--safe-area-inset-top));
   color: #f5f3ff;
   background: linear-gradient(160deg, #6d28d9 0%, #4c1d95 100%);
 }
