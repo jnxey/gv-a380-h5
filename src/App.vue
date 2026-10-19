@@ -54,6 +54,11 @@ body {
   font-size: 14px;
 }
 
+*:focus,
+*:focus-visible {
+  outline: none;
+}
+
 .page-head {
   height: 44px;
   line-height: 44px;
