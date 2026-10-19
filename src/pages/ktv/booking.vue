@@ -752,7 +752,7 @@ watch(
   color: #111827;
 }
 .page-with-bar {
-  padding-bottom: calc(88px + var(--safe-area-inset-bottom));
+  padding-bottom: calc(88px + var(--gv-safe-bottom, 0px));
 }
 .panel {
   box-sizing: border-box;
