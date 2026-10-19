@@ -1,6 +1,7 @@
 <template>
   <div class="page">
     <div class="balance-card">
+      <span v-if="isEmpty(memberSummary.nickname) !== true" class="name">{{ memberSummary.nickname }}</span>
       <span class="name">{{ memberSummary.username }}</span>
       <span v-if="isEmpty(memberSummary.contact) !== true" class="contact">{{ memberSummary.contact }}</span>
       <span class="label">余额（元）</span>
@@ -37,6 +38,7 @@ import { isEmpty } from '../../utils/tools.js';
 
 const memberSummary = ref({
   username: '',
+  nickname: '',
   contact: '',
   balance: '0.00',
 });
