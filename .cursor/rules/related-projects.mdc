@@ -1,11 +1,20 @@
 ---
-description: gv-a380 关联项目的本地路径
+description: 工作区各项目的角色与对应关系
 alwaysApply: true
 ---
 
-# 关联项目路径
+# 项目对应关系
 
-当前仓库是 H5 端。需要对照服务端或后台时，使用下面的本地目录，不要再向用户确认路径。
+聊天 APP：
 
-- 服务端：`D:\Work\app-work\demo\gv-a380-server`
-- 后台：`D:\Work\app-work\demo\gv-a380-admin`
+- `gv_chat_server`：聊天 APP 服务端，本地目录 `D:\Work\app-work\gv_chat_server`
+- `gv_chat_admin`：聊天 APP 后台前端，本地目录 `D:\Work\app-work\gv_chat_admin`
+- `gv-chat-app`：聊天 APP 应用端，本地目录 `D:\Work\app-work\gv-chat-app`
+
+A380（小程序内嵌在聊天 APP 内）：
+
+- `gv-a380-server`：A380 服务端，本地目录 `D:\Work\app-work\gv-a380-server`
+- `gv-a380-admin`：A380 后台前端，本地目录 `D:\Work\app-work\gv-a380-admin`
+- `gv-a380-h5`：A380 小程序前端，本地目录 `D:\Work\app-work\gv-a380-h5`
+
+当前仓库是 A380 小程序前端。对照接口时看 A380 服务端，对照后台时看 A380 后台前端。不要再向用户确认这些路径。

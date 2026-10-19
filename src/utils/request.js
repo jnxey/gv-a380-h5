@@ -1,13 +1,13 @@
-import { getAuthToken } from './gv-sdk.js';
+import { getA380MiniappSign } from './gv-sdk.js';
 import { HttpStatusCode, ResponseCode } from './constants.js';
 import { isEmpty } from './tools.js';
 import { showToast } from './toast.js';
 
 /**
- * 请求业务接口，并自动带上宿主签发的 Authorization。
+ * 请求业务接口，并自动带上宿主签发的小程序身份签名。
  */
 export function request(options) {
-  return getAuthToken().then((accessToken) => {
+  return getA380MiniappSign().then((cipherText) => {
     const method = isEmpty(options.method) ? 'GET' : options.method;
     const requestData = isEmpty(options.data) ? {} : options.data;
     // 1. GET 把参数拼到地址上，其它方法放在请求体里
@@ -25,7 +25,7 @@ export function request(options) {
     return fetch(requestUrl, {
       method,
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${cipherText}`,
         'Content-Type': 'application/json',
       },
       body: requestBody,

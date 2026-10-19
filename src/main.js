@@ -5,31 +5,6 @@ import HotelBookingPage from './pages/hotel/booking.vue';
 import KtvBookingPage from './pages/ktv/booking.vue';
 import MemberPage from './pages/member/index.vue';
 import { BookingShopQuery, H5PagePath, PageTitle } from './utils/constants.js';
-import { isEmpty, isFunction } from './utils/tools.js';
-
-/**
- * 本地调试时补上聊天 App 的令牌桥。已有宿主桥时不覆盖，正式环境不安装。
- */
-function installDevAuthBridge() {
-  if (import.meta.env.DEV !== true || typeof window === 'undefined') {
-    return;
-  }
-  if (isEmpty(window.GV_SDK) !== true) {
-    return;
-  }
-  const accessToken = import.meta.env.VITE_DEV_MEMBER_TOKEN;
-  window.GV_SDK = {
-    getAuthToken(options) {
-      if (isEmpty(accessToken)) {
-        if (isFunction(options.fail)) {
-          options.fail();
-        }
-        return;
-      }
-      options.success({ token: accessToken });
-    },
-  };
-}
 
 /**
  * 创建页面路由。订房入口把门店编号放在路径最后一段。
@@ -70,8 +45,6 @@ function createPageRouter() {
     ],
   });
 }
-
-installDevAuthBridge();
 
 const app = createApp(App);
 app.use(createPageRouter());
