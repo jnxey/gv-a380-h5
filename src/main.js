@@ -47,7 +47,19 @@ function createPageRouter() {
   });
 }
 
-const app = createApp(App);
-app.use(createPageRouter());
-app.mount('#app');
-enterMiniProgramApp();
+/**
+ * 开发环境挂上 vConsole，再挂载应用。正式包不包含它。
+ */
+async function startApp() {
+  if (import.meta.env.DEV) {
+    const vConsoleModule = await import('vconsole');
+    const VConsole = vConsoleModule.default;
+    new VConsole();
+  }
+  const app = createApp(App);
+  app.use(createPageRouter());
+  app.mount('#app');
+  enterMiniProgramApp();
+}
+
+startApp();
