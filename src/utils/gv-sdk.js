@@ -77,6 +77,33 @@ export function makeShopPhoneCall(phone) {
 }
 
 /**
+ * 让宿主校验安全密钥，返回 5 分钟内有效的密文。
+ * 没有 GV_SDK 时提示从聊天 App 打开。用户取消不提示。尚未设置则提示先去设置。
+ */
+export function verifyConsumerDoorLock() {
+  const verifySecurityKey = readGvSdkMethod('verifyConsumerDoorLock');
+  if (verifySecurityKey === null) {
+    return Promise.reject(new Error('请从聊天App打开'));
+  }
+  return Promise.resolve(verifySecurityKey()).then((cipherText) => {
+    if (isEmpty(cipherText)) {
+      return Promise.reject(new Error('安全密钥无效'));
+    }
+    return cipherText;
+  }, (error) => {
+    const message = isEmpty(error) || isEmpty(error.message) ? '' : String(error.message);
+    if (message === 'cancelled') {
+      return Promise.reject(error);
+    }
+    if (message === 'security key not set') {
+      showToast('请先设置安全密钥');
+      return Promise.reject(error);
+    }
+    return Promise.reject(error);
+  });
+}
+
+/**
  * 取出宿主上的一个方法。没有这个方法时提示，并返回 null。
  */
 function readGvSdkMethod(methodName) {

@@ -66,6 +66,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { request } from '../../utils/request.js';
+import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
 import KtvBookingBar from './components/KtvBookingBar.vue';
 import KtvBookingSheet from './components/KtvBookingSheet.vue';
 import KtvBookingSuccess from './components/KtvBookingSuccess.vue';
@@ -171,6 +172,7 @@ const selectedBookingDate = ref('');
 const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
 const selectedSlotKey = ref('');
 const formError = ref('');
+const bookingSubmitting = ref(false);
 const bookingStep = ref(KtvBookingStep.LIST);
 const selectedContentTab = ref(KtvContentTab.BOOKING);
 const successSummary = ref(null);
@@ -630,9 +632,12 @@ function closeForm() {
 }
 
 /**
- * 提交预订。只提交门店、包厢类型、开唱时间和时长。
+ * 提交预订。先校验安全密钥，再提交门店、包厢类型、开唱时间、时长和密文。
  */
 async function submitBooking() {
+  if (bookingSubmitting.value) {
+    return;
+  }
   const shop = currentShop.value;
   const roomType = selectedRoomType.value;
   const slot = selectedArrivalSlot.value;
@@ -650,30 +655,46 @@ async function submitBooking() {
     formError.value = '演唱小时数必须在1到24之间';
     return;
   }
-  // 2. 提交体只带门店、包厢类型、开唱时间和时长
-  const createdOrder = await request({
-    url: '/app/ktv/booking-orders',
-    method: 'POST',
-    data: {
-      shopId: shop.shopId,
-      roomTypeId: roomType.id,
+  bookingSubmitting.value = true;
+  try {
+    // 2. 弹出安全密钥。取消或没拿到密文时不下单
+    let securityKeyCipherText = '';
+    try {
+      securityKeyCipherText = await verifyConsumerDoorLock();
+    } catch {
+      return;
+    }
+    if (isEmpty(securityKeyCipherText)) {
+      return;
+    }
+    // 3. 提交体带上门店、包厢类型、开唱时间、时长和安全密钥密文
+    const createdOrder = await request({
+      url: '/app/ktv/booking-orders',
+      method: 'POST',
+      data: {
+        shopId: shop.shopId,
+        roomTypeId: roomType.id,
+        bookingDate: slot.bookingDate,
+        startTime: slot.startTime,
+        durationHours: durationHourCount,
+        cipherText: securityKeyCipherText,
+      },
+    });
+    // 4. 成功后记下接口返回的单号、核销码和金额
+    const fallbackAmount = formatRoomAmount(roomType);
+    successSummary.value = {
+      orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
+      verifyCode: isEmpty(createdOrder) ? '' : createdOrder.verifyCode,
+      amount: isEmpty(createdOrder) ? fallbackAmount : createdOrder.amount,
+      shopName: shop.shopName,
+      roomTypeName: roomType.typeName,
       bookingDate: slot.bookingDate,
-      startTime: slot.startTime,
-      durationHours: durationHourCount,
-    },
-  });
-  // 3. 成功后记下接口返回的单号、核销码和金额
-  const fallbackAmount = formatRoomAmount(roomType);
-  successSummary.value = {
-    orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
-    verifyCode: isEmpty(createdOrder) ? '' : createdOrder.verifyCode,
-    amount: isEmpty(createdOrder) ? fallbackAmount : createdOrder.amount,
-    shopName: shop.shopName,
-    roomTypeName: roomType.typeName,
-    bookingDate: slot.bookingDate,
-    arrivalLabel: formatArrivalLabel(slot),
-  };
-  bookingStep.value = KtvBookingStep.SUCCESS;
+      arrivalLabel: formatArrivalLabel(slot),
+    };
+    bookingStep.value = KtvBookingStep.SUCCESS;
+  } finally {
+    bookingSubmitting.value = false;
+  }
 }
 
 /**
