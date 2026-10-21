@@ -4,6 +4,22 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
+      <label>预定人</label>
+      <input
+        class="field-input"
+        :value="guestName"
+        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+        placeholder="预定人"
+        @input="updateGuestName"
+      />
+      <label>联系方式</label>
+      <input
+        class="field-input"
+        :value="contact"
+        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+        placeholder="联系方式"
+        @input="updateContact"
+      />
       <label>入住日期</label>
       <p class="value">{{ checkInDate }}</p>
       <label>入住晚数</label>
@@ -24,6 +40,7 @@
 </template>
 
 <script setup>
+import { HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 defineProps({
@@ -31,6 +48,12 @@ defineProps({
     default: null
   },
   formHintText: {
+    default: ''
+  },
+  guestName: {
+    default: ''
+  },
+  contact: {
     default: ''
   },
   checkInDate: {
@@ -50,7 +73,27 @@ defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'submit']);
+const emit = defineEmits(['close', 'submit', 'update:guestName', 'update:contact']);
+
+/**
+ * 把输入框里的预定人交回页面。
+ */
+function updateGuestName(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:guestName', event.target.value);
+}
+
+/**
+ * 把输入框里的联系方式交回页面。
+ */
+function updateContact(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:contact', event.target.value);
+}
 </script>
 
 <style scoped>
@@ -101,6 +144,17 @@ const emit = defineEmits(['close', 'submit']);
   margin: 12px 0 6px;
   font-size: 13px;
   color: #5e6b64;
+}
+.field-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(20, 36, 28, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  color: #14241c;
+  font: inherit;
+  font-size: 15px;
 }
 .value {
   margin: 0;

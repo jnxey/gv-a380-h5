@@ -44,6 +44,8 @@
       v-if="bookingStep === KtvBookingStep.FORM"
       :selected-room-type="selectedRoomType"
       :form-hint-text="formHintText"
+      v-model:guest-name="guestName"
+      v-model:contact="bookingContact"
       :arrival-time-label="arrivalTimeLabel"
       :arrival-slot-list="arrivalSlotList"
       :selected-slot-key="selectedSlotKey"
@@ -81,6 +83,7 @@ import KtvShopDetail from './components/KtvShopDetail.vue';
 import KtvStoreHeader from './components/KtvStoreHeader.vue';
 import {
   BookingShopQuery,
+  HotelBookingGuest,
   KtvBookingDuration,
   KtvBookingHour,
   KtvBookingSlot,
@@ -93,7 +96,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty } from '../../utils/tools.js';
+import { isEmpty, nationalContactText } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -171,6 +174,8 @@ const slotBaseTime = ref(new Date());
 const selectedBookingDate = ref('');
 const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
 const selectedSlotKey = ref('');
+const guestName = ref('');
+const bookingContact = ref('');
 const formError = ref('');
 const bookingSubmitting = ref(false);
 const bookingStep = ref(KtvBookingStep.LIST);
@@ -393,6 +398,29 @@ async function loadPage() {
   }
   // 2. 我的订单与门店编号无关，仍然从第 1 页加载
   await loadMemberOrders(PageSetting.DEFAULT_PAGE);
+  // 3. 用已绑定会员的昵称和联系方式预填，已手改过的不覆盖
+  await loadMemberProfile();
+}
+
+/**
+ * 用会员资料预填预定人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
+ */
+async function loadMemberProfile() {
+  let memberSummary = null;
+  try {
+    memberSummary = await request({ url: '/app/member/summary', method: 'GET' });
+  } catch {
+    return;
+  }
+  if (isEmpty(memberSummary)) {
+    return;
+  }
+  if (isEmpty(guestName.value) && isEmpty(memberSummary.nickname) !== true) {
+    guestName.value = memberSummary.nickname;
+  }
+  if (isEmpty(bookingContact.value) && isEmpty(memberSummary.contact) !== true) {
+    bookingContact.value = nationalContactText(memberSummary.contact);
+  }
 }
 
 /**
@@ -632,7 +660,7 @@ function closeForm() {
 }
 
 /**
- * 提交预订。先校验安全密钥，再提交门店、包厢类型、开唱时间、时长和密文。
+ * 提交预订。先核对预定人和联系方式，再校验安全密钥，并提交门店、包厢类型、开唱时间和时长。
  */
 async function submitBooking() {
   if (bookingSubmitting.value) {
@@ -642,6 +670,8 @@ async function submitBooking() {
   const roomType = selectedRoomType.value;
   const slot = selectedArrivalSlot.value;
   const durationHourCount = selectedDurationHours.value;
+  const guestNameText = isEmpty(guestName.value) ? '' : guestName.value.trim();
+  const contactText = isEmpty(bookingContact.value) ? '' : bookingContact.value.trim();
   // 1. 先做本地校验，缺项时停在弹层里
   if (isEmpty(shop) || isEmpty(roomType)) {
     formError.value = '请完整填写预订信息';
@@ -653,6 +683,14 @@ async function submitBooking() {
   }
   if (Number.isInteger(durationHourCount) !== true || durationHourCount < KtvBookingHour.MIN || durationHourCount > KtvBookingHour.MAX) {
     formError.value = '演唱小时数必须在1到24之间';
+    return;
+  }
+  if (isEmpty(guestNameText) || isEmpty(contactText)) {
+    formError.value = '请填写预定人和联系方式';
+    return;
+  }
+  if (guestNameText.length > HotelBookingGuest.NAME_MAX_LENGTH || contactText.length > HotelBookingGuest.CONTACT_MAX_LENGTH) {
+    formError.value = '预定人或联系方式过长';
     return;
   }
   bookingSubmitting.value = true;
@@ -667,7 +705,7 @@ async function submitBooking() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
-    // 3. 提交体带上门店、包厢类型、开唱时间、时长和安全密钥密文
+    // 3. 提交体带上门店、包厢类型、开唱时间、时长、预定人、联系方式和安全密钥密文
     const createdOrder = await request({
       url: '/app/ktv/booking-orders',
       method: 'POST',
@@ -677,6 +715,8 @@ async function submitBooking() {
         bookingDate: slot.bookingDate,
         startTime: slot.startTime,
         durationHours: durationHourCount,
+        guestName: guestNameText,
+        contact: contactText,
         cipherText: securityKeyCipherText,
       },
     });

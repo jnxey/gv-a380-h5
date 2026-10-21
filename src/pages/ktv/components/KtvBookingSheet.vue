@@ -4,6 +4,22 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
+      <label>预定人</label>
+      <input
+        class="field-input"
+        :value="guestName"
+        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+        placeholder="预定人"
+        @input="updateGuestName"
+      />
+      <label>联系方式</label>
+      <input
+        class="field-input"
+        :value="contact"
+        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+        placeholder="联系方式"
+        @input="updateContact"
+      />
       <label>{{ arrivalTimeLabel }}</label>
       <div class="slots">
         <button
@@ -38,6 +54,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const ArrivalSlotFold = {
@@ -50,6 +67,12 @@ const props = defineProps({
     default: null
   },
   formHintText: {
+    default: ''
+  },
+  guestName: {
+    default: ''
+  },
+  contact: {
     default: ''
   },
   arrivalTimeLabel: {
@@ -74,7 +97,27 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'select-slot', 'submit']);
+const emit = defineEmits(['close', 'select-slot', 'submit', 'update:guestName', 'update:contact']);
+
+/**
+ * 把输入框里的预定人交回页面。
+ */
+function updateGuestName(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:guestName', event.target.value);
+}
+
+/**
+ * 把输入框里的联系方式交回页面。
+ */
+function updateContact(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:contact', event.target.value);
+}
 
 const arrivalSlotExpanded = ref(false);
 
@@ -168,6 +211,17 @@ function formatStartClock(slot) {
   margin: 12px 0 6px;
   font-size: 13px;
   color: #6b7280;
+}
+.field-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 15px;
 }
 .slots {
   display: grid;

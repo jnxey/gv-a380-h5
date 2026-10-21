@@ -135,6 +135,15 @@ export const HotelBookingCalendar = {
   MONTH_COUNT: 6
 };
 
+export const HotelBookingGuest = {
+  NAME_MAX_LENGTH: 64,
+  CONTACT_MAX_LENGTH: 64
+};
+
+export const E164CallingCode = {
+  CHINA_PREFIX: '+86'
+};
+
 export const HotelDateLabel = {
   TODAY: '今天',
   TOMORROW: '明天',

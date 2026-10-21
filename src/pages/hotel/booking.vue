@@ -47,6 +47,8 @@
       v-if="bookingStep === HotelBookingStep.FORM"
       :selected-room-type="selectedRoomType"
       :form-hint-text="formHintText"
+      v-model:guest-name="guestName"
+      v-model:contact="bookingContact"
       :check-in-date="selectedCheckInDate"
       :night-count="nightCount"
       :check-out-date="selectedCheckOutDate"
@@ -82,6 +84,7 @@ import HotelStoreHeader from './components/HotelStoreHeader.vue';
 import {
   BookingShopQuery,
   HotelBookingCalendar,
+  HotelBookingGuest,
   HotelBookingStep,
   HotelContentTab,
   PageSetting,
@@ -89,7 +92,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty } from '../../utils/tools.js';
+import { isEmpty, nationalContactText } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -140,6 +143,8 @@ const dateBaseTime = ref(new Date());
 const selectedCheckInDate = ref('');
 const selectedCheckOutDate = ref('');
 const dateSheetOpen = ref(false);
+const guestName = ref('');
+const bookingContact = ref('');
 const formError = ref('');
 const bookingSubmitting = ref(false);
 const bookingStep = ref(HotelBookingStep.LIST);
@@ -410,6 +415,8 @@ async function loadPage() {
   }
   // 2. 我的订单与门店编号无关，仍然从第 1 页加载
   await loadMemberOrders(PageSetting.DEFAULT_PAGE);
+  // 3. 用已绑定会员的昵称和联系方式预填，已手改过的不覆盖
+  await loadMemberProfile();
 }
 
 /**
@@ -451,6 +458,27 @@ async function loadMemberOrders(pageNumber) {
  */
 async function changeOrderPage(pageNumber) {
   await loadMemberOrders(pageNumber);
+}
+
+/**
+ * 用会员资料预填预定人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
+ */
+async function loadMemberProfile() {
+  let memberSummary = null;
+  try {
+    memberSummary = await request({ url: '/app/member/summary', method: 'GET' });
+  } catch {
+    return;
+  }
+  if (isEmpty(memberSummary)) {
+    return;
+  }
+  if (isEmpty(guestName.value) && isEmpty(memberSummary.nickname) !== true) {
+    guestName.value = memberSummary.nickname;
+  }
+  if (isEmpty(bookingContact.value) && isEmpty(memberSummary.contact) !== true) {
+    bookingContact.value = nationalContactText(memberSummary.contact);
+  }
 }
 
 /**
@@ -539,7 +567,7 @@ function closeForm() {
 }
 
 /**
- * 提交预订。先校验安全密钥，再按晚数扣会员余额。
+ * 提交预订。先核对预定人和联系方式，再校验安全密钥，并按晚数扣会员余额。
  */
 async function submitBooking() {
   if (bookingSubmitting.value) {
@@ -550,6 +578,8 @@ async function submitBooking() {
   const checkInDate = selectedCheckInDate.value;
   const nextCheckOutDate = selectedCheckOutDate.value;
   const stayNightCount = nightCount.value;
+  const guestNameText = isEmpty(guestName.value) ? '' : guestName.value.trim();
+  const contactText = isEmpty(bookingContact.value) ? '' : bookingContact.value.trim();
   // 1. 先做本地校验，缺项时停在弹层里
   if (isEmpty(shop) || isEmpty(roomType) || isEmpty(checkInDate) || isEmpty(nextCheckOutDate)) {
     formError.value = '请完整填写预订信息';
@@ -557,6 +587,14 @@ async function submitBooking() {
   }
   if (stayNightCount < 1 || nextCheckOutDate <= checkInDate) {
     formError.value = '离店日期必须晚于入住日期';
+    return;
+  }
+  if (isEmpty(guestNameText) || isEmpty(contactText)) {
+    formError.value = '请填写预定人和联系方式';
+    return;
+  }
+  if (guestNameText.length > HotelBookingGuest.NAME_MAX_LENGTH || contactText.length > HotelBookingGuest.CONTACT_MAX_LENGTH) {
+    formError.value = '预定人或联系方式过长';
     return;
   }
   bookingSubmitting.value = true;
@@ -571,7 +609,7 @@ async function submitBooking() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
-    // 3. 提交门店、房型、入住日、离店日和安全密钥密文
+    // 3. 提交门店、房型、入住日、离店日、预定人、联系方式和安全密钥密文
     const createdOrder = await request({
       url: '/app/hotel/booking-orders',
       method: 'POST',
@@ -580,6 +618,8 @@ async function submitBooking() {
         roomTypeId: roomType.id,
         checkInDate,
         checkOutDate: nextCheckOutDate,
+        guestName: guestNameText,
+        contact: contactText,
         cipherText: securityKeyCipherText,
       },
     });
