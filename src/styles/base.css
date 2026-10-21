@@ -77,5 +77,5 @@ label {
   background: rgba(17, 24, 39, 0.86);
   color: #fff;
   font-size: 14px;
-  z-index: 20;
+  z-index: 2000;
 }
