@@ -313,6 +313,7 @@ function confirmDates() {
   position: absolute;
   inset: 0;
   background: rgba(20, 36, 28, 0.46);
+  overscroll-behavior: none;
 }
 .sheet {
   box-sizing: border-box;
@@ -327,6 +328,7 @@ function confirmDates() {
   border-radius: 22px 22px 0 0;
   background: #fffdf9;
   z-index: 21;
+  overscroll-behavior: none;
 }
 .sheet-head {
   display: flex;
@@ -356,7 +358,9 @@ function confirmDates() {
 }
 .months {
   flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 0 8px 8px;
 }
 .month h3 {
