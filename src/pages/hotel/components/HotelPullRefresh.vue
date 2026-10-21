@@ -40,6 +40,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { HotelPullRefreshSetting, HotelPullRefreshState } from '../../../utils/constants.js';
+import { isEmpty, isFunction } from '../../../utils/tools.js';
 
 const props = defineProps({
   refreshing: {
@@ -106,11 +107,25 @@ function pageAtTop() {
 }
 
 /**
- * 记下按下位置。页面不在顶部或正在刷新时不开始下拉。
+ * 触摸是否落在日期弹窗里。
+ */
+function touchInsideDateSheet(event) {
+  if (isEmpty(event) || isEmpty(event.target) || isFunction(event.target.closest) !== true) {
+    return false;
+  }
+  return isEmpty(event.target.closest('.sheet-root')) !== true;
+}
+
+/**
+ * 记下按下位置。页面不在顶部、正在刷新，或按在日期弹窗上时不开始下拉。
  */
 function handleTouchStart(event) {
   touchPulling = false;
   if (props.refreshing === true || pullRefreshState.value === HotelPullRefreshState.REFRESHING) {
+    return;
+  }
+  // 日期弹窗打开时，下滑只滚日历，不触发下拉刷新
+  if (touchInsideDateSheet(event)) {
     return;
   }
   if (pageAtTop() !== true || event.touches.length !== 1) {
