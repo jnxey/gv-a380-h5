@@ -102,6 +102,62 @@ export const KtvDateLabel = {
   WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 };
 
+export const HotelBookingStep = {
+  LIST: 'list',
+  FORM: 'form',
+  SUCCESS: 'success'
+};
+
+export const HotelContentTab = {
+  BOOKING: 'booking',
+  ORDER: 'order',
+  REVIEW: 'review',
+  SHOP: 'shop'
+};
+
+export const HotelContentTabItemList = [
+  { contentTab: HotelContentTab.BOOKING, label: '预定' },
+  { contentTab: HotelContentTab.ORDER, label: '订单' },
+  { contentTab: HotelContentTab.REVIEW, label: '评价' },
+  { contentTab: HotelContentTab.SHOP, label: '店铺' }
+];
+
+export const HotelBookingNight = {
+  NIGHT_LIST: [1, 2, 3, 5],
+  DEFAULT_NIGHTS: 1
+};
+
+export const HotelBookingDate = {
+  DAY_COUNT: 5
+};
+
+export const HotelBookingCalendar = {
+  MONTH_COUNT: 6
+};
+
+export const HotelDateLabel = {
+  TODAY: '今天',
+  TOMORROW: '明天',
+  WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+  WEEKDAY_SHORT_LIST: ['日', '一', '二', '三', '四', '五', '六']
+};
+
+export const HotelPullRefreshState = {
+  IDLE: 'idle',
+  PULLING: 'pulling',
+  READY: 'ready',
+  REFRESHING: 'refreshing'
+};
+
+export const HotelPullRefreshSetting = {
+  THRESHOLD: 56,
+  MAX_DISTANCE: 120,
+  RESISTANCE: 0.4,
+  RING_SIZE: 36,
+  RING_CENTER: 18,
+  RING_RADIUS: 14
+};
+
 /**
  * 门店时区。偏移是保存值，名称只用于展示。与后台选项一致。
  */
