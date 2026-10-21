@@ -43,7 +43,8 @@
               :disabled="dayCell.disabled || isEmpty(dayCell.dateText)"
               @click="selectDay(dayCell)"
             >
-              {{ dayCell.dayNumber }}
+              <span class="day-number">{{ dayCell.dayNumber }}</span>
+              <span class="day-hint">{{ dayHintText(dayCell) }}</span>
             </button>
           </div>
         </section>
@@ -185,6 +186,22 @@ function formatUtcDate(dateTime) {
   const monthText = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
   const dayText = String(dateTime.getUTCDate()).padStart(2, '0');
   return `${dateTime.getUTCFullYear()}-${monthText}-${dayText}`;
+}
+
+/**
+ * 入住日、离店日格子上的文案。其它日期不提示。
+ */
+function dayHintText(dayCell) {
+  if (isEmpty(dayCell) || isEmpty(dayCell.dateText)) {
+    return '';
+  }
+  if (dayCell.dateText === draftCheckInDate.value) {
+    return HotelDateLabel.CHECK_IN;
+  }
+  if (dayCell.dateText === draftCheckOutDate.value) {
+    return HotelDateLabel.CHECK_OUT;
+  }
+  return '';
 }
 
 /**
@@ -348,13 +365,23 @@ function confirmDates() {
   color: #14241c;
 }
 .day {
-  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
   margin: 2px 0;
   border: 0;
   background: transparent;
   color: #14241c;
   font: inherit;
   font-size: 15px;
+  line-height: 1.1;
+}
+.day-hint {
+  min-height: 14px;
+  font-size: 10px;
+  line-height: 14px;
 }
 .day.blank {
   visibility: hidden;

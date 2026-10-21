@@ -138,6 +138,8 @@ export const HotelBookingCalendar = {
 export const HotelDateLabel = {
   TODAY: '今天',
   TOMORROW: '明天',
+  CHECK_IN: '入住',
+  CHECK_OUT: '离店',
   WEEKDAY_LIST: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
   WEEKDAY_SHORT_LIST: ['日', '一', '二', '三', '四', '五', '六']
 };
