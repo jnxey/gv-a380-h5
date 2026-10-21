@@ -24,14 +24,17 @@ const pageTitle = computed(() => {
 });
 
 /**
- * KTV 预定页不显示标题栏。浏览器标题仍使用页面标题。
+ * KTV 预定页和会员中心不显示标题栏。浏览器标题仍使用页面标题。
  */
 const showPageHead = computed(() => {
   const routePath = currentRoute.path;
   if (isEmpty(routePath)) {
     return true;
   }
-  return routePath.indexOf(H5PagePath.KTV_BOOKING) !== 0;
+  if (routePath.indexOf(H5PagePath.KTV_BOOKING) === 0) {
+    return false;
+  }
+  return routePath !== H5PagePath.MEMBER;
 });
 
 watch(pageTitle, (title) => {

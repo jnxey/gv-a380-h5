@@ -23,7 +23,7 @@
         离店：
         <input type="date" :value="checkOutDate" @change="onCheckOutChange" />
       </label>
-      <div class="price" v-if="currentRoomTypePrice !== ''">每晚 {{ currentRoomTypePrice }} 元，预订不扣款，退房时结算</div>
+      <div class="price" v-if="currentRoomTypePrice !== ''">每晚 {{ currentRoomTypePrice }} 元，预订和退房都不扣款</div>
       <button class="submit-button" type="button" @click="submitBooking">提交预订</button>
     </div>
     <div class="section-title">我的订单</div>
