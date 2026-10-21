@@ -1,9 +1,9 @@
 <template>
-  <header v-if="isEmpty(currentShop) !== true" class="store">
+  <header class="store">
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-photo" :style="storeCoverStyle"></div>
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-mask"></div>
     <div class="store-body">
-      <h1>{{ currentShop.shopName }}</h1>
+      <h1 v-if="isEmpty(currentShop) !== true">{{ currentShop.shopName }}</h1>
       <p v-if="isEmpty(businessHoursText) !== true" class="meta">
         {{ businessHoursText }}
         <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
@@ -161,6 +161,7 @@ function callShopPhone() {
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  height: calc(162px + var(--gv-safe-top, 0px));
   padding: 16px 16px 28px;
   padding-top: calc(16px + var(--gv-safe-top, 0px));
   color: #f5f3ff;

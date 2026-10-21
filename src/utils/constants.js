@@ -41,6 +41,13 @@ export const KtvBookingStep = {
   SUCCESS: 'success'
 };
 
+/**
+ * KTV 订单状态。与服务端一致。
+ */
+export const KtvOrderStatus = {
+  PENDING_VERIFY: 'PENDING_VERIFY'
+};
+
 export const KtvContentTab = {
   BOOKING: 'booking',
   ORDER: 'order',

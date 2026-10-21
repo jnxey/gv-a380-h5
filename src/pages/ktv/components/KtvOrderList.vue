@@ -8,7 +8,7 @@
     <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
     <div class="order-foot">
       <strong class="order-amount">¥{{ order.amount }}</strong>
-      <button v-if="isEmpty(order.verifyCode) !== true" class="verify-button" type="button" @click="openVerifyCode(order)">
+      <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
         核销码
       </button>
     </div>
@@ -34,7 +34,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import QRCode from 'qrcode';
-import { PageSetting, statusLabel } from '../../../utils/constants.js';
+import { KtvOrderStatus, PageSetting, statusLabel } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -100,10 +100,20 @@ function formatBookingEnd(order) {
 }
 
 /**
+ * 只有待核销且带核销码的订单才能看码。
+ */
+function canShowVerifyCode(order) {
+  if (isEmpty(order) || order.orderStatus !== KtvOrderStatus.PENDING_VERIFY) {
+    return false;
+  }
+  return isEmpty(order.verifyCode) !== true;
+}
+
+/**
  * 打开核销码弹窗，记下这笔订单并生成二维码。
  */
 async function openVerifyCode(order) {
-  if (isEmpty(order) || isEmpty(order.verifyCode)) {
+  if (canShowVerifyCode(order) !== true) {
     return;
   }
   openedOrder.value = order;
