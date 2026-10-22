@@ -272,6 +272,7 @@ onUnmounted(() => {
   width: 88px;
   max-height: calc(100vh - var(--gv-safe-top, 0px));
   overflow-y: auto;
+  border-top-left-radius: 16px;
   background: #f3f4f6;
   -webkit-overflow-scrolling: touch;
 }
@@ -280,7 +281,6 @@ onUnmounted(() => {
   width: 100%;
   padding: 14px 8px;
   border: 0;
-  border-left: 3px solid transparent;
   background: transparent;
   color: #4b5563;
   font: inherit;
@@ -289,8 +289,10 @@ onUnmounted(() => {
   text-align: center;
   word-break: break-word;
 }
+.category-item:first-child {
+  border-top-left-radius: 16px;
+}
 .category-item.active {
-  border-left-color: #1f8a70;
   background: #fff;
   color: #1f8a70;
   font-weight: 600;
