@@ -11,7 +11,7 @@ export default defineConfig({
       '/a380/app': {
         target: 'http://127.0.0.1:3200',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/a380\/app/, '/admin'),
+        rewrite: (path) => path.replace(/^\/a380\/app/, '/app'),
       },
       '/uploads': {
         target: 'http://127.0.0.1:3200',
