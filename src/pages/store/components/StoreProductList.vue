@@ -7,6 +7,10 @@
       class="product-card"
       :class="{ disabled: productRow.stockQuantity < 1 }"
     >
+      <div class="product-cover">
+        <img v-if="isEmpty(coverImageUrl(productRow)) !== true" :src="coverImageUrl(productRow)" alt="" />
+        <span v-else class="product-cover-empty">暂无图片</span>
+      </div>
       <div class="product-main">
         <div class="product-name">{{ productRow.productName }}</div>
         <div class="product-price">¥{{ productRow.salePrice }}</div>
@@ -42,6 +46,20 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['add', 'change']);
+
+/**
+ * 封面用第一张商品图片。没有图片时返回空字符串。
+ */
+function coverImageUrl(productRow) {
+  if (isEmpty(productRow) || isEmpty(productRow.imageList)) {
+    return '';
+  }
+  const firstProductImage = productRow.imageList[0];
+  if (isEmpty(firstProductImage) || isEmpty(firstProductImage.imageUrl)) {
+    return '';
+  }
+  return firstProductImage.imageUrl;
+}
 
 /**
  * 某商品在购物车里的数量。没有则 0。
@@ -83,6 +101,28 @@ function cartQuantity(productId) {
 }
 .product-card.disabled {
   opacity: 0.55;
+}
+.product-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+.product-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.product-cover-empty {
+  color: #9ca3af;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.3;
 }
 .product-main {
   min-width: 0;
