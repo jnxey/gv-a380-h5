@@ -3,12 +3,10 @@
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-photo" :style="storeCoverStyle"></div>
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-mask"></div>
     <div class="store-body">
-      <div v-if="isEmpty(currentShop) !== true" class="store-title">
-        <h1>{{ currentShop.shopName }}</h1>
-        <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
-      </div>
+      <h1 v-if="isEmpty(currentShop) !== true">{{ currentShop.shopName }}</h1>
       <p v-if="isEmpty(businessHoursText) !== true" class="meta">
         {{ businessHoursText }}
+        <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
       </p>
       <p v-if="isEmpty(shopAddressText) !== true" class="meta meta-address">
         <span class="meta-text">{{ shopAddressText }}</span>
@@ -185,12 +183,6 @@ function callShopPhone() {
 }
 .store-body {
   position: relative;
-}
-.store-title {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 .store h1 {
   margin: 0;
