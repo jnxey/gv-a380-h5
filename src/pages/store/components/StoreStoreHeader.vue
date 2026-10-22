@@ -8,8 +8,8 @@
         {{ businessHoursText }}
         <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
       </p>
-      <p v-if="isEmpty(shopAddressText) !== true" class="meta">
-        {{ shopAddressText }}
+      <p v-if="isEmpty(shopAddressText) !== true" class="meta meta-address">
+        <span class="meta-text">{{ shopAddressText }}</span>
         <button v-if="hasShopLocation" type="button" class="meta-action" @click="openShopMap">
           <AppIcon :icon-name="AppIconName.MAP" />
         </button>
@@ -208,10 +208,21 @@ function callShopPhone() {
   font-size: 12px;
   line-height: 20px;
 }
+.meta-address {
+  flex-wrap: nowrap;
+}
+.meta-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .meta-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: none;
   width: 22px;
   height: 22px;
   padding: 0;
