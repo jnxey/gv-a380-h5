@@ -169,6 +169,19 @@ function cartQuantity(productId) {
 }
 
 /**
+ * 读取吸顶相对顶部的安全距离（像素）。
+ */
+function stickyTopOffsetPx() {
+  const rootStyle = window.getComputedStyle(document.documentElement);
+  const safeTopText = rootStyle.getPropertyValue('--gv-safe-top').trim();
+  const safeTopValue = Number.parseFloat(safeTopText);
+  if (Number.isFinite(safeTopValue) !== true) {
+    return 0;
+  }
+  return safeTopValue;
+}
+
+/**
  * 点左侧分类，按页面滚动到对应商品块。
  */
 async function selectCategory(categoryId) {
@@ -201,7 +214,7 @@ function onWindowScroll() {
       continue;
     }
     const sectionRect = sectionElement.getBoundingClientRect();
-    if (sectionRect.top <= 12) {
+    if (sectionRect.top <= stickyTopOffsetPx() + 12) {
       matchedCategoryId = categoryGroup.categoryId;
     }
   }
@@ -252,12 +265,12 @@ onUnmounted(() => {
 }
 .category-side {
   position: sticky;
-  top: 0;
+  top: var(--gv-safe-top, 0px);
   z-index: 2;
   flex: none;
   align-self: flex-start;
   width: 88px;
-  max-height: 100vh;
+  max-height: calc(100vh - var(--gv-safe-top, 0px));
   overflow-y: auto;
   background: #f3f4f6;
   -webkit-overflow-scrolling: touch;
@@ -290,9 +303,12 @@ onUnmounted(() => {
 .product-section + .product-section {
   margin-top: 8px;
 }
+.product-section {
+  scroll-margin-top: var(--gv-safe-top, 0px);
+}
 .section-title {
   position: sticky;
-  top: 0;
+  top: var(--gv-safe-top, 0px);
   z-index: 1;
   margin: 0;
   padding: 12px 0 8px;
