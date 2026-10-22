@@ -212,7 +212,7 @@ function callShopPhone() {
   flex-wrap: nowrap;
 }
 .meta-text {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
