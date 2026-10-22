@@ -2,7 +2,7 @@
   <div class="page" :class="{ 'page-with-bar': showCartBar }">
     <section v-if="saleStep !== StoreSaleStep.SUCCESS">
       <StorePullRefresh
-        v-if="selectedContentTab === StoreContentTab.SHOPPING"
+        v-if="selectedContentTab === StoreContentTab.SHOPPING && cartSheetOpen !== true"
         :refreshing="pageRefreshing"
         @refresh="refreshPage"
       />
@@ -29,6 +29,7 @@
       v-if="cartSheetOpen"
       :cart-line-list="cartLineList"
       :cart-amount-text="cartAmountText"
+      v-model:delivery-address="deliveryAddress"
       :form-error="formError"
       :submitting="submitting"
       @close="closeCartSheet"
@@ -55,6 +56,7 @@ import {
   ShopType,
   StoreContentTab,
   StoreSaleStep,
+  StoreShopQuery,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
@@ -74,6 +76,7 @@ const currentShop = ref(null);
 const productList = ref([]);
 const cartLineList = ref([]);
 const cartSheetOpen = ref(false);
+const deliveryAddress = ref('');
 const submitting = ref(false);
 const formError = ref('');
 const pageRefreshing = ref(false);
@@ -123,6 +126,27 @@ const showCartBar = computed(() => {
 function readShopCode() {
   const routeShopCode = currentRoute.params[BookingShopQuery.SHOP_CODE];
   shopCode.value = isEmpty(routeShopCode) ? '' : routeShopCode;
+}
+
+/**
+ * 从查询参数预填收货地址。没有 address 时留空。
+ */
+function readDeliveryAddressFromQuery() {
+  const routeAddress = currentRoute.query[StoreShopQuery.ADDRESS];
+  if (isEmpty(routeAddress)) {
+    deliveryAddress.value = '';
+    return;
+  }
+  const addressText = Array.isArray(routeAddress) ? routeAddress[0] : routeAddress;
+  if (isEmpty(addressText)) {
+    deliveryAddress.value = '';
+    return;
+  }
+  try {
+    deliveryAddress.value = decodeURIComponent(String(addressText));
+  } catch {
+    deliveryAddress.value = String(addressText);
+  }
 }
 
 /**
@@ -261,6 +285,11 @@ async function confirmSale() {
   if (submitting.value || isEmpty(currentShop.value) || isEmpty(cartLineList.value)) {
     return;
   }
+  const trimmedDeliveryAddress = isEmpty(deliveryAddress.value) ? '' : deliveryAddress.value.trim();
+  if (isEmpty(trimmedDeliveryAddress)) {
+    formError.value = '请填写收货地址';
+    return;
+  }
   formError.value = '';
   submitting.value = true;
   try {
@@ -282,6 +311,7 @@ async function confirmSale() {
       data: {
         shopId: currentShop.value.shopId,
         cipherText: securityKeyCipherText,
+        deliveryAddress: trimmedDeliveryAddress,
         itemList: cartLineList.value.map((cartLine) => ({
           productId: cartLine.productId,
           quantity: cartLine.quantity,
@@ -315,6 +345,7 @@ async function continueShopping() {
 
 onMounted(() => {
   readShopCode();
+  readDeliveryAddressFromQuery();
   loadPage();
 });
 

@@ -20,6 +20,16 @@
         </div>
       </div>
     </div>
+    <label class="delivery-field">
+      <span class="delivery-label">收货地址</span>
+      <textarea
+        class="delivery-input"
+        rows="2"
+        placeholder="请填写收货地址"
+        :value="deliveryAddress"
+        @input="emit('update:deliveryAddress', $event.target.value)"
+      ></textarea>
+    </label>
     <div class="sheet-total">
       <span>合计</span>
       <strong>¥{{ cartAmountText }}</strong>
@@ -39,6 +49,9 @@ defineProps({
   cartAmountText: {
     default: '0.00',
   },
+  deliveryAddress: {
+    default: '',
+  },
   formError: {
     default: '',
   },
@@ -47,7 +60,7 @@ defineProps({
   },
 });
 
-const emit = defineEmits(['close', 'change', 'submit']);
+const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']);
 </script>
 
 <style scoped>
@@ -56,6 +69,7 @@ const emit = defineEmits(['close', 'change', 'submit']);
   inset: 0;
   background: rgba(20, 36, 28, 0.46);
   z-index: 20;
+  overscroll-behavior: none;
 }
 .sheet {
   box-sizing: border-box;
@@ -67,6 +81,8 @@ const emit = defineEmits(['close', 'change', 'submit']);
   max-height: min(78vh, 640px);
   display: flex;
   flex-direction: column;
+  overflow: visible;
+  overscroll-behavior: none;
   padding: 16px 16px calc(16px + var(--gv-safe-bottom, 0px));
   border-radius: 22px 22px 0 0;
   background: #fff;
@@ -93,6 +109,7 @@ const emit = defineEmits(['close', 'change', 'submit']);
 }
 .cart-list {
   overflow: auto;
+  overscroll-behavior: contain;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -136,6 +153,35 @@ const emit = defineEmits(['close', 'change', 'submit']);
 .qty button.add {
   background: #1f8a70;
   color: #fff;
+}
+.delivery-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.delivery-label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+.delivery-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  resize: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #111827;
+  background: #f9fafb;
+}
+.delivery-input:focus {
+  outline: none;
+  border-color: #1f8a70;
+  background: #fff;
 }
 .sheet-total {
   display: flex;

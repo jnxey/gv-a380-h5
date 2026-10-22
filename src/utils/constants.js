@@ -285,6 +285,13 @@ export const BookingShopQuery = {
   SHOP_CODE: 'shopCode'
 };
 
+/**
+ * 商铺选购页查询参数。
+ */
+export const StoreShopQuery = {
+  ADDRESS: 'address'
+};
+
 export const statusLabelMap = {
   RECHARGE: '充值',
   KTV_BOOKING: 'KTV预订',
