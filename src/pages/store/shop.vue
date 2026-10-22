@@ -131,24 +131,33 @@ function readShopCode() {
 }
 
 /**
- * 从查询参数预填收货地址。没有 address 时留空。
+ * 从文本里取出收货地址。空值或仅空白时返回空串。
+ */
+function normalizeDeliveryAddressText(addressValue) {
+  if (isEmpty(addressValue)) {
+    return '';
+  }
+  const addressText = Array.isArray(addressValue) ? addressValue[0] : addressValue;
+  if (isEmpty(addressText)) {
+    return '';
+  }
+  const rawText = String(addressText).trim();
+  if (isEmpty(rawText)) {
+    return '';
+  }
+  // Vue Router 多数情况已解码；仍带 % 时再解一次。
+  try {
+    return decodeURIComponent(rawText);
+  } catch {
+    return rawText;
+  }
+}
+
+/**
+ * 从 hash 路由查询参数预填收货地址（#/path?address=xxx）。没有 address 时留空。
  */
 function readDeliveryAddressFromQuery() {
-  const routeAddress = currentRoute.query[StoreShopQuery.ADDRESS];
-  if (isEmpty(routeAddress)) {
-    deliveryAddress.value = '';
-    return;
-  }
-  const addressText = Array.isArray(routeAddress) ? routeAddress[0] : routeAddress;
-  if (isEmpty(addressText)) {
-    deliveryAddress.value = '';
-    return;
-  }
-  try {
-    deliveryAddress.value = decodeURIComponent(String(addressText));
-  } catch {
-    deliveryAddress.value = String(addressText);
-  }
+  deliveryAddress.value = normalizeDeliveryAddressText(currentRoute.query[StoreShopQuery.ADDRESS]);
 }
 
 /**
@@ -272,11 +281,15 @@ function changeQuantity(productId, delta) {
 }
 
 /**
- * 打开结算层。
+ * 打开结算层。打开前再读一次地址，避免进入页时 query 尚未就绪。
  */
 function openCartSheet() {
   if (isEmpty(cartLineList.value)) {
     return;
+  }
+  // 结算时若地址仍空，再按当前 URL 预填一次。
+  if (isEmpty(deliveryAddress.value) || isEmpty(deliveryAddress.value.trim())) {
+    readDeliveryAddressFromQuery();
   }
   formError.value = '';
   cartSheetOpen.value = true;
@@ -376,6 +389,14 @@ watch(
   () => {
     readShopCode();
     loadPage();
+  },
+);
+
+// 路由 query 变化时同步收货地址（含从小程序码带入的 address）。
+watch(
+  () => currentRoute.query[StoreShopQuery.ADDRESS],
+  () => {
+    readDeliveryAddressFromQuery();
   },
 );
 </script>

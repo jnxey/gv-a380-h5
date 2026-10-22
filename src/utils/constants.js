@@ -291,7 +291,7 @@ export const BookingShopQuery = {
  * 商铺选购页查询参数。
  */
 export const StoreShopQuery = {
-  ADDRESS: 'address'
+  ADDRESS: 'a'
 };
 
 export const statusLabelMap = {
