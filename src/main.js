@@ -5,6 +5,7 @@ import App from './App.vue';
 import HotelBookingPage from './pages/hotel/booking.vue';
 import KtvBookingPage from './pages/ktv/booking.vue';
 import MemberPage from './pages/member/index.vue';
+import StoreShopPage from './pages/store/shop.vue';
 import { BookingShopQuery, H5PagePath, PageTitle } from './utils/constants.js';
 import { enterMiniProgramApp } from './utils/gv-sdk.js';
 
@@ -43,6 +44,16 @@ function createPageRouter() {
         path: `${H5PagePath.HOTEL_BOOKING}/:${BookingShopQuery.SHOP_CODE}`,
         component: HotelBookingPage,
         meta: { title: PageTitle.HOTEL_BOOKING },
+      },
+      {
+        path: H5PagePath.STORE_SHOP,
+        component: StoreShopPage,
+        meta: { title: PageTitle.STORE_SHOP },
+      },
+      {
+        path: `${H5PagePath.STORE_SHOP}/:${BookingShopQuery.SHOP_CODE}`,
+        component: StoreShopPage,
+        meta: { title: PageTitle.STORE_SHOP },
       },
     ],
   });

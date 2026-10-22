@@ -12,7 +12,8 @@ export const MiniappSignLifetime = {
 
 export const ShopType = {
   KTV: 'KTV',
-  HOTEL: 'HOTEL'
+  HOTEL: 'HOTEL',
+  STORE: 'STORE'
 };
 
 export const FinanceBizType = {
@@ -231,14 +232,16 @@ export const PageSetting = {
 export const H5PagePath = {
   MEMBER: '/pages/member/index',
   KTV_BOOKING: '/pages/ktv/booking',
-  HOTEL_BOOKING: '/pages/hotel/booking'
+  HOTEL_BOOKING: '/pages/hotel/booking',
+  STORE_SHOP: '/pages/store/shop'
 };
 
 export const PageTitle = {
   DEFAULT: 'A380',
   MEMBER: '会员中心',
   KTV_BOOKING: 'KTV订房',
-  HOTEL_BOOKING: '酒店订房'
+  HOTEL_BOOKING: '酒店订房',
+  STORE_SHOP: '商铺选购'
 };
 
 export const BookingShopQuery = {
@@ -250,6 +253,7 @@ export const statusLabelMap = {
   KTV_BOOKING: 'KTV预订',
   KTV_IN_STORE: 'KTV店内消费',
   HOTEL_ROOM_FEE: '酒店房费',
+  STORE_SALE: '商铺销售',
   REFUND: '退款',
   IN: '收入',
   OUT: '支出',
