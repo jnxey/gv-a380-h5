@@ -24,7 +24,7 @@ const pageTitle = computed(() => {
 });
 
 /**
- * KTV 预定页、酒店预定页、商铺选购页和会员中心不显示标题栏。浏览器标题仍使用页面标题。
+ * KTV 预定页、酒店预定页、商铺选购页、会员中心和积分明细不显示标题栏。浏览器标题仍使用页面标题。
  */
 const showPageHead = computed(() => {
   const routePath = currentRoute.path;
@@ -38,6 +38,9 @@ const showPageHead = computed(() => {
     return false;
   }
   if (routePath.indexOf(H5PagePath.STORE_SHOP) === 0) {
+    return false;
+  }
+  if (routePath === H5PagePath.POINT) {
     return false;
   }
   return routePath !== H5PagePath.MEMBER;

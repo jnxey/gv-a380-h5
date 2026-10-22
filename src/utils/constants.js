@@ -268,6 +268,7 @@ export const PageSetting = {
 
 export const H5PagePath = {
   MEMBER: '/pages/member/index',
+  POINT: '/pages/point/index',
   KTV_BOOKING: '/pages/ktv/booking',
   HOTEL_BOOKING: '/pages/hotel/booking',
   STORE_SHOP: '/pages/store/shop'
@@ -276,6 +277,7 @@ export const H5PagePath = {
 export const PageTitle = {
   DEFAULT: 'A380',
   MEMBER: '会员中心',
+  POINT: '积分明细',
   KTV_BOOKING: 'KTV订房',
   HOTEL_BOOKING: '酒店订房',
   STORE_SHOP: '商铺选购'
