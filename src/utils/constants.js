@@ -171,6 +171,43 @@ export const HotelPullRefreshSetting = {
 };
 
 /**
+ * 商铺选购页步骤。
+ */
+export const StoreSaleStep = {
+  LIST: 'list',
+  SUCCESS: 'success'
+};
+
+/**
+ * 商铺内容 Tab。本轮只有选购和门店。
+ */
+export const StoreContentTab = {
+  SHOPPING: 'shopping',
+  SHOP: 'shop'
+};
+
+export const StoreContentTabItemList = [
+  { contentTab: StoreContentTab.SHOPPING, label: '选购' },
+  { contentTab: StoreContentTab.SHOP, label: '门店' }
+];
+
+export const StorePullRefreshState = {
+  IDLE: 'idle',
+  PULLING: 'pulling',
+  READY: 'ready',
+  REFRESHING: 'refreshing'
+};
+
+export const StorePullRefreshSetting = {
+  THRESHOLD: 56,
+  MAX_DISTANCE: 120,
+  RESISTANCE: 0.4,
+  RING_SIZE: 36,
+  RING_CENTER: 18,
+  RING_RADIUS: 14
+};
+
+/**
  * 门店时区。偏移是保存值，名称只用于展示。与后台选项一致。
  */
 export const TimeZoneOptionList = [
