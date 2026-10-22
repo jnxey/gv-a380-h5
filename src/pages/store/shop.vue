@@ -11,6 +11,7 @@
         <StoreContentTabs :selected-content-tab="selectedContentTab" @select="selectContentTab" />
         <StoreProductList
           v-if="selectedContentTab === StoreContentTab.SHOPPING"
+          :category-list="categoryList"
           :product-list="productList"
           :cart-line-list="cartLineList"
           @add="addCartLine"
@@ -73,6 +74,7 @@ import StoreStoreHeader from './components/StoreStoreHeader.vue';
 const currentRoute = useRoute();
 const shopCode = ref('');
 const currentShop = ref(null);
+const categoryList = ref([]);
 const productList = ref([]);
 const cartLineList = ref([]);
 const cartSheetOpen = ref(false);
@@ -178,14 +180,25 @@ async function loadPage() {
   if (isEmpty(currentShop.value)) {
     const toastTitle = isEmpty(shopCode.value) ? '缺少门店编号' : '门店不存在';
     showToast(toastTitle);
+    categoryList.value = [];
     productList.value = [];
     return;
   }
-  productList.value = await request({
-    url: '/app/store/products',
-    method: 'GET',
-    data: { shopId: currentShop.value.shopId },
-  });
+  const shopId = currentShop.value.shopId;
+  const [nextCategoryList, nextProductList] = await Promise.all([
+    request({
+      url: '/app/store/product-categories',
+      method: 'GET',
+      data: { shopId },
+    }),
+    request({
+      url: '/app/store/products',
+      method: 'GET',
+      data: { shopId },
+    }),
+  ]);
+  categoryList.value = nextCategoryList;
+  productList.value = nextProductList;
 }
 
 /**
