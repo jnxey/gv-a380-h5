@@ -28,6 +28,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { PointApi } from '../../api/point.js';
 import { request } from '../../utils/request.js';
 import { FinanceDirection, PageSetting } from '../../utils/constants.js';
 import { isEmpty } from '../../utils/tools.js';
@@ -73,7 +74,7 @@ function formatBillAmount(bill) {
 async function loadBillPage(page) {
   // 1. 按页拉取当前会员的积分流水
   const billPageResult = await request({
-    url: '/app/point/bills',
+    url: PointApi.BILLS,
     method: 'GET',
     data: {
       page,
@@ -100,7 +101,7 @@ async function loadBillPage(page) {
  * 读取积分余额和第一页流水。
  */
 async function loadPointCenter() {
-  const pointSummaryResult = await request({ url: '/app/point/summary', method: 'GET' });
+  const pointSummaryResult = await request({ url: PointApi.SUMMARY, method: 'GET' });
   if (!isEmpty(pointSummaryResult)) {
     pointSummary.value = pointSummaryResult;
   }

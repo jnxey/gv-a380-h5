@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-const apiProxyTarget = 'http://127.0.0.1:3200';
-
 export default defineConfig({
   base: './',
   plugins: [vue()],
@@ -10,12 +8,13 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5174,
     proxy: {
-      '/app': {
-        target: apiProxyTarget,
-        changeOrigin: true
+      '/a380/app': {
+        target: 'http://127.0.0.1:3200',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/a380\/app/, '/admin'),
       },
       '/uploads': {
-        target: apiProxyTarget,
+        target: 'http://127.0.0.1:3200',
         changeOrigin: true
       }
     }

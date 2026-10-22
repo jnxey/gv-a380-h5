@@ -35,6 +35,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { MemberApi } from '../../api/member.js';
 import { request } from '../../utils/request.js';
 import { FinanceDirection, PageSetting, statusLabel } from '../../utils/constants.js';
 import { isEmpty, isFunction } from '../../utils/tools.js';
@@ -149,7 +150,7 @@ async function copyUsername() {
 async function loadBillPage(page) {
   // 1. 按页拉取当前会员的全部流水
   const billPageResult = await request({
-    url: '/app/member/bills',
+    url: MemberApi.BILLS,
     method: 'GET',
     data: {
       page,
@@ -176,7 +177,7 @@ async function loadBillPage(page) {
  * 读取会员余额和第一页流水。充值不能在这里发起。
  */
 async function loadMemberCenter() {
-  const memberSummaryResult = await request({ url: '/app/member/summary', method: 'GET' });
+  const memberSummaryResult = await request({ url: MemberApi.SUMMARY, method: 'GET' });
   if (!isEmpty(memberSummaryResult)) {
     memberSummary.value = memberSummaryResult;
   }

@@ -67,6 +67,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { KtvApi } from '../../api/ktv.js';
+import { MemberApi } from '../../api/member.js';
+import { ShopApi } from '../../api/shop.js';
 import { request } from '../../utils/request.js';
 import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
 import KtvBookingBar from './components/KtvBookingBar.vue';
@@ -367,7 +370,7 @@ async function loadRoomTypes() {
     return;
   }
   roomTypeList.value = await request({
-    url: '/app/ktv/room-types',
+    url: KtvApi.ROOM_TYPES,
     method: 'GET',
     data: { shopId: shop.shopId },
   });
@@ -382,7 +385,7 @@ async function loadRoomTypes() {
 async function loadPage() {
   // 1. 按门店类型拉取启用门店，再按入口编号锁定一家
   const shopList = await request({
-    url: '/app/shops',
+    url: ShopApi.LIST,
     method: 'GET',
     data: { shopType: ShopType.KTV },
   });
@@ -408,7 +411,7 @@ async function loadPage() {
 async function loadMemberProfile() {
   let memberSummary = null;
   try {
-    memberSummary = await request({ url: '/app/member/summary', method: 'GET' });
+    memberSummary = await request({ url: MemberApi.SUMMARY, method: 'GET' });
   } catch {
     return;
   }
@@ -443,7 +446,7 @@ async function refreshPage() {
  */
 async function loadMemberOrders(pageNumber) {
   const orderPage = await request({
-    url: '/app/ktv/booking-orders',
+    url: KtvApi.BOOKING_ORDERS,
     method: 'GET',
     data: { page: pageNumber, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
   });
@@ -707,7 +710,7 @@ async function submitBooking() {
     }
     // 3. 提交体带上门店、包厢类型、开唱时间、时长、预定人、联系方式和安全密钥密文
     const createdOrder = await request({
-      url: '/app/ktv/booking-orders',
+      url: KtvApi.BOOKING_ORDERS,
       method: 'POST',
       data: {
         shopId: shop.shopId,

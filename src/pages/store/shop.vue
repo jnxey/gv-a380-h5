@@ -50,6 +50,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { ShopApi } from '../../api/shop.js';
+import { StoreApi } from '../../api/store.js';
 import { request } from '../../utils/request.js';
 import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
 import {
@@ -181,7 +183,7 @@ function findShopByCode(shopList) {
  */
 async function loadPage() {
   const shopList = await request({
-    url: '/app/shops',
+    url: ShopApi.LIST,
     method: 'GET',
     data: { shopType: ShopType.STORE },
   });
@@ -196,12 +198,12 @@ async function loadPage() {
   const shopId = currentShop.value.shopId;
   const [nextCategoryList, nextProductList] = await Promise.all([
     request({
-      url: '/app/store/product-categories',
+      url: StoreApi.PRODUCT_CATEGORIES,
       method: 'GET',
       data: { shopId },
     }),
     request({
-      url: '/app/store/products',
+      url: StoreApi.PRODUCTS,
       method: 'GET',
       data: { shopId },
     }),
@@ -332,7 +334,7 @@ async function confirmSale() {
     const paidAmountText = cartAmountText.value;
     const paidShopName = isEmpty(currentShop.value) ? '' : currentShop.value.shopName;
     await request({
-      url: '/app/store/sales',
+      url: StoreApi.SALES,
       method: 'POST',
       data: {
         shopId: currentShop.value.shopId,
