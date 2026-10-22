@@ -299,6 +299,8 @@ export const statusLabelMap = {
   KTV_BOOKING: 'KTV预订',
   KTV_IN_STORE: 'KTV店内消费',
   HOTEL_ROOM_FEE: '酒店房费',
+  HOTEL_IN_STORE: '酒店店内消费',
+  SHOP_SCAN_PAY: '门店扫码付款',
   STORE_SALE: '商铺销售',
   REFUND: '退款',
   IN: '收入',
