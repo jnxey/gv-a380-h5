@@ -1,5 +1,5 @@
 import { MiniappSignLifetime } from './constants.js';
-import { getA380MiniappSign } from './gv-sdk.js';
+import { getA380MiniappSign } from 'gv-sdk';
 import { isEmpty } from './tools.js';
 
 let cachedMiniappSignCipherText = '';

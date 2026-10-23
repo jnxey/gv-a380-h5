@@ -71,7 +71,7 @@ import { KtvApi } from '../../api/ktv.js';
 import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { request } from '../../utils/request.js';
-import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
+import { verifyConsumerDoorLock } from 'gv-sdk';
 import KtvBookingBar from './components/KtvBookingBar.vue';
 import KtvBookingSheet from './components/KtvBookingSheet.vue';
 import KtvBookingSuccess from './components/KtvBookingSuccess.vue';

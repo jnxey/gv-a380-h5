@@ -53,7 +53,7 @@ import { useRoute } from 'vue-router';
 import { ShopApi } from '../../api/shop.js';
 import { StoreApi } from '../../api/store.js';
 import { request } from '../../utils/request.js';
-import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
+import { verifyConsumerDoorLock } from 'gv-sdk';
 import {
   BookingShopQuery,
   ShopType,

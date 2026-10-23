@@ -28,7 +28,7 @@
 import { computed } from 'vue';
 import AppIcon from '../../../components/AppIcon/AppIcon.vue';
 import { AppIconName, timeZoneLabel } from '../../../utils/constants.js';
-import { makeShopPhoneCall, openShopLocation } from '../../../utils/gv-sdk.js';
+import { makeShopPhoneCall, openShopLocation } from 'gv-sdk';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({

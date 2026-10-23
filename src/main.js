@@ -8,7 +8,8 @@ import MemberPage from './pages/member/index.vue';
 import PointPage from './pages/point/index.vue';
 import StoreShopPage from './pages/store/shop.vue';
 import { BookingShopQuery, H5PagePath, PageTitle } from './utils/constants.js';
-import { enterMiniProgramApp } from './utils/gv-sdk.js';
+import { enterMiniProgramApp, setToastHandler } from 'gv-sdk';
+import { showToast } from './utils/toast.js';
 
 /**
  * 创建页面路由。订房入口把门店编号放在路径最后一段。
@@ -77,6 +78,7 @@ async function startApp() {
   const app = createApp(App);
   app.use(createPageRouter());
   app.mount('#app');
+  setToastHandler(showToast);
   enterMiniProgramApp();
 }
 

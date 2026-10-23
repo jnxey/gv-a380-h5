@@ -72,7 +72,7 @@ import { HotelApi } from '../../api/hotel.js';
 import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { request } from '../../utils/request.js';
-import { verifyConsumerDoorLock } from '../../utils/gv-sdk.js';
+import { verifyConsumerDoorLock } from 'gv-sdk';
 import HotelBookingBar from './components/HotelBookingBar.vue';
 import HotelBookingSheet from './components/HotelBookingSheet.vue';
 import HotelBookingSuccess from './components/HotelBookingSuccess.vue';
