@@ -10,11 +10,13 @@
   >
     <template #default="{ item: order }">
       <div class="order-row">
-        <div class="order-head">
-          <h2>{{ order.typeName }}</h2>
-          <span>{{ statusLabel(order.orderStatus) }}</span>
-        </div>
-        <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
+        <button class="order-info" type="button" @click="openOrderDetail(order)">
+          <div class="order-head">
+            <h2>{{ order.typeName }}</h2>
+            <span>{{ statusLabel(order.orderStatus) }}</span>
+          </div>
+          <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
+        </button>
         <div class="order-foot">
           <strong class="order-amount">{{ order.amount }}</strong>
           <div class="order-actions">
@@ -29,6 +31,21 @@
       </div>
     </template>
   </PageVirtualList>
+  <div v-if="isEmpty(detailOrder) !== true" class="detail-mask" @click="closeOrderDetail">
+    <section class="detail-card" @click.stop>
+      <h2>订单详情</h2>
+      <p class="detail-line">订单号 {{ detailOrder.orderNo }}</p>
+      <p class="detail-line">房型 {{ detailOrder.typeName }}</p>
+      <p v-if="isEmpty(detailOrder.roomNo) !== true" class="detail-line">房间 {{ detailOrder.roomNo }}</p>
+      <p class="detail-line">{{ detailOrder.checkInDate }} 至 {{ detailOrder.checkOutDate }}</p>
+      <h3>预订信息</h3>
+      <p v-if="isEmpty(detailOrder.guestName) !== true" class="detail-line">预订人 {{ detailOrder.guestName }}</p>
+      <p v-if="isEmpty(detailOrder.contact) !== true" class="detail-line">联系方式 {{ detailOrder.contact }}</p>
+      <p v-if="hasBookingInfo(detailOrder) !== true" class="detail-line">暂无</p>
+      <p class="detail-line">房费 {{ detailOrder.amount }}</p>
+      <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
+    </section>
+  </div>
   <ConfirmDialog
     :open="isEmpty(pendingCancelOrder) !== true"
     :message="cancelConfirmMessage"
@@ -83,6 +100,34 @@ const emit = defineEmits(['load-more', 'refresh-orders']);
 const cancelSubmitting = ref(false);
 const pendingCancelOrder = ref(null);
 const pendingReviewOrder = ref(null);
+const detailOrder = ref(null);
+
+/**
+ * 预订人或联系方式有一项就算有预订信息。
+ */
+function hasBookingInfo(order) {
+  if (isEmpty(order)) {
+    return false;
+  }
+  return isEmpty(order.guestName) !== true || isEmpty(order.contact) !== true;
+}
+
+/**
+ * 打开订单详情。
+ */
+function openOrderDetail(order) {
+  if (isEmpty(order)) {
+    return;
+  }
+  detailOrder.value = order;
+}
+
+/**
+ * 关掉订单详情。
+ */
+function closeOrderDetail() {
+  detailOrder.value = null;
+}
 
 /**
  * 待评价订单可以写评价。
@@ -183,6 +228,18 @@ async function submitCancelOrder() {
   padding: 12px;
   margin-bottom: 10px;
 }
+.order-info {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
 .order-head {
   display: flex;
   align-items: center;
@@ -239,5 +296,53 @@ async function submitCancelOrder() {
 .review-button {
   background: #1f8a70;
   color: #fff;
+}
+.detail-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 36, 28, 0.46);
+}
+.detail-card {
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  padding: 16px 16px calc(16px + var(--ct-safe-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: #fffdf9;
+}
+.detail-card h2,
+.detail-card h3 {
+  margin: 0;
+  color: #14241c;
+}
+.detail-card h2 {
+  font-size: 18px;
+}
+.detail-card h3 {
+  margin-top: 16px;
+  font-size: 15px;
+}
+.detail-line {
+  margin: 8px 0 0;
+  color: #5e6b64;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.detail-close {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 999px;
+  background: #1f8a70;
+  color: #fffdf9;
+  font: inherit;
+  font-size: 16px;
 }
 </style>
