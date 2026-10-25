@@ -212,6 +212,9 @@ function updateContact(event) {
   gap: 12px;
   margin-top: 10px;
 }
+.field-group .field-row + .field-row {
+  margin-top: 0;
+}
 .field-label {
   flex: 0 0 auto;
   color: #5e6b64;
@@ -232,7 +235,7 @@ function updateContact(event) {
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
-  padding: 8px 0;
+  padding: 4px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
