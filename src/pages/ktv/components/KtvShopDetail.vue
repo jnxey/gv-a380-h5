@@ -38,7 +38,7 @@ const props = defineProps({
 });
 
 /**
- * 营业时间。开始和结束都空时不显示。
+ * 营业时间。开始和结束都空时不显示。结束早于开始时标次日。
  */
 const businessHoursText = computed(() => {
   if (isEmpty(props.currentShop) || isEmpty(props.currentShop.businessHours)) {
@@ -48,6 +48,9 @@ const businessHoursText = computed(() => {
   const endTime = props.currentShop.businessHours.endTime;
   if (isEmpty(startTime) && isEmpty(endTime)) {
     return '';
+  }
+  if (isEmpty(startTime) !== true && isEmpty(endTime) !== true && endTime < startTime) {
+    return `${startTime} - 次日 ${endTime}`;
   }
   return `${startTime} - ${endTime}`;
 });

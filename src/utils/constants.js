@@ -46,7 +46,42 @@ export const KtvBookingStep = {
  * KTV 订单状态。与服务端一致。
  */
 export const KtvOrderStatus = {
-  PENDING_VERIFY: 'PENDING_VERIFY'
+  PENDING_PAY: 'PENDING_PAY',
+  PENDING_VERIFY: 'PENDING_VERIFY',
+  VERIFIED: 'VERIFIED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
+/**
+ * 酒店订单状态。与服务端一致。
+ */
+export const HotelOrderStatus = {
+  PENDING_PAY: 'PENDING_PAY',
+  BOOKED: 'BOOKED',
+  CHECKED_IN: 'CHECKED_IN',
+  CHECKED_OUT: 'CHECKED_OUT',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
+/**
+ * 确认弹层主色。跟业务线品牌色一致。
+ */
+export const ConfirmDialogAccent = {
+  KTV: 'ktv',
+  HOTEL: 'hotel'
+};
+
+/**
+ * 商铺销售单状态。与服务端一致。
+ */
+export const StoreSaleStatus = {
+  PENDING_PAY: 'PENDING_PAY',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
 };
 
 export const KtvContentTab = {
@@ -305,8 +340,10 @@ export const statusLabelMap = {
   REFUND: '退款',
   IN: '收入',
   OUT: '支出',
+  PENDING_PAY: '待支付',
   PENDING_VERIFY: '待核销',
   VERIFIED: '已核销',
+  COMPLETED: '已完成',
   REFUNDED: '已退款',
   BOOKED: '已预订',
   CHECKED_IN: '已入住',

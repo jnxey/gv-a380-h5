@@ -8,9 +8,14 @@
     <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
     <div class="order-foot">
       <strong class="order-amount">¥{{ order.amount }}</strong>
-      <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
-        核销码
-      </button>
+      <div class="order-actions">
+        <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
+          取消
+        </button>
+        <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
+          核销码
+        </button>
+      </div>
     </div>
   </div>
   <div class="pager">
@@ -29,13 +34,27 @@
       <button class="verify-close" type="button" @click="closeVerifyCode">关闭</button>
     </section>
   </div>
+  <ConfirmDialog
+    :open="isEmpty(pendingCancelOrder) !== true"
+    :message="cancelConfirmMessage"
+    :confirming="cancelSubmitting"
+    :accent="ConfirmDialogAccent.KTV"
+    @cancel="closeCancelConfirm"
+    @confirm="submitCancelOrder"
+  />
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import QRCode from 'qrcode';
-import { KtvOrderStatus, PageSetting, statusLabel } from '../../../utils/constants.js';
+import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
+import { KtvApi } from '../../../api/ktv.js';
+import { ConfirmDialogAccent, KtvOrderStatus, PageSetting, statusLabel } from '../../../utils/constants.js';
+import { request } from '../../../utils/request.js';
+import { showToast } from '../../../utils/toast.js';
 import { isEmpty } from '../../../utils/tools.js';
+
+const cancelConfirmMessage = '确定取消这笔订单？已支付将退回余额。';
 
 const props = defineProps({
   orderList: {
@@ -54,7 +73,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['change-page', 'refresh-order']);
+const emit = defineEmits(['change-page', 'refresh-order', 'refresh-orders']);
+
+const cancelSubmitting = ref(false);
+const pendingCancelOrder = ref(null);
 
 const openedOrder = ref(null);
 const verifyCodeImageUrl = ref('');
@@ -107,6 +129,49 @@ function canShowVerifyCode(order) {
     return false;
   }
   return isEmpty(order.verifyCode) !== true;
+}
+
+/**
+ * 打开取消确认弹层。
+ */
+function cancelOrder(order) {
+  if (isEmpty(order) || order.canCancel !== true || cancelSubmitting.value === true) {
+    return;
+  }
+  pendingCancelOrder.value = order;
+}
+
+/**
+ * 关掉取消确认弹层。
+ */
+function closeCancelConfirm() {
+  if (cancelSubmitting.value === true) {
+    return;
+  }
+  pendingCancelOrder.value = null;
+}
+
+/**
+ * 确认取消订单，成功后刷新列表。
+ */
+async function submitCancelOrder() {
+  const order = pendingCancelOrder.value;
+  if (isEmpty(order) || cancelSubmitting.value === true) {
+    return;
+  }
+  cancelSubmitting.value = true;
+  try {
+    await request({
+      url: KtvApi.bookingOrderCancel(order.bookingOrderId),
+      method: 'POST',
+      data: {},
+    });
+    pendingCancelOrder.value = null;
+    showToast('已取消');
+    emit('refresh-orders');
+  } finally {
+    cancelSubmitting.value = false;
+  }
 }
 
 /**
@@ -177,6 +242,12 @@ function closeVerifyCode() {
   gap: 8px;
   margin-top: 8px;
 }
+.order-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
 .order-amount,
 .verify-amount {
   color: #6d28d9;
@@ -184,18 +255,26 @@ function closeVerifyCode() {
   font-variant-numeric: tabular-nums;
 }
 .verify-button,
+.cancel-button,
 .pager button,
 .verify-close {
   border: 0;
   border-radius: 999px;
   font: inherit;
 }
-.verify-button {
+.verify-button,
+.cancel-button {
   flex: 0 0 auto;
   padding: 8px 16px;
+  font-size: 13px;
+}
+.verify-button {
   background: #6d28d9;
   color: #fff;
-  font-size: 13px;
+}
+.cancel-button {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 .pager {
   display: flex;

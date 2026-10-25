@@ -31,6 +31,7 @@
           :order-total="orderTotal"
           :order-page-size="PageSetting.DEFAULT_PAGE_SIZE"
           @change-page="changeOrderPage"
+          @refresh-orders="refreshMemberOrders"
         />
         <HotelReviewEmpty v-if="selectedContentTab === HotelContentTab.REVIEW" />
         <HotelShopDetail v-if="selectedContentTab === HotelContentTab.SHOP" :current-shop="currentShop" />
@@ -461,6 +462,13 @@ async function loadMemberOrders(pageNumber) {
  */
 async function changeOrderPage(pageNumber) {
   await loadMemberOrders(pageNumber);
+}
+
+/**
+ * 取消订单后按当前页重新拉取。
+ */
+async function refreshMemberOrders() {
+  await loadMemberOrders(orderPageNumber.value);
 }
 
 /**

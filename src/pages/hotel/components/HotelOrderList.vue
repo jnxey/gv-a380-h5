@@ -8,18 +8,35 @@
     <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
     <div class="order-foot">
       <strong class="order-amount">房费 ¥{{ order.amount }}</strong>
+      <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
+        取消
+      </button>
     </div>
   </div>
   <div class="pager">
     <button type="button" :disabled="previousPageDisabled" @click="emit('change-page', orderPageNumber - 1)">上一页</button>
     <button type="button" :disabled="nextPageDisabled" @click="emit('change-page', orderPageNumber + 1)">下一页</button>
   </div>
+  <ConfirmDialog
+    :open="isEmpty(pendingCancelOrder) !== true"
+    :message="cancelConfirmMessage"
+    :confirming="cancelSubmitting"
+    :accent="ConfirmDialogAccent.HOTEL"
+    @cancel="closeCancelConfirm"
+    @confirm="submitCancelOrder"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { PageSetting, statusLabel } from '../../../utils/constants.js';
+import { computed, ref } from 'vue';
+import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
+import { HotelApi } from '../../../api/hotel.js';
+import { ConfirmDialogAccent, PageSetting, statusLabel } from '../../../utils/constants.js';
+import { request } from '../../../utils/request.js';
+import { showToast } from '../../../utils/toast.js';
 import { isEmpty } from '../../../utils/tools.js';
+
+const cancelConfirmMessage = '确定取消这笔订单？已支付将退回余额。';
 
 const props = defineProps({
   orderList: {
@@ -38,7 +55,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['change-page']);
+const emit = defineEmits(['change-page', 'refresh-orders']);
+
+const cancelSubmitting = ref(false);
+const pendingCancelOrder = ref(null);
 
 /**
  * 第 1 页或没有订单时，上一页不可点。
@@ -56,6 +76,49 @@ const previousPageDisabled = computed(() => {
 const nextPageDisabled = computed(() => {
   return props.orderPageNumber * props.orderPageSize >= props.orderTotal;
 });
+
+/**
+ * 打开取消确认弹层。
+ */
+function cancelOrder(order) {
+  if (isEmpty(order) || order.canCancel !== true || cancelSubmitting.value === true) {
+    return;
+  }
+  pendingCancelOrder.value = order;
+}
+
+/**
+ * 关掉取消确认弹层。
+ */
+function closeCancelConfirm() {
+  if (cancelSubmitting.value === true) {
+    return;
+  }
+  pendingCancelOrder.value = null;
+}
+
+/**
+ * 确认取消订单，成功后刷新列表。
+ */
+async function submitCancelOrder() {
+  const order = pendingCancelOrder.value;
+  if (isEmpty(order) || cancelSubmitting.value === true) {
+    return;
+  }
+  cancelSubmitting.value = true;
+  try {
+    await request({
+      url: HotelApi.bookingOrderCancel(order.bookingOrderId),
+      method: 'POST',
+      data: {},
+    });
+    pendingCancelOrder.value = null;
+    showToast('已取消');
+    emit('refresh-orders');
+  } finally {
+    cancelSubmitting.value = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -104,6 +167,19 @@ const nextPageDisabled = computed(() => {
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
+.cancel-button,
+.pager button {
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+}
+.cancel-button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  background: rgba(20, 36, 28, 0.08);
+  color: #5e6b64;
+  font-size: 13px;
+}
 .pager {
   display: flex;
   gap: 8px;
@@ -112,11 +188,8 @@ const nextPageDisabled = computed(() => {
 .pager button {
   flex: 1;
   padding: 10px 0;
-  border: 0;
-  border-radius: 999px;
   background: rgba(31, 138, 112, 0.12);
   color: #14241c;
-  font: inherit;
   font-size: 14px;
 }
 .pager button:disabled {
