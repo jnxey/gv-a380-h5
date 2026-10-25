@@ -10,18 +10,16 @@
   >
     <template #default="{ item: saleRow }">
       <div class="order-row">
-        <div class="order-head">
-          <h2>{{ saleRow.saleNo }}</h2>
-          <span>{{ statusLabel(saleRow.saleStatus) }}</span>
-        </div>
-        <p class="order-sub">{{ formatShopDateTime(saleRow.createdAt, timeZone) }}</p>
-        <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
-          {{ itemRow.productName }} × {{ itemRow.quantity }}
-        </div>
-        <p v-if="isEmpty(saleRow.courierName) !== true" class="order-item">送货人 {{ saleRow.courierName }}</p>
-        <p v-if="isEmpty(saleRow.courierContact) !== true" class="order-item">送货联系方式 {{ saleRow.courierContact }}</p>
-        <p v-if="isEmpty(saleRow.deliveryNo) !== true" class="order-item">送货号 {{ saleRow.deliveryNo }}</p>
-        <p v-if="isEmpty(saleRow.deliveryRemark) !== true" class="order-item">送货备注 {{ saleRow.deliveryRemark }}</p>
+        <button class="order-info" type="button" @click="openOrderDetail(saleRow)">
+          <div class="order-head">
+            <h2>{{ saleRow.saleNo }}</h2>
+            <span>{{ statusLabel(saleRow.saleStatus) }}</span>
+          </div>
+          <p class="order-sub">{{ formatShopDateTime(saleRow.createdAt, timeZone) }}</p>
+          <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
+            {{ itemRow.productName }} × {{ itemRow.quantity }}
+          </div>
+        </button>
         <div class="order-foot">
           <strong class="order-amount">{{ saleRow.amount }}</strong>
           <div class="order-actions">
@@ -50,6 +48,24 @@
     @cancel="closeReceive"
     @confirm="submitReceive"
   />
+  <div v-if="isEmpty(detailSale) !== true" class="detail-mask" @click="closeOrderDetail">
+    <section class="detail-card" @click.stop>
+      <h2>订单详情</h2>
+      <p class="detail-no">{{ detailSale.saleNo }}</p>
+      <h3>收货信息</h3>
+      <p v-if="isEmpty(detailSale.receiverName) !== true" class="detail-line">收货人 {{ detailSale.receiverName }}</p>
+      <p v-if="isEmpty(detailSale.contact) !== true" class="detail-line">联系方式 {{ detailSale.contact }}</p>
+      <p v-if="isEmpty(detailSale.deliveryAddress) !== true" class="detail-line">收货地址 {{ detailSale.deliveryAddress }}</p>
+      <p v-if="hasReceiveInfo(detailSale) !== true" class="detail-line">暂无</p>
+      <h3>送货信息</h3>
+      <p v-if="isEmpty(detailSale.courierName) !== true" class="detail-line">送货人 {{ detailSale.courierName }}</p>
+      <p v-if="isEmpty(detailSale.courierContact) !== true" class="detail-line">送货联系方式 {{ detailSale.courierContact }}</p>
+      <p v-if="isEmpty(detailSale.deliveryNo) !== true" class="detail-line">送货号 {{ detailSale.deliveryNo }}</p>
+      <p v-if="isEmpty(detailSale.deliveryRemark) !== true" class="detail-line">送货备注 {{ detailSale.deliveryRemark }}</p>
+      <p v-if="hasDeliveryInfo(detailSale) !== true" class="detail-line">暂无</p>
+      <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
+    </section>
+  </div>
   <ShopReviewDialog
     :open="isEmpty(pendingReviewSale) !== true"
     :biz-type="ShopReviewBizType.STORE_SALE"
@@ -91,7 +107,48 @@ const emit = defineEmits(['load-more', 'refresh-orders']);
 const pendingReviewSale = ref(null);
 const pendingCancelSale = ref(null);
 const pendingReceiveSale = ref(null);
+const detailSale = ref(null);
 const orderActionSubmitting = ref(false);
+
+/**
+ * 收货人、联系方式、收货地址里有一项就算有收货信息。
+ */
+function hasReceiveInfo(saleRow) {
+  if (isEmpty(saleRow)) {
+    return false;
+  }
+  return isEmpty(saleRow.receiverName) !== true || isEmpty(saleRow.contact) !== true || isEmpty(saleRow.deliveryAddress) !== true;
+}
+
+/**
+ * 送货人、联系方式、送货号、备注里有一项就算有送货信息。
+ */
+function hasDeliveryInfo(saleRow) {
+  if (isEmpty(saleRow)) {
+    return false;
+  }
+  return isEmpty(saleRow.courierName) !== true
+    || isEmpty(saleRow.courierContact) !== true
+    || isEmpty(saleRow.deliveryNo) !== true
+    || isEmpty(saleRow.deliveryRemark) !== true;
+}
+
+/**
+ * 打开订单的收货和送货详情。
+ */
+function openOrderDetail(saleRow) {
+  if (isEmpty(saleRow)) {
+    return;
+  }
+  detailSale.value = saleRow;
+}
+
+/**
+ * 关掉订单详情。
+ */
+function closeOrderDetail() {
+  detailSale.value = null;
+}
 
 /**
  * 待发货销售单可以取消。
@@ -249,6 +306,19 @@ function onReviewSaved() {
   border-bottom: 1px solid #eef0f3;
 }
 
+.order-info {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
 .order-head {
   display: flex;
   align-items: center;
@@ -315,5 +385,61 @@ function onReviewSaved() {
   background: #0f766e;
   color: #fff;
   font-size: 13px;
+}
+
+.detail-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 36, 28, 0.46);
+}
+
+.detail-card {
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  padding: 16px 16px calc(16px + var(--ct-safe-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: #fff;
+}
+
+.detail-card h2,
+.detail-card h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.detail-card h2 {
+  font-size: 18px;
+}
+
+.detail-card h3 {
+  margin-top: 16px;
+  font-size: 15px;
+}
+
+.detail-no,
+.detail-line {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.detail-close {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 999px;
+  background: #1f8a70;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
 }
 </style>
