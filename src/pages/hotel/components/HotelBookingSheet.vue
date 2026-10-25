@@ -228,7 +228,7 @@ function updateContact(event) {
   margin-top: 0;
 }
 .field-label {
-  flex: 0 0 auto;
+  flex: 0 0 35%;
   color: #5e6b64;
   font-size: 15px;
 }
@@ -244,14 +244,16 @@ function updateContact(event) {
   font-size: 17px;
 }
 .field-row .field-input {
-  flex: 1 1 auto;
+  flex: 1 1 65%;
   min-width: 0;
   width: auto;
   padding: 4px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  text-align: right;
+  color: #14241c;
+  font-weight: bold;
+  text-align: left;
 }
 .date-row {
   display: flex;

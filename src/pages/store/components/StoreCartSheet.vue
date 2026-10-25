@@ -283,7 +283,7 @@ function selectAddress(addressText) {
   margin-top: 0;
 }
 .field-label {
-  flex: 0 0 auto;
+  flex: 0 0 35%;
   color: #6b7280;
   font-size: 15px;
 }
@@ -299,14 +299,16 @@ function selectAddress(addressText) {
   font-size: 17px;
 }
 .field-row .field-input {
-  flex: 1 1 auto;
+  flex: 1 1 65%;
   min-width: 0;
   width: auto;
   padding: 4px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  text-align: right;
+  color: #111827;
+  font-weight: bold;
+  text-align: left;
 }
 .delivery-field {
   display: flex;
