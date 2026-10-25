@@ -391,6 +391,22 @@ export const StoreDeliveryAddressHistory = {
   STORAGE_KEY: 'gv-a380-store-delivery-address-list'
 };
 
+/**
+ * 门店记录状态。与后台一致。
+ */
+export const RecordStatus = {
+  ENABLED: 'ENABLED',
+  DISABLED: 'DISABLED'
+};
+
+/**
+ * 门头上的营业状态。
+ */
+export const ShopOpenLabel = {
+  OPEN: '营业中',
+  REST: '休息中'
+};
+
 export const statusLabelMap = {
   RECHARGE: '充值',
   KTV_BOOKING: 'KTV预订',

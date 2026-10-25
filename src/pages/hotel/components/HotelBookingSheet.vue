@@ -32,25 +32,27 @@
           <span>{{ descriptionText('freeParking') }}</span>
         </span>
       </div>
-      <div class="field-row">
-        <span class="field-label">预订人</span>
-        <input
-          class="field-input"
-          :value="guestName"
-          :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-          placeholder="预订人"
-          @input="updateGuestName"
-        />
-      </div>
-      <div class="field-row">
-        <span class="field-label">联系方式</span>
-        <input
-          class="field-input"
-          :value="contact"
-          :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
-          placeholder="联系方式"
-          @input="updateContact"
-        />
+      <div class="field-group">
+        <div class="field-row">
+          <span class="field-label">预订人</span>
+          <input
+            class="field-input"
+            :value="guestName"
+            :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+            placeholder="预订人"
+            @input="updateGuestName"
+          />
+        </div>
+        <div class="field-row">
+          <span class="field-label">联系方式</span>
+          <input
+            class="field-input"
+            :value="contact"
+            :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+            placeholder="联系方式"
+            @input="updateContact"
+          />
+        </div>
       </div>
       <div class="date-row">
         <span class="date-item">
@@ -61,10 +63,12 @@
           <span>离店日期</span>
           <strong>{{ checkOutDate }}</strong>
         </span>
+        <span class="date-item">
+          <span>入住晚数</span>
+          <strong>{{ nightCount }} 晚</strong>
+        </span>
       </div>
-      <label>入住晚数</label>
-      <p class="value">{{ nightCount }} 晚</p>
-      <label>预订须知</label>
+      <label class="notice-label">预订须知</label>
       <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
@@ -196,6 +200,12 @@ function updateContact(event) {
   font-size: 15px;
   color: #5e6b64;
 }
+.field-group {
+  margin-top: 12px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(20, 36, 28, 0.08);
+  border-bottom: 1px solid rgba(20, 36, 28, 0.08);
+}
 .field-row {
   display: flex;
   align-items: center;
@@ -230,15 +240,15 @@ function updateContact(event) {
 }
 .date-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-top: 12px;
-  white-space: nowrap;
 }
 .date-item {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   min-width: 0;
   flex: 1 1 0;
   color: #5e6b64;
@@ -246,15 +256,17 @@ function updateContact(event) {
 }
 .date-item strong {
   overflow: hidden;
+  max-width: 100%;
   color: #14241c;
   font-size: 17px;
-  text-overflow: ellipsis;
-}
-.value {
-  margin: 0;
-  color: #14241c;
-  font-size: 18px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notice-label {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(20, 36, 28, 0.08);
 }
 .spec-row {
   display: flex;

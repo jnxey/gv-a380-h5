@@ -3,7 +3,10 @@
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-photo" :style="storeCoverStyle"></div>
     <div v-if="isEmpty(storeCoverImageUrl) !== true" class="store-mask"></div>
     <div class="store-body">
-      <h1 v-if="isEmpty(currentShop) !== true">{{ currentShop.shopName }}</h1>
+      <h1 v-if="isEmpty(currentShop) !== true">
+        {{ currentShop.shopName }}
+        <span class="open-tag">{{ shopOpenLabel }}</span>
+      </h1>
       <p v-if="isEmpty(businessHoursText) !== true" class="meta">
         {{ businessHoursText }}
         <span v-if="isEmpty(shopTimeZoneText) !== true" class="time-zone-tag">{{ shopTimeZoneText }}</span>
@@ -27,7 +30,7 @@
 <script setup>
 import { computed } from 'vue';
 import AppIcon from '../../../components/AppIcon/AppIcon.vue';
-import { AppIconName, timeZoneLabel } from '../../../utils/constants.js';
+import { AppIconName, RecordStatus, ShopOpenLabel, timeZoneLabel } from '../../../utils/constants.js';
 import { makeShopPhoneCall, openShopLocation } from 'gv-sdk';
 import { isEmpty } from '../../../utils/tools.js';
 
@@ -35,6 +38,16 @@ const props = defineProps({
   currentShop: {
     default: null
   }
+});
+
+/**
+ * 启用显示营业中，否则显示休息中。
+ */
+const shopOpenLabel = computed(() => {
+  if (isEmpty(props.currentShop) || props.currentShop.status !== RecordStatus.ENABLED) {
+    return ShopOpenLabel.REST;
+  }
+  return ShopOpenLabel.OPEN;
 });
 
 /**
@@ -188,6 +201,18 @@ function callShopPhone() {
   margin: 0;
   font-size: 26px;
   line-height: 1.2;
+}
+.open-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(247, 243, 234, 0.16);
+  color: #f7f3ea;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  vertical-align: middle;
 }
 .meta {
   display: flex;

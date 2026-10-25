@@ -80,6 +80,7 @@ import {
   BookingShopQuery,
   HotelBookingGuest,
   PageSetting,
+  RecordStatus,
   ShopType,
   StoreContentTab,
   StoreDeliveryAddressHistory,
@@ -311,6 +312,13 @@ async function loadPage() {
     showToast(toastTitle);
     categoryList.value = [];
     productList.value = [];
+    return;
+  }
+  if (currentShop.value.status !== RecordStatus.ENABLED) {
+    // 休息中的门店不拉商品，那些接口只接受启用门店
+    categoryList.value = [];
+    productList.value = [];
+    await loadMemberProfile();
     return;
   }
   const shopId = currentShop.value.shopId;

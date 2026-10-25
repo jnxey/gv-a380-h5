@@ -99,6 +99,7 @@ import {
   HotelBookingStep,
   HotelContentTab,
   PageSetting,
+  RecordStatus,
   ShopType,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
@@ -413,7 +414,7 @@ async function loadRoomTypes() {
  * 加载酒店、房型和订单。酒店由地址中的门店编号锁定。
  */
 async function loadPage() {
-  // 1. 按门店类型拉取启用酒店，再按入口编号锁定一家
+  // 1. 按门店类型拉取酒店，再按入口编号锁定一家
   const shopList = await request({
     url: ShopApi.LIST,
     method: 'GET',
@@ -424,6 +425,10 @@ async function loadPage() {
   if (isEmpty(currentShop.value)) {
     const toastTitle = isEmpty(shopCode.value) ? '缺少门店编号' : '门店不存在';
     showToast(toastTitle);
+    roomTypeList.value = [];
+    selectedRoomTypeId.value = '';
+  } else if (currentShop.value.status !== RecordStatus.ENABLED) {
+    // 休息中的门店不拉房型，那些接口只接受启用门店
     roomTypeList.value = [];
     selectedRoomTypeId.value = '';
   } else {

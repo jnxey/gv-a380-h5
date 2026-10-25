@@ -12,25 +12,27 @@
         <span class="text-mark">退</span>
         <span>{{ descriptionText('cancelRule') }}</span>
       </p>
-      <div class="field-row">
-        <span class="field-label">预订人</span>
-        <input
-          class="field-input"
-          :value="guestName"
-          :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-          placeholder="预订人"
-          @input="updateGuestName"
-        />
-      </div>
-      <div class="field-row">
-        <span class="field-label">联系方式</span>
-        <input
-          class="field-input"
-          :value="contact"
-          :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
-          placeholder="联系方式"
-          @input="updateContact"
-        />
+      <div class="field-group">
+        <div class="field-row">
+          <span class="field-label">预订人</span>
+          <input
+            class="field-input"
+            :value="guestName"
+            :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+            placeholder="预订人"
+            @input="updateGuestName"
+          />
+        </div>
+        <div class="field-row">
+          <span class="field-label">联系方式</span>
+          <input
+            class="field-input"
+            :value="contact"
+            :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+            placeholder="联系方式"
+            @input="updateContact"
+          />
+        </div>
       </div>
       <label>{{ arrivalTimeLabel }}</label>
       <div class="slots">
@@ -51,7 +53,7 @@
       <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
       <label>离店时间</label>
       <p class="leave-time">{{ leaveTimeText }}</p>
-      <label>预订须知</label>
+      <label class="notice-label">预订须知</label>
       <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
@@ -265,6 +267,12 @@ function formatStartClock(slot) {
   white-space: pre-wrap;
   word-break: break-word;
 }
+.field-group {
+  margin-top: 12px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
 .field-row {
   display: flex;
   align-items: center;
@@ -354,6 +362,11 @@ function formatStartClock(slot) {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+}
+.notice-label {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
 }
 .amount-line {
   box-sizing: border-box;
