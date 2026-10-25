@@ -88,7 +88,8 @@ export const ShopReviewLimit = {
  */
 export const ConfirmDialogAccent = {
   KTV: 'ktv',
-  HOTEL: 'hotel'
+  HOTEL: 'hotel',
+  STORE: 'store'
 };
 
 /**
@@ -113,6 +114,8 @@ export const LongPressDelay = {
  */
 export const StoreSaleStatus = {
   PENDING_PAY: 'PENDING_PAY',
+  PENDING_DELIVERY: 'PENDING_DELIVERY',
+  DELIVERING: 'DELIVERING',
   PENDING_REVIEW: 'PENDING_REVIEW',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
@@ -419,6 +422,8 @@ export const statusLabelMap = {
   IN: '收入',
   OUT: '支出',
   PENDING_PAY: '待支付',
+  PENDING_DELIVERY: '待发货',
+  DELIVERING: '送货中',
   PENDING_VERIFY: '待核销',
   VERIFIED: '已核销',
   PENDING_REVIEW: '待评价',

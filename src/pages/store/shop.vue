@@ -64,6 +64,11 @@
       :amount-text="successAmountText"
       @again="continueShopping"
     />
+    <div v-if="roomQrRequired === true" class="room-qr-mask">
+      <section class="room-qr-card">
+        <p>请先扫描房间二维码</p>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -161,6 +166,16 @@ const showCartBar = computed(() => {
     isEmpty(cartLineList.value) !== true &&
     cartSheetOpen.value !== true
   );
+});
+
+/**
+ * 门店要求房间号，但地址参数里没有房间地址时，整页停住。
+ */
+const roomQrRequired = computed(() => {
+  if (isEmpty(currentShop.value) || currentShop.value.requireRoomNo !== true) {
+    return false;
+  }
+  return isEmpty(currentRoute.query[StoreShopQuery.ADDRESS]);
 });
 
 /**
@@ -690,5 +705,29 @@ watch(
   border-radius: 22px 22px 0 0;
   background: #f5f6f8;
   --store-tab-bar-height: 40px;
+}
+.room-qr-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 36, 28, 0.46);
+}
+.room-qr-card {
+  box-sizing: border-box;
+  width: min(280px, 100%);
+  padding: 22px 18px;
+  border-radius: 22px;
+  background: #fff;
+  text-align: center;
+}
+.room-qr-card p {
+  margin: 0;
+  color: #14241c;
+  font-size: 16px;
+  line-height: 1.6;
 }
 </style>

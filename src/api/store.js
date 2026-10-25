@@ -4,5 +4,7 @@
 export const StoreApi = {
   PRODUCT_CATEGORIES: '/store/product-categories',
   PRODUCTS: '/store/products',
-  SALES: '/store/sales'
+  SALES: '/store/sales',
+  saleCancel: (saleId) => `/store/sales/${saleId}/cancel`,
+  saleReceive: (saleId) => `/store/sales/${saleId}/receive`,
 };

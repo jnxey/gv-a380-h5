@@ -7,7 +7,7 @@
           再想想
         </button>
         <button class="confirm-submit" type="button" :disabled="confirming === true" @click="emit('confirm')">
-          确定取消
+          {{ confirmLabel }}
         </button>
       </div>
     </section>
@@ -31,6 +31,9 @@ const props = defineProps({
   accent: {
     default: ConfirmDialogAccent.KTV,
   },
+  confirmLabel: {
+    default: '确定取消',
+  },
 });
 
 const emit = defineEmits(['cancel', 'confirm']);
@@ -41,6 +44,9 @@ const emit = defineEmits(['cancel', 'confirm']);
 const accentClassName = computed(() => {
   if (props.accent === ConfirmDialogAccent.HOTEL) {
     return 'is-hotel';
+  }
+  if (props.accent === ConfirmDialogAccent.STORE) {
+    return 'is-store';
   }
   return 'is-ktv';
 });
@@ -106,7 +112,8 @@ function onMaskClick() {
   background: #6d28d9;
   color: #fff;
 }
-.confirm-card.is-hotel .confirm-submit {
+.confirm-card.is-hotel .confirm-submit,
+.confirm-card.is-store .confirm-submit {
   background: #1f8a70;
   color: #fff;
 }

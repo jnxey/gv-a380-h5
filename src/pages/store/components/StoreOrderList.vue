@@ -18,13 +18,38 @@
         <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
           {{ itemRow.productName }} × {{ itemRow.quantity }}
         </div>
+        <p v-if="isEmpty(saleRow.courierName) !== true" class="order-item">送货人 {{ saleRow.courierName }}</p>
+        <p v-if="isEmpty(saleRow.courierContact) !== true" class="order-item">送货联系方式 {{ saleRow.courierContact }}</p>
+        <p v-if="isEmpty(saleRow.deliveryNo) !== true" class="order-item">送货号 {{ saleRow.deliveryNo }}</p>
+        <p v-if="isEmpty(saleRow.deliveryRemark) !== true" class="order-item">送货备注 {{ saleRow.deliveryRemark }}</p>
         <div class="order-foot">
           <strong class="order-amount">{{ saleRow.amount }}</strong>
-          <button v-if="canReview(saleRow)" class="review-button" type="button" @click="openReview(saleRow)">去评价</button>
+          <div class="order-actions">
+            <button v-if="canCancel(saleRow)" class="cancel-button" type="button" @click="openCancel(saleRow)">取消</button>
+            <button v-if="canReceive(saleRow)" class="review-button" type="button" @click="openReceive(saleRow)">确认收货</button>
+            <button v-if="canReview(saleRow)" class="review-button" type="button" @click="openReview(saleRow)">去评价</button>
+          </div>
         </div>
       </div>
     </template>
   </PageVirtualList>
+  <ConfirmDialog
+    :open="isEmpty(pendingCancelSale) !== true"
+    message="确定取消这笔订单？已支付将退回余额。"
+    :confirming="orderActionSubmitting"
+    :accent="ConfirmDialogAccent.STORE"
+    @cancel="closeCancel"
+    @confirm="submitCancel"
+  />
+  <ConfirmDialog
+    :open="isEmpty(pendingReceiveSale) !== true"
+    message="确认已经收到商品？"
+    confirm-label="确认收货"
+    :confirming="orderActionSubmitting"
+    :accent="ConfirmDialogAccent.STORE"
+    @cancel="closeReceive"
+    @confirm="submitReceive"
+  />
   <ShopReviewDialog
     :open="isEmpty(pendingReviewSale) !== true"
     :biz-type="ShopReviewBizType.STORE_SALE"
@@ -37,8 +62,11 @@
 <script setup>
 import { computed, ref } from 'vue';
 import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
+import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
-import { ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
+import { StoreApi } from '../../../api/store.js';
+import { ConfirmDialogAccent, ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
+import { request } from '../../../utils/request.js';
 import { formatShopDateTime, isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -61,6 +89,109 @@ const props = defineProps({
 const emit = defineEmits(['load-more', 'refresh-orders']);
 
 const pendingReviewSale = ref(null);
+const pendingCancelSale = ref(null);
+const pendingReceiveSale = ref(null);
+const orderActionSubmitting = ref(false);
+
+/**
+ * 待发货销售单可以取消。
+ */
+function canCancel(saleRow) {
+  if (isEmpty(saleRow)) {
+    return false;
+  }
+  return saleRow.saleStatus === StoreSaleStatus.PENDING_DELIVERY;
+}
+
+/**
+ * 送货中的销售单可以确认收货。
+ */
+function canReceive(saleRow) {
+  if (isEmpty(saleRow)) {
+    return false;
+  }
+  return saleRow.saleStatus === StoreSaleStatus.DELIVERING;
+}
+
+/**
+ * 打开取消确认。
+ */
+function openCancel(saleRow) {
+  if (canCancel(saleRow) !== true) {
+    return;
+  }
+  pendingCancelSale.value = saleRow;
+}
+
+/**
+ * 关掉取消确认。
+ */
+function closeCancel() {
+  if (orderActionSubmitting.value === true) {
+    return;
+  }
+  pendingCancelSale.value = null;
+}
+
+/**
+ * 确认取消待发货订单，成功后刷新列表。
+ */
+async function submitCancel() {
+  if (orderActionSubmitting.value === true || isEmpty(pendingCancelSale.value)) {
+    return;
+  }
+  orderActionSubmitting.value = true;
+  try {
+    await request({
+      url: StoreApi.saleCancel(pendingCancelSale.value.saleId),
+      method: 'POST',
+    });
+    pendingCancelSale.value = null;
+    emit('refresh-orders');
+  } finally {
+    orderActionSubmitting.value = false;
+  }
+}
+
+/**
+ * 打开确认收货。
+ */
+function openReceive(saleRow) {
+  if (canReceive(saleRow) !== true) {
+    return;
+  }
+  pendingReceiveSale.value = saleRow;
+}
+
+/**
+ * 关掉确认收货。
+ */
+function closeReceive() {
+  if (orderActionSubmitting.value === true) {
+    return;
+  }
+  pendingReceiveSale.value = null;
+}
+
+/**
+ * 确认收货，成功后刷新列表。
+ */
+async function submitReceive() {
+  if (orderActionSubmitting.value === true || isEmpty(pendingReceiveSale.value)) {
+    return;
+  }
+  orderActionSubmitting.value = true;
+  try {
+    await request({
+      url: StoreApi.saleReceive(pendingReceiveSale.value.saleId),
+      method: 'POST',
+    });
+    pendingReceiveSale.value = null;
+    emit('refresh-orders');
+  } finally {
+    orderActionSubmitting.value = false;
+  }
+}
 
 /**
  * 已加载条数还没到总数时，滚到底可以继续加载。
@@ -157,10 +288,25 @@ function onReviewSaved() {
   font-variant-numeric: tabular-nums;
 }
 
+.order-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.cancel-button,
 .review-button {
   border: 0;
   border-radius: 999px;
   font: inherit;
+}
+
+.cancel-button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  background: #eef4f1;
+  color: #1f8a70;
+  font-size: 13px;
 }
 
 .review-button {
