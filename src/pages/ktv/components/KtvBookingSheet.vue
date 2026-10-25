@@ -243,8 +243,8 @@ function formatStartClock(slot) {
   align-items: flex-start;
   gap: 8px;
   margin: 0 0 6px;
-  color: #111827;
-  font-size: 16px;
+  color: #6b7280;
+  font-size: 14px;
   line-height: 1.35;
 }
 .text-mark {
