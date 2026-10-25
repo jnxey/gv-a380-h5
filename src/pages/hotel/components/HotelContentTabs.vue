@@ -1,14 +1,16 @@
 <template>
-  <div class="tabs">
-    <button
-      v-for="tabItem in HotelContentTabItemList"
-      :key="tabItem.contentTab"
-      type="button"
-      :class="{ active: tabItem.contentTab === selectedContentTab }"
-      @click="emit('select', tabItem.contentTab)"
-    >
-      {{ tabItem.label }}
-    </button>
+  <div class="tabs-bar">
+    <div class="tabs">
+      <button
+        v-for="tabItem in HotelContentTabItemList"
+        :key="tabItem.contentTab"
+        type="button"
+        :class="{ active: tabItem.contentTab === selectedContentTab }"
+        @click="emit('select', tabItem.contentTab)"
+      >
+        {{ tabItem.label }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -25,10 +27,18 @@ const emit = defineEmits(['select']);
 </script>
 
 <style scoped>
+.tabs-bar {
+  position: sticky;
+  top: var(--gv-safe-top, 0px);
+  z-index: 2;
+  margin: -8px -16px 0;
+  padding: 0 16px 16px;
+  background: #f3efe8;
+}
 .tabs {
   display: flex;
   gap: 4px;
-  margin: -8px 0 16px;
+  margin: 0;
   padding: 4px;
   border-radius: 999px;
   background: rgba(31, 138, 112, 0.12);
