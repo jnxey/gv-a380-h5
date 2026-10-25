@@ -98,7 +98,7 @@ import {
 } from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
 import { showToast } from '../../../utils/toast.js';
-import { formatMoney, isEmpty } from '../../../utils/tools.js';
+import { formatMoney, isEmpty, subtractMoney } from '../../../utils/tools.js';
 
 const cancelConfirmMessage = '确定取消这笔订单？已支付将退回余额。';
 
@@ -164,13 +164,12 @@ function readPaidAmount(orderRow) {
   if (isEmpty(orderRow) || isEmpty(orderRow.amount)) {
     return '';
   }
-  const goodsAmount = Number(orderRow.amount);
-  const deductAmount = isEmpty(orderRow.pointDeductAmount) ? 0 : Number(orderRow.pointDeductAmount);
-  if (Number.isFinite(goodsAmount) !== true) {
-    return orderRow.amount;
+  const deductText = isEmpty(orderRow.pointDeductAmount) ? 0 : orderRow.pointDeductAmount;
+  const paidText = subtractMoney(orderRow.amount, deductText);
+  if (isEmpty(paidText)) {
+    return formatMoney(orderRow.amount);
   }
-  const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
-  return formatMoney(paidAmount);
+  return paidText;
 }
 
 /**

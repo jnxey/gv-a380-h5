@@ -11,7 +11,7 @@
           <div class="cart-line-main">
             <div class="product-name">{{ cartLine.productName }}</div>
             <div class="product-meta">
-              单价 {{ formatMoney(cartLine.salePrice) }} · 小计 {{ formatMoney(Number(cartLine.salePrice) * cartLine.quantity) }}
+              单价 {{ formatMoney(cartLine.salePrice) }} · 小计 {{ multiplyMoney(cartLine.salePrice, cartLine.quantity) }}
             </div>
           </div>
           <div class="qty">
@@ -99,7 +99,7 @@
 import { ref } from 'vue';
 import { HotelBookingGuest } from '../../../utils/constants.js';
 import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
-import { formatMoney, isEmpty } from '../../../utils/tools.js';
+import { formatMoney, isEmpty, multiplyMoney } from '../../../utils/tools.js';
 
 const props = defineProps({
   cartLineList: {

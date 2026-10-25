@@ -118,7 +118,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
+import { isEmpty, multiplyMoney, nationalContactText, subtractMoney } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -355,7 +355,7 @@ const pointPlan = computed(() => {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
   const points = unitPoints * unitCount;
-  const amountText = formatMoney(unitAmount * unitCount);
+  const amountText = multiplyMoney(roomType.pointDeductAmount, unitCount);
   if (pointsBalance.value < points) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
   }
@@ -369,8 +369,7 @@ const sheetAmountText = computed(() => {
   if (usePointDeduct.value !== true || pointPlan.value.enabled !== true) {
     return bottomAmountText.value;
   }
-  const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
-  return formatMoney(payableAmount);
+  return subtractMoney(bottomAmountText.value, pointPlan.value.amountText);
 });
 
 /**
@@ -432,8 +431,7 @@ function findShopByCode(shopList) {
  * 当前时长下的包厢总价。
  */
 function formatRoomAmount(roomType) {
-  const amount = Number(roomType.hourlyPrice) * selectedDurationHours.value;
-  return formatMoney(amount);
+  return multiplyMoney(roomType.hourlyPrice, selectedDurationHours.value);
 }
 
 /**
@@ -893,11 +891,9 @@ async function submitBooking() {
     // 4. 成功后记下接口返回的单号、核销码和实付金额
     const fallbackAmount = formatRoomAmount(roomType);
     const goodsAmountText = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? fallbackAmount : createdOrder.amount;
-    const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
-    const goodsAmount = Number(goodsAmountText);
-    const paidAmount = Number.isFinite(goodsAmount) === true
-      ? formatMoney(goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0))
-      : fallbackAmount;
+    const deductAmountText = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : createdOrder.pointDeductAmount;
+    const paidText = subtractMoney(goodsAmountText, deductAmountText);
+    const paidAmount = isEmpty(paidText) ? fallbackAmount : paidText;
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
       verifyCode: isEmpty(createdOrder) ? '' : createdOrder.verifyCode,

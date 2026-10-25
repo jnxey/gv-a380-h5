@@ -100,7 +100,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
+import { formatMoneyCents, isEmpty, multiplyMoney, multiplyMoneyCents, nationalContactText, subtractMoney } from '../../utils/tools.js';
 import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import StoreCartBar from './components/StoreCartBar.vue';
 import StoreCartSheet from './components/StoreCartSheet.vue';
@@ -157,31 +157,38 @@ const cartCount = computed(() => {
  * 购物车合计金额。
  */
 const cartAmountText = computed(() => {
-  let totalAmount = 0;
+  let totalCents = 0;
   for (const cartLine of cartLineList.value) {
-    totalAmount += Number(cartLine.salePrice) * cartLine.quantity;
+    const lineCents = multiplyMoneyCents(cartLine.salePrice, cartLine.quantity);
+    if (lineCents === null) {
+      continue;
+    }
+    totalCents += lineCents;
   }
-  return formatMoney(totalAmount);
+  return formatMoneyCents(totalCents);
 });
 
 /**
  * 购物车里可抵扣商品的合计。没有可抵扣商品时不显示，余额不够时只显示积分不足。
  */
 const pointPlan = computed(() => {
-  let deductAmount = 0;
+  let deductCents = 0;
   let deductPoints = 0;
   for (const cartLine of cartLineList.value) {
-    const unitAmount = Number(cartLine.pointDeductAmount);
+    const unitCents = multiplyMoneyCents(cartLine.pointDeductAmount, 1);
     const unitPoints = Number(cartLine.pointDeductPoints);
-    if (Number.isFinite(unitAmount) === true && unitAmount > 0 && Number.isInteger(unitPoints) === true && unitPoints > 0) {
-      deductAmount += unitAmount * cartLine.quantity;
+    if (unitCents !== null && unitCents > 0 && Number.isInteger(unitPoints) === true && unitPoints > 0) {
+      const lineCents = multiplyMoneyCents(cartLine.pointDeductAmount, cartLine.quantity);
+      if (lineCents !== null) {
+        deductCents += lineCents;
+      }
       deductPoints += unitPoints * cartLine.quantity;
     }
   }
   if (deductPoints <= 0) {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
-  const amountText = formatMoney(deductAmount);
+  const amountText = formatMoneyCents(deductCents);
   if (pointsBalance.value < deductPoints) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${deductPoints - pointsBalance.value}` };
   }
@@ -195,8 +202,7 @@ const sheetAmountText = computed(() => {
   if (usePointDeduct.value !== true || pointPlan.value.enabled !== true) {
     return cartAmountText.value;
   }
-  const payableAmount = Number(cartAmountText.value) - Number(pointPlan.value.amountText);
-  return formatMoney(payableAmount);
+  return subtractMoney(cartAmountText.value, pointPlan.value.amountText);
 });
 
 /**

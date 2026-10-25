@@ -88,7 +88,7 @@ import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDia
 import { StoreApi } from '../../../api/store.js';
 import { ConfirmDialogAccent, ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
-import { formatMoney, formatShopDateTime, isEmpty } from '../../../utils/tools.js';
+import { formatMoney, formatShopDateTime, isEmpty, subtractMoney } from '../../../utils/tools.js';
 
 const props = defineProps({
   orderList: {
@@ -145,13 +145,12 @@ function readPaidAmount(saleRow) {
   if (isEmpty(saleRow) || isEmpty(saleRow.amount)) {
     return '';
   }
-  const goodsAmount = Number(saleRow.amount);
-  const deductAmount = isEmpty(saleRow.pointDeductAmount) ? 0 : Number(saleRow.pointDeductAmount);
-  if (Number.isFinite(goodsAmount) !== true) {
-    return saleRow.amount;
+  const deductText = isEmpty(saleRow.pointDeductAmount) ? 0 : saleRow.pointDeductAmount;
+  const paidText = subtractMoney(saleRow.amount, deductText);
+  if (isEmpty(paidText)) {
+    return formatMoney(saleRow.amount);
   }
-  const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
-  return formatMoney(paidAmount);
+  return paidText;
 }
 
 /**

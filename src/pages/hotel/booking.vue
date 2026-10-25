@@ -114,7 +114,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
+import { formatMoney, isEmpty, multiplyMoney, nationalContactText, subtractMoney } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -287,8 +287,7 @@ const bottomAmountText = computed(() => {
   if (isEmpty(nightlyPrice) || nightCount.value < 1) {
     return '';
   }
-  const totalAmount = Number(nightlyPrice) * nightCount.value;
-  return formatMoney(totalAmount);
+  return multiplyMoney(selectedRoomType.value.price, nightCount.value);
 });
 
 /**
@@ -305,7 +304,7 @@ const pointPlan = computed(() => {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
   const points = unitPoints * nightCount.value;
-  const amountText = formatMoney(unitAmount * nightCount.value);
+  const amountText = multiplyMoney(roomType.pointDeductAmount, nightCount.value);
   if (pointsBalance.value < points) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
   }
@@ -319,8 +318,7 @@ const sheetAmountText = computed(() => {
   if (usePointDeduct.value !== true || pointPlan.value.enabled !== true || isEmpty(bottomAmountText.value)) {
     return bottomAmountText.value;
   }
-  const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
-  return formatMoney(payableAmount);
+  return subtractMoney(bottomAmountText.value, pointPlan.value.amountText);
 });
 
 /**
@@ -792,11 +790,9 @@ async function submitBooking() {
       },
     });
     // 4. 成功后记下单号、实付房费和入住离店
-    const goodsAmount = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? Number.NaN : Number(createdOrder.amount);
-    const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
-    const paidAmount = Number.isFinite(goodsAmount) === true
-      ? formatMoney(goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0))
-      : '';
+    const goodsAmountText = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? '' : createdOrder.amount;
+    const deductAmountText = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : createdOrder.pointDeductAmount;
+    const paidAmount = isEmpty(goodsAmountText) ? '' : subtractMoney(goodsAmountText, deductAmountText);
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
       shopName: shop.shopName,
