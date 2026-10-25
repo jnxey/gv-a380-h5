@@ -15,6 +15,7 @@
         </button>
       </div>
       <textarea
+        ref="reviewInputElement"
         v-model="contentText"
         class="review-input"
         :maxlength="ShopReviewLimit.CONTENT_MAX_LENGTH"
@@ -32,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { ShopReviewApi } from '../../api/shop-review.js';
 import { ShopReviewLimit } from '../../utils/constants.js';
 import { request } from '../../utils/request.js';
@@ -61,9 +62,10 @@ const starValueList = [1, 2, 3, 4, 5];
 const starRating = ref(ShopReviewLimit.STAR_MAX);
 const contentText = ref('');
 const submitting = ref(false);
+const reviewInputElement = ref(null);
 
 /**
- * 打开时重置表单。
+ * 打开时重置表单，并把焦点放进评价输入框。
  */
 watch(
   () => props.open,
@@ -73,8 +75,20 @@ watch(
     }
     starRating.value = ShopReviewLimit.STAR_MAX;
     contentText.value = '';
+    focusReviewInput();
   },
 );
+
+/**
+ * 弹窗渲染完后聚焦评价输入框。
+ */
+async function focusReviewInput() {
+  await nextTick();
+  if (isEmpty(reviewInputElement.value)) {
+    return;
+  }
+  reviewInputElement.value.focus();
+}
 
 /**
  * 关掉弹层。
