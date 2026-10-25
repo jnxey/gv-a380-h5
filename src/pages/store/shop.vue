@@ -22,6 +22,7 @@
           :order-list="orderList"
           :order-total="orderTotal"
           :order-loading="orderLoading"
+          :time-zone="isEmpty(currentShop) ? '' : currentShop.timeZone"
           @load-more="loadMoreOrders"
           @refresh-orders="refreshMemberOrders"
         />
@@ -30,6 +31,7 @@
           :review-list="reviewList"
           :review-total="reviewTotal"
           :review-loading="reviewLoading"
+          :time-zone="isEmpty(currentShop) ? '' : currentShop.timeZone"
           @load-more="loadMoreReviews"
         />
         <StoreShopDetail v-if="selectedContentTab === StoreContentTab.SHOP" :current-shop="currentShop" />

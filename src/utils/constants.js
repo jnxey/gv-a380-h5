@@ -343,6 +343,13 @@ export function timeZoneLabel(timeZoneOffset) {
   return `${matchedOption.name} ${matchedOption.offset}`;
 }
 
+/**
+ * 数据库连接时区。接口里的日期时间按这个偏移理解。
+ */
+export const DateTimeStorage = {
+  TIME_ZONE_OFFSET: '+08:00'
+};
+
 export const PageSetting = {
   DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 20

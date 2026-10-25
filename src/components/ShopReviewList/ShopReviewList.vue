@@ -15,7 +15,7 @@
           <span class="review-star">{{ starText(reviewRow.starRating) }}</span>
         </div>
         <p v-if="isEmpty(reviewRow.content) !== true" class="review-content">{{ reviewRow.content }}</p>
-        <p class="review-time">{{ reviewRow.createdAt }}</p>
+        <p class="review-time">{{ formatShopDateTime(reviewRow.createdAt, timeZone) }}</p>
       </div>
     </template>
   </PageVirtualList>
@@ -24,7 +24,7 @@
 <script setup>
 import { computed } from 'vue';
 import PageVirtualList from '../PageVirtualList/PageVirtualList.vue';
-import { isEmpty } from '../../utils/tools.js';
+import { formatShopDateTime, isEmpty } from '../../utils/tools.js';
 
 const props = defineProps({
   reviewList: {
@@ -37,6 +37,9 @@ const props = defineProps({
   },
   reviewLoading: {
     default: false,
+  },
+  timeZone: {
+    default: '',
   },
 });
 

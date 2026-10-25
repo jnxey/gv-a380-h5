@@ -37,6 +37,7 @@
           :review-list="reviewList"
           :review-total="reviewTotal"
           :review-loading="reviewLoading"
+          :time-zone="isEmpty(currentShop) ? '' : currentShop.timeZone"
           @load-more="loadMoreReviews"
         />
         <HotelShopDetail v-if="selectedContentTab === HotelContentTab.SHOP" :current-shop="currentShop" />

@@ -14,7 +14,7 @@
           <h2>{{ saleRow.saleNo }}</h2>
           <span>{{ statusLabel(saleRow.saleStatus) }}</span>
         </div>
-        <p class="order-sub">{{ saleRow.createdAt }}</p>
+        <p class="order-sub">{{ formatShopDateTime(saleRow.createdAt, timeZone) }}</p>
         <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
           {{ itemRow.productName }} × {{ itemRow.quantity }}
         </div>
@@ -39,7 +39,7 @@ import { computed, ref } from 'vue';
 import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
 import { ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
-import { isEmpty } from '../../../utils/tools.js';
+import { formatShopDateTime, isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
   orderList: {
@@ -52,6 +52,9 @@ const props = defineProps({
   },
   orderLoading: {
     default: false,
+  },
+  timeZone: {
+    default: '',
   },
 });
 

@@ -34,6 +34,7 @@
           :review-list="reviewList"
           :review-total="reviewTotal"
           :review-loading="reviewLoading"
+          :time-zone="isEmpty(currentShop) ? '' : currentShop.timeZone"
           @load-more="loadMoreReviews"
         />
         <KtvShopDetail v-if="selectedContentTab === KtvContentTab.SHOP" :current-shop="currentShop" />
