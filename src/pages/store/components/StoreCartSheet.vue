@@ -67,8 +67,12 @@
       <span>合计</span>
       <span class="total-side">
         <strong>{{ cartAmountText }}</strong>
+        <span v-if="pointPlan.loading === true" class="point-tag loading">
+          积分
+          <i class="point-spinner" aria-hidden="true"></i>
+        </span>
         <button
-          v-if="pointPlan.visible === true && pointPlan.enabled === true"
+          v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
           class="point-tag"
           :class="{ on: usePointDeduct === true }"
           type="button"
@@ -413,6 +417,24 @@ function selectAddress(addressText) {
   background: #f3f4f6;
   color: #9ca3af;
 }
+.point-tag.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.point-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: point-spin 0.8s linear infinite;
+}
+@keyframes point-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .total-side {
   display: flex;
   align-items: center;
@@ -421,8 +443,8 @@ function selectAddress(addressText) {
 .sheet-total {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 12px 16px 0;
   border-top: 1px solid rgba(20, 36, 28, 0.08);
   background: #fff;

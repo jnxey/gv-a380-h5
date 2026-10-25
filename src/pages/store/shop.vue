@@ -120,6 +120,7 @@ const categoryList = ref([]);
 const productList = ref([]);
 const cartLineList = ref([]);
 const pointsBalance = ref(0);
+const pointsLoading = ref(false);
 const usePointDeduct = ref(false);
 const cartSheetOpen = ref(false);
 const receiverName = ref('');
@@ -170,7 +171,7 @@ const cartAmountText = computed(() => {
 });
 
 /**
- * 购物车里可抵扣商品的合计。没有可抵扣商品时不显示，余额不够时只显示积分不足。
+ * 购物车里可抵扣商品的合计。没有可抵扣商品时不显示，余额加载中先显示转圈，余额不够时只显示积分不足。
  */
 const pointPlan = computed(() => {
   let deductCents = 0;
@@ -187,13 +188,16 @@ const pointPlan = computed(() => {
     }
   }
   if (deductPoints <= 0) {
-    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+    return { visible: false, enabled: false, loading: false, amountText: '0.00', hint: '' };
   }
   const amountText = formatMoneyCents(deductCents);
-  if (pointsBalance.value < deductPoints) {
-    return { visible: true, enabled: false, amountText, hint: `积分不足，还差${deductPoints - pointsBalance.value}` };
+  if (pointsLoading.value === true) {
+    return { visible: true, enabled: false, loading: true, amountText, hint: '' };
   }
-  return { visible: true, enabled: true, amountText, hint: `抵扣${amountText}元，消耗${deductPoints}积分` };
+  if (pointsBalance.value < deductPoints) {
+    return { visible: true, enabled: false, loading: false, amountText, hint: `积分不足，还差${deductPoints - pointsBalance.value}` };
+  }
+  return { visible: true, enabled: true, loading: false, amountText, hint: `抵扣${amountText}元，消耗${deductPoints}积分` };
 });
 
 /**
@@ -615,6 +619,7 @@ function changeQuantity(productId, delta) {
  * 读取当前会员积分余额，用来决定抵扣开关能不能点。
  */
 async function loadPointsBalance() {
+  pointsLoading.value = true;
   try {
     const summary = await request({ url: PointApi.SUMMARY, method: 'GET' });
     const balanceText = isEmpty(summary) || isEmpty(summary.balance) ? '0' : summary.balance;
@@ -622,6 +627,8 @@ async function loadPointsBalance() {
     pointsBalance.value = Number.isFinite(balanceNumber) === true ? Math.trunc(balanceNumber) : 0;
   } catch {
     pointsBalance.value = 0;
+  } finally {
+    pointsLoading.value = false;
   }
 }
 

@@ -72,8 +72,12 @@
     <div v-if="isEmpty(amountText) !== true" v-show="sheetInputFocused !== true" class="amount-line">
       <span>合计</span>
       <strong>{{ amountText }}</strong>
+      <span v-if="pointPlan.loading === true" class="point-tag loading">
+        积分
+        <i class="point-spinner" aria-hidden="true"></i>
+      </span>
       <button
-        v-if="pointPlan.visible === true && pointPlan.enabled === true"
+        v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
         class="point-tag"
         :class="{ on: usePointDeduct === true }"
         type="button"
@@ -440,6 +444,24 @@ function formatStartClock(slot) {
   border-color: transparent;
   background: #f3f4f6;
   color: #9ca3af;
+}
+.point-tag.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.point-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: point-spin 0.8s linear infinite;
+}
+@keyframes point-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .amount-line {
   box-sizing: border-box;
