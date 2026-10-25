@@ -345,7 +345,7 @@ export function timeZoneLabel(timeZoneOffset) {
 
 export const PageSetting = {
   DEFAULT_PAGE: 1,
-  DEFAULT_PAGE_SIZE: 5
+  DEFAULT_PAGE_SIZE: 20
 };
 
 export const H5PagePath = {
