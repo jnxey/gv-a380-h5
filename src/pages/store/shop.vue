@@ -676,7 +676,6 @@ async function confirmSale() {
   }
   formError.value = '';
   submitting.value = true;
-  showPageLoading();
   try {
     let securityKeyCipherText = '';
     try {
@@ -687,6 +686,7 @@ async function confirmSale() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
+    showPageLoading();
     const paidItemCount = cartCount.value;
     const paidAmountText = sheetAmountText.value;
     const paidShopName = isEmpty(currentShop.value) ? '' : currentShop.value.shopName;

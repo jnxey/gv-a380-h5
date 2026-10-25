@@ -863,7 +863,6 @@ async function submitBooking() {
     return;
   }
   bookingSubmitting.value = true;
-  showPageLoading();
   try {
     // 2. 弹出安全密钥。取消或没拿到密文时不下单
     let securityKeyCipherText = '';
@@ -875,6 +874,7 @@ async function submitBooking() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
+    showPageLoading();
     // 3. 提交体带上门店、包厢类型、开唱时间、时长、预订人、联系方式和安全密钥密文
     const createdOrder = await request({
       url: KtvApi.BOOKING_ORDERS,
