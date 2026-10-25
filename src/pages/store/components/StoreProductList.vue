@@ -27,23 +27,11 @@
           class="product-card"
           :class="{ disabled: productRow.stockQuantity < 1 }"
         >
-          <div
-            class="product-cover"
-            @touchstart.passive="onTouchStart(productRow, $event)"
-            @touchmove.passive="onTouchMove"
-            @touchend="onTouchEnd"
-            @touchcancel="onTouchEnd"
-          >
+          <div class="product-cover" @click="openDetail(productRow)">
             <img v-if="isEmpty(coverImageUrl(productRow)) !== true" :src="coverImageUrl(productRow)" alt="" />
             <span v-else class="product-cover-empty">暂无图片</span>
           </div>
-          <div
-            class="product-main"
-            @touchstart.passive="onTouchStart(productRow, $event)"
-            @touchmove.passive="onTouchMove"
-            @touchend="onTouchEnd"
-            @touchcancel="onTouchEnd"
-          >
+          <div class="product-main" @click="openDetail(productRow)">
             <div class="product-name">{{ productRow.productName }}</div>
             <div class="product-price">¥{{ productRow.salePrice }}</div>
             <div class="product-meta">
@@ -79,7 +67,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import ItemDetailSheet from '../../../components/ItemDetailSheet/ItemDetailSheet.vue';
-import { useItemPress } from '../../../hooks/item-press.js';
 import { ItemDetailAccent } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
@@ -109,11 +96,6 @@ const detailPriceText = ref('');
 const detailDescription = ref('');
 const detailImageList = ref([]);
 
-const { onTouchStart, onTouchMove, onTouchEnd } = useItemPress({
-  onLongPress(productRow) {
-    openDetail(productRow);
-  },
-});
 
 /**
  * 按启用分类排序分块；无分类归属的商品归到「其他」。

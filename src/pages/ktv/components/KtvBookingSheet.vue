@@ -4,6 +4,14 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
+      <p class="icon-line">
+        <AppIcon :icon-name="AppIconName.BOOKING_SUMMARY" />
+        <span>{{ descriptionText('bookingSummary') }}</span>
+      </p>
+      <p class="icon-line">
+        <AppIcon :icon-name="AppIconName.CANCEL_RULE" />
+        <span>{{ descriptionText('cancelRule') }}</span>
+      </p>
       <label>预定人</label>
       <input
         class="field-input"
@@ -39,6 +47,8 @@
       <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
       <label>离店时间</label>
       <p class="leave-time">{{ leaveTimeText }}</p>
+      <label>预订须知</label>
+      <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
     <div v-if="isEmpty(amountText) !== true" class="amount-line">
@@ -54,7 +64,8 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { HotelBookingGuest } from '../../../utils/constants.js';
+import AppIcon from '../../../components/AppIcon/AppIcon.vue';
+import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const ArrivalSlotFold = {
@@ -98,6 +109,16 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'select-slot', 'submit', 'update:guestName', 'update:contact']);
+
+/**
+ * 读描述里的一段文字。没有时显示横线。
+ */
+function descriptionText(fieldName) {
+  if (isEmpty(props.selectedRoomType) || isEmpty(props.selectedRoomType.description) || isEmpty(props.selectedRoomType.description[fieldName])) {
+    return '—';
+  }
+  return props.selectedRoomType.description[fieldName];
+}
 
 /**
  * 把输入框里的预定人交回页面。
@@ -211,6 +232,34 @@ function formatStartClock(slot) {
   margin: 12px 0 6px;
   font-size: 13px;
   color: #6b7280;
+}
+.icon-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.icon-line :deep(.app-icon) {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  color: #6d28d9;
+}
+.icon-line span {
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.desc-value {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .field-input {
   box-sizing: border-box;

@@ -7,40 +7,24 @@
       :key="roomType.id"
       class="room"
       :class="{ picked: roomType.id === selectedRoomTypeId }"
-      @click="onClick(roomType)"
-      @touchstart.passive="onTouchStart(roomType, $event)"
-      @touchmove.passive="onTouchMove"
-      @touchend="onTouchEnd"
-      @touchcancel="onTouchEnd"
+      @click="onRoomClick(roomType)"
     >
       <div class="cover" :style="coverStyle(roomType)"></div>
       <div>
         <h2>{{ roomType.typeName }}</h2>
+        <p v-if="isEmpty(roomSpecText(roomType)) !== true" class="room-brief">{{ roomSpecText(roomType) }}</p>
         <div class="price-line">
           <strong>每晚 ¥{{ formatNightlyPrice(roomType) }}</strong>
         </div>
       </div>
     </li>
   </ul>
-  <ItemDetailSheet
-    :open="detailOpen"
-    :title="detailTitle"
-    :price-text="detailPriceText"
-    :description="detailDescription"
-    :image-list="detailImageList"
-    :accent="ItemDetailAccent.HOTEL"
-    @close="closeDetail"
-  />
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import ItemDetailSheet from '../../../components/ItemDetailSheet/ItemDetailSheet.vue';
-import { useItemPress } from '../../../hooks/item-press.js';
-import { ItemDetailAccent } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
-const props = defineProps({
+defineProps({
   currentShop: {
     default: null,
   },
@@ -61,23 +45,35 @@ const props = defineProps({
 
 const emit = defineEmits(['select']);
 
-const detailOpen = ref(false);
-const detailTitle = ref('');
-const detailPriceText = ref('');
-const detailDescription = ref('');
-const detailImageList = ref([]);
+/**
+ * 短按选中房型。
+ */
+function onRoomClick(roomType) {
+  if (isEmpty(roomType) || isEmpty(roomType.id)) {
+    return;
+  }
+  emit('select', roomType.id);
+}
 
-const { onClick, onTouchStart, onTouchMove, onTouchEnd } = useItemPress({
-  onClick(roomType) {
-    if (isEmpty(roomType) || isEmpty(roomType.id)) {
-      return;
-    }
-    emit('select', roomType.id);
-  },
-  onLongPress(roomType) {
-    openDetail(roomType);
-  },
-});
+/**
+ * 名称下方的床型、大小、人数。有值才拼上。
+ */
+function roomSpecText(roomType) {
+  if (isEmpty(roomType) || isEmpty(roomType.description)) {
+    return '';
+  }
+  const specTextList = [];
+  if (isEmpty(roomType.description.bedType) !== true) {
+    specTextList.push(roomType.description.bedType);
+  }
+  if (isEmpty(roomType.description.roomSize) !== true) {
+    specTextList.push(roomType.description.roomSize);
+  }
+  if (isEmpty(roomType.description.guestCount) !== true) {
+    specTextList.push(roomType.description.guestCount);
+  }
+  return specTextList.join(' · ');
+}
 
 /**
  * 封面背景。用房型的第一张图，没有图片时留给样式里的绿色。
@@ -93,26 +89,6 @@ function coverStyle(roomType) {
   return { backgroundImage: `url("${firstRoomTypeImage.imageUrl}")` };
 }
 
-/**
- * 打开房型详情半屏。
- */
-function openDetail(roomType) {
-  if (isEmpty(roomType)) {
-    return;
-  }
-  detailTitle.value = isEmpty(roomType.typeName) ? '' : roomType.typeName;
-  detailPriceText.value = `每晚 ¥${props.formatNightlyPrice(roomType)}`;
-  detailDescription.value = isEmpty(roomType.description) || isEmpty(roomType.description.content) ? '' : roomType.description.content;
-  detailImageList.value = isEmpty(roomType.imageList) ? [] : roomType.imageList;
-  detailOpen.value = true;
-}
-
-/**
- * 关闭详情半屏。
- */
-function closeDetail() {
-  detailOpen.value = false;
-}
 </script>
 
 <style scoped>
@@ -160,6 +136,13 @@ function closeDetail() {
   margin: 0;
   font-size: 16px;
   color: #14241c;
+}
+.room-brief {
+  margin: 4px 0 0;
+  color: #5e6b64;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
 }
 .price-line {
   display: flex;

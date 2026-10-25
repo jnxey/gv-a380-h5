@@ -4,6 +4,34 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
+      <div class="spec-row">
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.BED" />
+          <span>{{ descriptionText('bedType') }}</span>
+        </span>
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.ROOM_SIZE" />
+          <span>{{ descriptionText('roomSize') }}</span>
+        </span>
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.FLOOR" />
+          <span>{{ descriptionText('floorText') }}</span>
+        </span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.GUEST" />
+          <span>{{ descriptionText('guestCount') }}</span>
+        </span>
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.BREAKFAST" />
+          <span>{{ descriptionText('breakfast') }}</span>
+        </span>
+        <span class="spec-item">
+          <AppIcon :icon-name="AppIconName.PARKING" />
+          <span>{{ descriptionText('freeParking') }}</span>
+        </span>
+      </div>
       <label>预定人</label>
       <input
         class="field-input"
@@ -26,6 +54,8 @@
       <p class="value">{{ nightCount }} 晚</p>
       <label>离店日期</label>
       <p class="value">{{ checkOutDate }}</p>
+      <label>预订须知</label>
+      <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
     <div v-if="isEmpty(amountText) !== true" class="amount-line">
@@ -40,10 +70,11 @@
 </template>
 
 <script setup>
-import { HotelBookingGuest } from '../../../utils/constants.js';
+import AppIcon from '../../../components/AppIcon/AppIcon.vue';
+import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
-defineProps({
+const props = defineProps({
   selectedRoomType: {
     default: null
   },
@@ -74,6 +105,16 @@ defineProps({
 });
 
 const emit = defineEmits(['close', 'submit', 'update:guestName', 'update:contact']);
+
+/**
+ * 读描述里的一段文字。没有时显示横线。
+ */
+function descriptionText(fieldName) {
+  if (isEmpty(props.selectedRoomType) || isEmpty(props.selectedRoomType.description) || isEmpty(props.selectedRoomType.description[fieldName])) {
+    return '—';
+  }
+  return props.selectedRoomType.description[fieldName];
+}
 
 /**
  * 把输入框里的预定人交回页面。
@@ -161,6 +202,46 @@ function updateContact(event) {
   color: #14241c;
   font-size: 16px;
   font-weight: 600;
+}
+.spec-row {
+  display: flex;
+  align-items: center;
+  margin: 0 0 8px;
+  color: #14241c;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+.spec-item + .spec-item {
+  padding-left: 8px;
+  border-left: 1px solid rgba(20, 36, 28, 0.16);
+  margin-left: 8px;
+}
+.spec-item :deep(.app-icon) {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: #1f8a70;
+}
+.spec-item > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desc-value {
+  margin: 0;
+  color: #14241c;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .amount-line {
   box-sizing: border-box;

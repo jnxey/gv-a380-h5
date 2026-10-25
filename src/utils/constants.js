@@ -152,7 +152,15 @@ export const KtvPullRefreshSetting = {
 export const AppIconName = {
   REVIEW: 'REVIEW',
   MAP: 'MAP',
-  PHONE: 'PHONE'
+  PHONE: 'PHONE',
+  BOOKING_SUMMARY: 'BOOKING_SUMMARY',
+  CANCEL_RULE: 'CANCEL_RULE',
+  BED: 'BED',
+  ROOM_SIZE: 'ROOM_SIZE',
+  FLOOR: 'FLOOR',
+  GUEST: 'GUEST',
+  BREAKFAST: 'BREAKFAST',
+  PARKING: 'PARKING'
 };
 
 export const KtvBookingDuration = {
