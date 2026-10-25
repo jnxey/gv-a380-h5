@@ -196,7 +196,7 @@ function openDetail(productRow) {
   }
   detailTitle.value = isEmpty(productRow.productName) ? '' : productRow.productName;
   detailPriceText.value = `¥${productRow.salePrice}`;
-  detailDescription.value = isEmpty(productRow.description) ? '' : productRow.description;
+  detailDescription.value = isEmpty(productRow.description) || isEmpty(productRow.description.content) ? '' : productRow.description.content;
   detailImageList.value = isEmpty(productRow.imageList) ? [] : productRow.imageList;
   detailOpen.value = true;
 }

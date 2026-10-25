@@ -102,7 +102,7 @@ function openDetail(roomType) {
   }
   detailTitle.value = isEmpty(roomType.typeName) ? '' : roomType.typeName;
   detailPriceText.value = `每晚 ¥${props.formatNightlyPrice(roomType)}`;
-  detailDescription.value = isEmpty(roomType.description) ? '' : roomType.description;
+  detailDescription.value = isEmpty(roomType.description) || isEmpty(roomType.description.content) ? '' : roomType.description.content;
   detailImageList.value = isEmpty(roomType.imageList) ? [] : roomType.imageList;
   detailOpen.value = true;
 }
