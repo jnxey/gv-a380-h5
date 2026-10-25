@@ -1,6 +1,12 @@
 <template>
   <div class="mask" @click="emit('close')"></div>
-  <section v-if="isEmpty(selectedRoomType) !== true" class="sheet">
+  <section
+    v-if="isEmpty(selectedRoomType) !== true"
+    ref="sheetElement"
+    class="sheet"
+    @focusin="handleSheetFocusIn"
+    @focusout="handleSheetFocusOut"
+  >
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
@@ -78,11 +84,11 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
-    <div v-if="isEmpty(amountText) !== true" class="amount-line">
+    <div v-if="isEmpty(amountText) !== true" v-show="sheetInputFocused !== true" class="amount-line">
       <span>合计</span>
       <strong>{{ amountText }}</strong>
     </div>
-    <div class="actions">
+    <div v-show="sheetInputFocused !== true" class="actions">
       <button class="ghost" type="button" @click="emit('close')">取消</button>
       <button class="solid" type="button" @click="emit('submit')">确认预订</button>
     </div>
@@ -92,6 +98,7 @@
 <script setup>
 import AppIcon from '../../../components/AppIcon/AppIcon.vue';
 import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
+import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -125,6 +132,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'submit', 'update:guestName', 'update:contact']);
+
+const { sheetElement, sheetInputFocused, handleSheetFocusIn, handleSheetFocusOut } = useSheetInputFocus();
 
 /**
  * 读描述里的一段文字。没有时显示横线。

@@ -1,6 +1,6 @@
 <template>
   <div class="mask" @click="emit('close')"></div>
-  <section class="sheet">
+  <section ref="sheetElement" class="sheet" @focusin="handleSheetFocusIn" @focusout="handleSheetFocusOut">
     <div class="sheet-body">
       <div class="sheet-head">
         <h2>购物车</h2>
@@ -60,11 +60,11 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
-    <div class="sheet-total">
+    <div v-show="sheetInputFocused !== true" class="sheet-total">
       <span>合计</span>
       <strong>{{ cartAmountText }}</strong>
     </div>
-    <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
+    <button v-show="sheetInputFocused !== true" class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
   </section>
   <div v-if="addressPickerOpen === true" class="address-mask" @click="closeAddressPicker">
     <section class="address-card" @click.stop>
@@ -86,6 +86,7 @@
 <script setup>
 import { ref } from 'vue';
 import { HotelBookingGuest } from '../../../utils/constants.js';
+import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -120,6 +121,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'change', 'submit', 'update:receiverName', 'update:contact', 'update:deliveryAddress']);
 
 const addressPickerOpen = ref(false);
+const { sheetElement, sheetInputFocused, handleSheetFocusIn, handleSheetFocusOut } = useSheetInputFocus();
 
 /**
  * 把输入框里的收货人交回页面。
