@@ -1,8 +1,9 @@
 <template>
   <div class="page" :class="{ 'page-with-bar': showCartBar }">
     <section v-if="saleStep !== StoreSaleStep.SUCCESS">
-      <StorePullRefresh
-        v-if="selectedContentTab === StoreContentTab.SHOPPING && cartSheetOpen !== true"
+      <PullRefresh
+        v-if="saleStep === StoreSaleStep.LIST && cartSheetOpen !== true"
+        :tone="PullRefreshTone.STORE"
         :refreshing="pageRefreshing"
         @refresh="refreshPage"
       />
@@ -85,6 +86,7 @@ import {
   BookingShopQuery,
   HotelBookingGuest,
   PageSetting,
+  PullRefreshTone,
   RecordStatus,
   ShopType,
   StoreContentTab,
@@ -101,7 +103,7 @@ import StoreCartSheet from './components/StoreCartSheet.vue';
 import StoreContentTabs from './components/StoreContentTabs.vue';
 import StoreOrderList from './components/StoreOrderList.vue';
 import StoreProductList from './components/StoreProductList.vue';
-import StorePullRefresh from './components/StorePullRefresh.vue';
+import PullRefresh from '../../components/PullRefresh/PullRefresh.vue';
 import StoreSaleSuccess from './components/StoreSaleSuccess.vue';
 import StoreShopDetail from './components/StoreShopDetail.vue';
 import StoreStoreHeader from './components/StoreStoreHeader.vue';
@@ -377,7 +379,7 @@ async function loadMemberProfile() {
 }
 
 /**
- * 下拉刷新门店与商品。
+ * 下拉松开后刷新整页。门店、商品和订单都从第 1 页重新加载。
  */
 async function refreshPage() {
   if (pageRefreshing.value === true) {
@@ -386,6 +388,7 @@ async function refreshPage() {
   pageRefreshing.value = true;
   try {
     await loadPage();
+    await loadMemberOrders(PageSetting.DEFAULT_PAGE);
   } finally {
     pageRefreshing.value = false;
   }

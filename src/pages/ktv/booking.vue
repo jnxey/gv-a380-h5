@@ -1,7 +1,12 @@
 <template>
   <div class="page" :class="{ 'page-with-bar': showBookingBar }">
     <section v-if="bookingStep !== KtvBookingStep.SUCCESS">
-      <KtvPullRefresh v-if="bookingStep === KtvBookingStep.LIST" :refreshing="pageRefreshing" @refresh="refreshPage" />
+      <PullRefresh
+        v-if="bookingStep === KtvBookingStep.LIST"
+        :tone="PullRefreshTone.KTV"
+        :refreshing="pageRefreshing"
+        @refresh="refreshPage"
+      />
       <KtvStoreHeader :current-shop="currentShop" />
       <div class="panel">
         <KtvContentTabs :selected-content-tab="selectedContentTab" @select="selectContentTab" />
@@ -87,7 +92,7 @@ import KtvDatePicker from './components/KtvDatePicker.vue';
 import KtvDurationPicker from './components/KtvDurationPicker.vue';
 import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import KtvOrderList from './components/KtvOrderList.vue';
-import KtvPullRefresh from './components/KtvPullRefresh.vue';
+import PullRefresh from '../../components/PullRefresh/PullRefresh.vue';
 import KtvRoomList from './components/KtvRoomList.vue';
 import KtvShopDetail from './components/KtvShopDetail.vue';
 import KtvStoreHeader from './components/KtvStoreHeader.vue';
@@ -102,6 +107,7 @@ import {
   KtvContentTab,
   KtvDateLabel,
   PageSetting,
+  PullRefreshTone,
   RecordStatus,
   ShopType,
   timeZoneLabel,

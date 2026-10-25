@@ -1,7 +1,12 @@
 <template>
   <div class="page" :class="{ 'page-with-bar': showBookingBar }">
     <section v-if="bookingStep !== HotelBookingStep.SUCCESS">
-      <HotelPullRefresh v-if="bookingStep === HotelBookingStep.LIST" :refreshing="pageRefreshing" @refresh="refreshPage" />
+      <PullRefresh
+        v-if="bookingStep === HotelBookingStep.LIST"
+        :tone="PullRefreshTone.HOTEL"
+        :refreshing="pageRefreshing"
+        @refresh="refreshPage"
+      />
       <HotelStoreHeader :current-shop="currentShop" />
       <div class="panel">
         <HotelContentTabs :selected-content-tab="selectedContentTab" @select="selectContentTab" />
@@ -87,7 +92,7 @@ import HotelContentTabs from './components/HotelContentTabs.vue';
 import HotelDateRange from './components/HotelDateRange.vue';
 import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import HotelOrderList from './components/HotelOrderList.vue';
-import HotelPullRefresh from './components/HotelPullRefresh.vue';
+import PullRefresh from '../../components/PullRefresh/PullRefresh.vue';
 import HotelRoomList from './components/HotelRoomList.vue';
 import HotelShopDetail from './components/HotelShopDetail.vue';
 import HotelStoreHeader from './components/HotelStoreHeader.vue';
@@ -99,6 +104,7 @@ import {
   HotelBookingStep,
   HotelContentTab,
   PageSetting,
+  PullRefreshTone,
   RecordStatus,
   ShopType,
 } from '../../utils/constants.js';

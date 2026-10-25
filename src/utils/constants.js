@@ -136,14 +136,20 @@ export const KtvContentTabItemList = [
   { contentTab: KtvContentTab.SHOP, label: '店铺' }
 ];
 
-export const KtvPullRefreshState = {
+export const PullRefreshTone = {
+  KTV: 'ktv',
+  HOTEL: 'hotel',
+  STORE: 'store'
+};
+
+export const PullRefreshState = {
   IDLE: 'idle',
   PULLING: 'pulling',
   READY: 'ready',
   REFRESHING: 'refreshing'
 };
 
-export const KtvPullRefreshSetting = {
+export const PullRefreshSetting = {
   THRESHOLD: 56,
   MAX_DISTANCE: 120,
   RESISTANCE: 0.4,
@@ -235,22 +241,6 @@ export const HotelDateLabel = {
   WEEKDAY_SHORT_LIST: ['日', '一', '二', '三', '四', '五', '六']
 };
 
-export const HotelPullRefreshState = {
-  IDLE: 'idle',
-  PULLING: 'pulling',
-  READY: 'ready',
-  REFRESHING: 'refreshing'
-};
-
-export const HotelPullRefreshSetting = {
-  THRESHOLD: 56,
-  MAX_DISTANCE: 120,
-  RESISTANCE: 0.4,
-  RING_SIZE: 36,
-  RING_CENTER: 18,
-  RING_RADIUS: 14
-};
-
 /**
  * 商铺选购页步骤。
  */
@@ -275,22 +265,6 @@ export const StoreContentTabItemList = [
   { contentTab: StoreContentTab.REVIEW, label: '评价' },
   { contentTab: StoreContentTab.SHOP, label: '门店' }
 ];
-
-export const StorePullRefreshState = {
-  IDLE: 'idle',
-  PULLING: 'pulling',
-  READY: 'ready',
-  REFRESHING: 'refreshing'
-};
-
-export const StorePullRefreshSetting = {
-  THRESHOLD: 56,
-  MAX_DISTANCE: 120,
-  RESISTANCE: 0.4,
-  RING_SIZE: 36,
-  RING_CENTER: 18,
-  RING_RADIUS: 14
-};
 
 /**
  * 门店时区。偏移是保存值，名称只用于展示。与后台选项一致。
