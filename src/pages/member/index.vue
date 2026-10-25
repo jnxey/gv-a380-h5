@@ -2,7 +2,7 @@
   <div class="member-center">
     <header class="hero">
       <p class="kicker">余额（元）</p>
-      <h1>{{ memberSummary.balance }}</h1>
+      <h1>{{ formatMoney(memberSummary.balance) }}</h1>
       <p v-if="isEmpty(memberSummary.username) !== true" class="account">
         <span class="account-text">账号：{{ displayAccount(memberSummary.username) }}</span>
         <button class="copy" type="button" aria-label="复制账号" @click="copyUsername">
@@ -33,7 +33,7 @@
           </div>
           <div class="money">
             <strong>{{ formatBillAmount(bill) }}</strong>
-            <div v-if="isEmpty(bill.balanceAfter) !== true" class="after">余额 {{ bill.balanceAfter }}</div>
+            <div v-if="isEmpty(bill.balanceAfter) !== true" class="after">余额 {{ formatMoney(bill.balanceAfter) }}</div>
           </div>
         </div>
       </template>
@@ -47,7 +47,7 @@ import PageVirtualList from '../../components/PageVirtualList/PageVirtualList.vu
 import { MemberApi } from '../../api/member.js';
 import { request } from '../../utils/request.js';
 import { FinanceDirection, PageSetting, statusLabel } from '../../utils/constants.js';
-import { isEmpty, isFunction } from '../../utils/tools.js';
+import { formatMoney, isEmpty, isFunction } from '../../utils/tools.js';
 import { showToast } from '../../utils/toast.js';
 
 /** 页头账号只露出末尾这么多位。 */
@@ -95,7 +95,8 @@ function displayAccount(username) {
  * 按方向给金额加上正负号。
  */
 function formatBillAmount(bill) {
-  const amountText = String(isEmpty(bill.amount) ? '' : bill.amount).replace(/^[+-]/, '');
+  const rawAmountText = String(isEmpty(bill.amount) ? '' : bill.amount).replace(/^[+-]/, '');
+  const amountText = formatMoney(rawAmountText);
   if (isIncome(bill.direction)) {
     return `+${amountText}`;
   }

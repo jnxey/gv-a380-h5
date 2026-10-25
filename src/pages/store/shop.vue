@@ -100,7 +100,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty, nationalContactText } from '../../utils/tools.js';
+import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
 import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import StoreCartBar from './components/StoreCartBar.vue';
 import StoreCartSheet from './components/StoreCartSheet.vue';
@@ -161,7 +161,7 @@ const cartAmountText = computed(() => {
   for (const cartLine of cartLineList.value) {
     totalAmount += Number(cartLine.salePrice) * cartLine.quantity;
   }
-  return totalAmount.toFixed(2);
+  return formatMoney(totalAmount);
 });
 
 /**
@@ -181,7 +181,7 @@ const pointPlan = computed(() => {
   if (deductPoints <= 0) {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
-  const amountText = deductAmount.toFixed(2);
+  const amountText = formatMoney(deductAmount);
   if (pointsBalance.value < deductPoints) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${deductPoints - pointsBalance.value}` };
   }
@@ -196,7 +196,7 @@ const sheetAmountText = computed(() => {
     return cartAmountText.value;
   }
   const payableAmount = Number(cartAmountText.value) - Number(pointPlan.value.amountText);
-  return payableAmount.toFixed(2);
+  return formatMoney(payableAmount);
 });
 
 /**

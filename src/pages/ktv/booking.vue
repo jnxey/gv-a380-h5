@@ -118,7 +118,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty, nationalContactText } from '../../utils/tools.js';
+import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -355,7 +355,7 @@ const pointPlan = computed(() => {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
   const points = unitPoints * unitCount;
-  const amountText = (unitAmount * unitCount).toFixed(2);
+  const amountText = formatMoney(unitAmount * unitCount);
   if (pointsBalance.value < points) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
   }
@@ -370,7 +370,7 @@ const sheetAmountText = computed(() => {
     return bottomAmountText.value;
   }
   const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
-  return payableAmount.toFixed(2);
+  return formatMoney(payableAmount);
 });
 
 /**
@@ -433,7 +433,7 @@ function findShopByCode(shopList) {
  */
 function formatRoomAmount(roomType) {
   const amount = Number(roomType.hourlyPrice) * selectedDurationHours.value;
-  return amount.toFixed(2);
+  return formatMoney(amount);
 }
 
 /**
@@ -896,7 +896,7 @@ async function submitBooking() {
     const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
     const goodsAmount = Number(goodsAmountText);
     const paidAmount = Number.isFinite(goodsAmount) === true
-      ? (goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0)).toFixed(2)
+      ? formatMoney(goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0))
       : fallbackAmount;
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,

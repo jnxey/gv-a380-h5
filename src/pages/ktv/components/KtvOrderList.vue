@@ -20,7 +20,7 @@
         <div class="order-foot">
           <div>
             <strong class="order-amount">{{ readPaidAmount(order) }}</strong>
-            <p v-if="hasPointDeduct(order)" class="order-deduct">积分抵扣 {{ order.pointDeductAmount }} 元</p>
+            <p v-if="hasPointDeduct(order)" class="order-deduct">积分抵扣 {{ formatMoney(order.pointDeductAmount) }} 元</p>
           </div>
           <div class="order-actions">
             <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
@@ -49,7 +49,7 @@
       <p v-if="isEmpty(detailOrder.contact) !== true" class="detail-line">联系方式 {{ detailOrder.contact }}</p>
       <p v-if="hasBookingInfo(detailOrder) !== true" class="detail-line">暂无</p>
       <p class="detail-line">金额 {{ readPaidAmount(detailOrder) }}</p>
-      <p v-if="hasPointDeduct(detailOrder)" class="detail-line">积分抵扣 {{ detailOrder.pointDeductAmount }} 元</p>
+      <p v-if="hasPointDeduct(detailOrder)" class="detail-line">积分抵扣 {{ formatMoney(detailOrder.pointDeductAmount) }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
   </div>
@@ -61,7 +61,7 @@
         <div>{{ openedOrder.roomTypeName }} {{ statusLabel(openedOrder.orderStatus) }}</div>
         <div>{{ openedOrder.bookingDate }} {{ formatClockText(openedOrder.startTime) }} - {{ formatBookingEnd(openedOrder) }} {{ openedOrder.durationHours }}小时</div>
         <div class="verify-amount">{{ readPaidAmount(openedOrder) }}</div>
-        <div v-if="hasPointDeduct(openedOrder)" class="order-deduct">积分抵扣 {{ openedOrder.pointDeductAmount }} 元</div>
+        <div v-if="hasPointDeduct(openedOrder)" class="order-deduct">积分抵扣 {{ formatMoney(openedOrder.pointDeductAmount) }} 元</div>
       </div>
       <button class="verify-close" type="button" @click="closeVerifyCode">关闭</button>
     </section>
@@ -98,7 +98,7 @@ import {
 } from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
 import { showToast } from '../../../utils/toast.js';
-import { isEmpty } from '../../../utils/tools.js';
+import { formatMoney, isEmpty } from '../../../utils/tools.js';
 
 const cancelConfirmMessage = '确定取消这笔订单？已支付将退回余额。';
 
@@ -170,7 +170,7 @@ function readPaidAmount(orderRow) {
     return orderRow.amount;
   }
   const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
-  return paidAmount.toFixed(2);
+  return formatMoney(paidAmount);
 }
 
 /**

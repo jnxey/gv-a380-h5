@@ -114,7 +114,7 @@ import {
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty, nationalContactText } from '../../utils/tools.js';
+import { formatMoney, isEmpty, nationalContactText } from '../../utils/tools.js';
 
 /**
  * 把门店时区偏移换成分钟。没有偏移时用本机偏移，钟面与当前一致。
@@ -288,7 +288,7 @@ const bottomAmountText = computed(() => {
     return '';
   }
   const totalAmount = Number(nightlyPrice) * nightCount.value;
-  return `${totalAmount.toFixed(2)}`;
+  return formatMoney(totalAmount);
 });
 
 /**
@@ -305,7 +305,7 @@ const pointPlan = computed(() => {
     return { visible: false, enabled: false, amountText: '0.00', hint: '' };
   }
   const points = unitPoints * nightCount.value;
-  const amountText = (unitAmount * nightCount.value).toFixed(2);
+  const amountText = formatMoney(unitAmount * nightCount.value);
   if (pointsBalance.value < points) {
     return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
   }
@@ -320,7 +320,7 @@ const sheetAmountText = computed(() => {
     return bottomAmountText.value;
   }
   const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
-  return payableAmount.toFixed(2);
+  return formatMoney(payableAmount);
 });
 
 /**
@@ -379,7 +379,7 @@ function formatNightlyPrice(roomType) {
   if (Number.isFinite(priceNumber) !== true) {
     return '';
   }
-  return priceNumber.toFixed(2);
+  return formatMoney(priceNumber);
 }
 
 /**
@@ -795,7 +795,7 @@ async function submitBooking() {
     const goodsAmount = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? Number.NaN : Number(createdOrder.amount);
     const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
     const paidAmount = Number.isFinite(goodsAmount) === true
-      ? (goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0)).toFixed(2)
+      ? formatMoney(goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0))
       : '';
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,

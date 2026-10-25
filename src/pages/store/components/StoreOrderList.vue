@@ -23,7 +23,7 @@
         <div class="order-foot">
           <div>
             <strong class="order-amount">{{ readPaidAmount(saleRow) }}</strong>
-            <p v-if="hasPointDeduct(saleRow)" class="order-deduct">积分抵扣 {{ saleRow.pointDeductAmount }} 元</p>
+            <p v-if="hasPointDeduct(saleRow)" class="order-deduct">积分抵扣 {{ formatMoney(saleRow.pointDeductAmount) }} 元</p>
           </div>
           <div class="order-actions">
             <button v-if="canCancel(saleRow)" class="cancel-button" type="button" @click="openCancel(saleRow)">取消</button>
@@ -67,7 +67,7 @@
       <p v-if="isEmpty(detailSale.deliveryRemark) !== true" class="detail-line">送货备注 {{ detailSale.deliveryRemark }}</p>
       <p v-if="hasDeliveryInfo(detailSale) !== true" class="detail-line">暂无</p>
       <p class="detail-line">实付 {{ readPaidAmount(detailSale) }}</p>
-      <p v-if="hasPointDeduct(detailSale)" class="detail-line">积分抵扣 {{ detailSale.pointDeductAmount }} 元</p>
+      <p v-if="hasPointDeduct(detailSale)" class="detail-line">积分抵扣 {{ formatMoney(detailSale.pointDeductAmount) }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
   </div>
@@ -88,7 +88,7 @@ import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDia
 import { StoreApi } from '../../../api/store.js';
 import { ConfirmDialogAccent, ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
-import { formatShopDateTime, isEmpty } from '../../../utils/tools.js';
+import { formatMoney, formatShopDateTime, isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
   orderList: {
@@ -151,7 +151,7 @@ function readPaidAmount(saleRow) {
     return saleRow.amount;
   }
   const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
-  return paidAmount.toFixed(2);
+  return formatMoney(paidAmount);
 }
 
 /**
