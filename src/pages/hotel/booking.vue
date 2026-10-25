@@ -689,9 +689,13 @@ function applyStayDates(stayDates) {
 }
 
 /**
- * 选择房型。
+ * 选择房型。再次点击已选中的房型时取消选中。
  */
 function selectRoomType(roomTypeId) {
+  if (selectedRoomTypeId.value === roomTypeId) {
+    selectedRoomTypeId.value = '';
+    return;
+  }
   selectedRoomTypeId.value = roomTypeId;
 }
 

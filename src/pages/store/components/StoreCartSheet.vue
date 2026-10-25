@@ -47,7 +47,10 @@
         <div class="delivery-field">
           <div class="delivery-label-row">
             <span class="delivery-label">收货地址</span>
-            <button v-if="isEmpty(addressHistory) !== true" class="address-pick" type="button" @click="openAddressPicker">选择</button>
+            <button v-if="isEmpty(addressHistory) !== true" class="address-pick" type="button" @click="openAddressPicker">
+              <AppIcon :icon-name="AppIconName.MAP" />
+              <span>选择</span>
+            </button>
           </div>
           <textarea
             class="delivery-input"
@@ -97,7 +100,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import { HotelBookingGuest } from '../../../utils/constants.js';
+import AppIcon from '../../../components/AppIcon/AppIcon.vue';
+import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
 import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
 import { formatMoney, isEmpty, multiplyMoney } from '../../../utils/tools.js';
 
@@ -359,12 +363,19 @@ function selectAddress(addressText) {
   font-weight: 600;
 }
 .address-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 0;
   padding: 0;
   background: transparent;
   color: #1f8a70;
   font: inherit;
   font-size: 15px;
+}
+.address-pick :deep(.app-icon) {
+  width: 14px;
+  height: 14px;
 }
 .delivery-input {
   box-sizing: border-box;
