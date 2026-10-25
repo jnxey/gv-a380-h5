@@ -33,7 +33,14 @@
           @change-page="changeOrderPage"
           @refresh-orders="refreshMemberOrders"
         />
-        <HotelReviewEmpty v-if="selectedContentTab === HotelContentTab.REVIEW" />
+        <ShopReviewList
+          v-if="selectedContentTab === HotelContentTab.REVIEW"
+          :review-list="reviewList"
+          :review-page-number="reviewPageNumber"
+          :review-total="reviewTotal"
+          :review-page-size="PageSetting.DEFAULT_PAGE_SIZE"
+          @change-page="changeReviewPage"
+        />
         <HotelShopDetail v-if="selectedContentTab === HotelContentTab.SHOP" :current-shop="currentShop" />
       </div>
       <HotelBookingBar
@@ -79,12 +86,13 @@ import HotelBookingSheet from './components/HotelBookingSheet.vue';
 import HotelBookingSuccess from './components/HotelBookingSuccess.vue';
 import HotelContentTabs from './components/HotelContentTabs.vue';
 import HotelDateRange from './components/HotelDateRange.vue';
+import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import HotelOrderList from './components/HotelOrderList.vue';
 import HotelPullRefresh from './components/HotelPullRefresh.vue';
-import HotelReviewEmpty from './components/HotelReviewEmpty.vue';
 import HotelRoomList from './components/HotelRoomList.vue';
 import HotelShopDetail from './components/HotelShopDetail.vue';
 import HotelStoreHeader from './components/HotelStoreHeader.vue';
+import { ShopReviewApi } from '../../api/shop-review.js';
 import {
   BookingShopQuery,
   HotelBookingCalendar,
@@ -157,6 +165,9 @@ const successSummary = ref(null);
 const orderList = ref([]);
 const orderPageNumber = ref(PageSetting.DEFAULT_PAGE);
 const orderTotal = ref(0);
+const reviewList = ref([]);
+const reviewPageNumber = ref(PageSetting.DEFAULT_PAGE);
+const reviewTotal = ref(0);
 const pageRefreshing = ref(false);
 
 /**
@@ -517,11 +528,53 @@ function ensureSelection() {
 }
 
 /**
- * 切换内容 Tab。
+ * 按页查询当前门店评价。
  */
-function selectContentTab(contentTab) {
+async function loadShopReviews(pageNumber) {
+  if (isEmpty(currentShop.value) || isEmpty(currentShop.value.shopId)) {
+    reviewList.value = [];
+    reviewTotal.value = 0;
+    reviewPageNumber.value = pageNumber;
+    return;
+  }
+  const reviewPage = await request({
+    url: ShopReviewApi.REVIEWS,
+    method: 'GET',
+    data: {
+      shopId: currentShop.value.shopId,
+      page: pageNumber,
+      pageSize: PageSetting.DEFAULT_PAGE_SIZE,
+    },
+  });
+  reviewPageNumber.value = pageNumber;
+  if (isEmpty(reviewPage)) {
+    reviewList.value = [];
+    reviewTotal.value = 0;
+    return;
+  }
+  reviewList.value = isEmpty(reviewPage.list) ? [] : reviewPage.list;
+  reviewTotal.value = reviewPage.total;
+}
+
+/**
+ * 切换评价页。
+ */
+async function changeReviewPage(pageNumber) {
+  await loadShopReviews(pageNumber);
+}
+
+/**
+ * 切换内容 Tab。进入订单或评价时重新拉取。
+ */
+async function selectContentTab(contentTab) {
   selectedContentTab.value = contentTab;
   dateSheetOpen.value = false;
+  if (contentTab === HotelContentTab.ORDER) {
+    await loadMemberOrders(orderPageNumber.value);
+  }
+  if (contentTab === HotelContentTab.REVIEW) {
+    await loadShopReviews(PageSetting.DEFAULT_PAGE);
+  }
 }
 
 /**

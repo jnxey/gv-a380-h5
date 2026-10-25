@@ -49,6 +49,7 @@ export const KtvOrderStatus = {
   PENDING_PAY: 'PENDING_PAY',
   PENDING_VERIFY: 'PENDING_VERIFY',
   VERIFIED: 'VERIFIED',
+  PENDING_REVIEW: 'PENDING_REVIEW',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
   REFUNDED: 'REFUNDED'
@@ -61,9 +62,25 @@ export const HotelOrderStatus = {
   PENDING_PAY: 'PENDING_PAY',
   BOOKED: 'BOOKED',
   CHECKED_IN: 'CHECKED_IN',
+  PENDING_REVIEW: 'PENDING_REVIEW',
   CHECKED_OUT: 'CHECKED_OUT',
   CANCELLED: 'CANCELLED',
   REFUNDED: 'REFUNDED'
+};
+
+/**
+ * 门店评价业务类型与星级。
+ */
+export const ShopReviewBizType = {
+  KTV_BOOKING: 'KTV_BOOKING',
+  HOTEL_BOOKING: 'HOTEL_BOOKING',
+  STORE_SALE: 'STORE_SALE'
+};
+
+export const ShopReviewLimit = {
+  STAR_MIN: 1,
+  STAR_MAX: 5,
+  CONTENT_MAX_LENGTH: 500
 };
 
 /**
@@ -79,6 +96,7 @@ export const ConfirmDialogAccent = {
  */
 export const StoreSaleStatus = {
   PENDING_PAY: 'PENDING_PAY',
+  PENDING_REVIEW: 'PENDING_REVIEW',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
   REFUNDED: 'REFUNDED'
@@ -214,15 +232,19 @@ export const StoreSaleStep = {
 };
 
 /**
- * 商铺内容 Tab。本轮只有选购和门店。
+ * 商铺内容 Tab。
  */
 export const StoreContentTab = {
   SHOPPING: 'shopping',
+  ORDER: 'order',
+  REVIEW: 'review',
   SHOP: 'shop'
 };
 
 export const StoreContentTabItemList = [
   { contentTab: StoreContentTab.SHOPPING, label: '选购' },
+  { contentTab: StoreContentTab.ORDER, label: '订单' },
+  { contentTab: StoreContentTab.REVIEW, label: '评价' },
   { contentTab: StoreContentTab.SHOP, label: '门店' }
 ];
 
@@ -343,6 +365,7 @@ export const statusLabelMap = {
   PENDING_PAY: '待支付',
   PENDING_VERIFY: '待核销',
   VERIFIED: '已核销',
+  PENDING_REVIEW: '待评价',
   COMPLETED: '已完成',
   REFUNDED: '已退款',
   BOOKED: '已预订',

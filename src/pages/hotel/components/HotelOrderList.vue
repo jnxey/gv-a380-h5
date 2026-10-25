@@ -8,9 +8,14 @@
     <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
     <div class="order-foot">
       <strong class="order-amount">房费 ¥{{ order.amount }}</strong>
-      <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
-        取消
-      </button>
+      <div class="order-actions">
+        <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
+          取消
+        </button>
+        <button v-if="canReview(order)" class="review-button" type="button" @click="openReview(order)">
+          去评价
+        </button>
+      </div>
     </div>
   </div>
   <div class="pager">
@@ -25,13 +30,27 @@
     @cancel="closeCancelConfirm"
     @confirm="submitCancelOrder"
   />
+  <ShopReviewDialog
+    :open="isEmpty(pendingReviewOrder) !== true"
+    :biz-type="ShopReviewBizType.HOTEL_BOOKING"
+    :biz-order-id="isEmpty(pendingReviewOrder) ? '' : pendingReviewOrder.bookingOrderId"
+    @cancel="closeReview"
+    @saved="onReviewSaved"
+  />
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
+import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
 import { HotelApi } from '../../../api/hotel.js';
-import { ConfirmDialogAccent, PageSetting, statusLabel } from '../../../utils/constants.js';
+import {
+  ConfirmDialogAccent,
+  HotelOrderStatus,
+  PageSetting,
+  ShopReviewBizType,
+  statusLabel,
+} from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
 import { showToast } from '../../../utils/toast.js';
 import { isEmpty } from '../../../utils/tools.js';
@@ -59,6 +78,42 @@ const emit = defineEmits(['change-page', 'refresh-orders']);
 
 const cancelSubmitting = ref(false);
 const pendingCancelOrder = ref(null);
+const pendingReviewOrder = ref(null);
+
+/**
+ * 待评价订单可以写评价。
+ */
+function canReview(order) {
+  if (isEmpty(order)) {
+    return false;
+  }
+  return order.orderStatus === HotelOrderStatus.PENDING_REVIEW;
+}
+
+/**
+ * 打开评价弹层。
+ */
+function openReview(order) {
+  if (canReview(order) !== true) {
+    return;
+  }
+  pendingReviewOrder.value = order;
+}
+
+/**
+ * 关掉评价弹层。
+ */
+function closeReview() {
+  pendingReviewOrder.value = null;
+}
+
+/**
+ * 评价成功后刷新订单列表。
+ */
+function onReviewSaved() {
+  pendingReviewOrder.value = null;
+  emit('refresh-orders');
+}
 
 /**
  * 第 1 页或没有订单时，上一页不可点。
@@ -167,18 +222,30 @@ async function submitCancelOrder() {
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
+.order-actions {
+  display: flex;
+  gap: 8px;
+}
 .cancel-button,
+.review-button,
 .pager button {
   border: 0;
   border-radius: 999px;
   font: inherit;
 }
-.cancel-button {
+.cancel-button,
+.review-button {
   flex: 0 0 auto;
   padding: 8px 16px;
+  font-size: 13px;
+}
+.cancel-button {
   background: rgba(20, 36, 28, 0.08);
   color: #5e6b64;
-  font-size: 13px;
+}
+.review-button {
+  background: #1f8a70;
+  color: #fff;
 }
 .pager {
   display: flex;

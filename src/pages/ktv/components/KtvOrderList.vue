@@ -15,6 +15,9 @@
         <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
           核销码
         </button>
+        <button v-if="canReview(order)" class="review-button" type="button" @click="openReview(order)">
+          去评价
+        </button>
       </div>
     </div>
   </div>
@@ -42,14 +45,28 @@
     @cancel="closeCancelConfirm"
     @confirm="submitCancelOrder"
   />
+  <ShopReviewDialog
+    :open="isEmpty(pendingReviewOrder) !== true"
+    :biz-type="ShopReviewBizType.KTV_BOOKING"
+    :biz-order-id="isEmpty(pendingReviewOrder) ? '' : pendingReviewOrder.bookingOrderId"
+    @cancel="closeReview"
+    @saved="onReviewSaved"
+  />
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import QRCode from 'qrcode';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
+import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
 import { KtvApi } from '../../../api/ktv.js';
-import { ConfirmDialogAccent, KtvOrderStatus, PageSetting, statusLabel } from '../../../utils/constants.js';
+import {
+  ConfirmDialogAccent,
+  KtvOrderStatus,
+  PageSetting,
+  ShopReviewBizType,
+  statusLabel,
+} from '../../../utils/constants.js';
 import { request } from '../../../utils/request.js';
 import { showToast } from '../../../utils/toast.js';
 import { isEmpty } from '../../../utils/tools.js';
@@ -77,6 +94,7 @@ const emit = defineEmits(['change-page', 'refresh-order', 'refresh-orders']);
 
 const cancelSubmitting = ref(false);
 const pendingCancelOrder = ref(null);
+const pendingReviewOrder = ref(null);
 
 const openedOrder = ref(null);
 const verifyCodeImageUrl = ref('');
@@ -129,6 +147,41 @@ function canShowVerifyCode(order) {
     return false;
   }
   return isEmpty(order.verifyCode) !== true;
+}
+
+/**
+ * 待评价订单可以写评价。
+ */
+function canReview(order) {
+  if (isEmpty(order)) {
+    return false;
+  }
+  return order.orderStatus === KtvOrderStatus.PENDING_REVIEW;
+}
+
+/**
+ * 打开评价弹层。
+ */
+function openReview(order) {
+  if (canReview(order) !== true) {
+    return;
+  }
+  pendingReviewOrder.value = order;
+}
+
+/**
+ * 关掉评价弹层。
+ */
+function closeReview() {
+  pendingReviewOrder.value = null;
+}
+
+/**
+ * 评价成功后刷新订单列表。
+ */
+function onReviewSaved() {
+  pendingReviewOrder.value = null;
+  emit('refresh-orders');
 }
 
 /**
@@ -255,6 +308,7 @@ function closeVerifyCode() {
   font-variant-numeric: tabular-nums;
 }
 .verify-button,
+.review-button,
 .cancel-button,
 .pager button,
 .verify-close {
@@ -263,12 +317,14 @@ function closeVerifyCode() {
   font: inherit;
 }
 .verify-button,
+.review-button,
 .cancel-button {
   flex: 0 0 auto;
   padding: 8px 16px;
   font-size: 13px;
 }
-.verify-button {
+.verify-button,
+.review-button {
   background: #6d28d9;
   color: #fff;
 }

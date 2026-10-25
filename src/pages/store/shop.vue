@@ -17,6 +17,23 @@
           @add="addCartLine"
           @change="changeQuantity"
         />
+        <StoreOrderList
+          v-if="selectedContentTab === StoreContentTab.ORDER"
+          :order-list="orderList"
+          :order-page-number="orderPageNumber"
+          :order-total="orderTotal"
+          :order-page-size="PageSetting.DEFAULT_PAGE_SIZE"
+          @change-page="changeOrderPage"
+          @refresh-orders="refreshMemberOrders"
+        />
+        <ShopReviewList
+          v-if="selectedContentTab === StoreContentTab.REVIEW"
+          :review-list="reviewList"
+          :review-page-number="reviewPageNumber"
+          :review-total="reviewTotal"
+          :review-page-size="PageSetting.DEFAULT_PAGE_SIZE"
+          @change-page="changeReviewPage"
+        />
         <StoreShopDetail v-if="selectedContentTab === StoreContentTab.SHOP" :current-shop="currentShop" />
       </div>
       <StoreCartBar
@@ -51,11 +68,13 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { ShopApi } from '../../api/shop.js';
+import { ShopReviewApi } from '../../api/shop-review.js';
 import { StoreApi } from '../../api/store.js';
 import { request } from '../../utils/request.js';
 import { verifyConsumerDoorLock } from 'gv-sdk';
 import {
   BookingShopQuery,
+  PageSetting,
   ShopType,
   StoreContentTab,
   StoreSaleStep,
@@ -64,9 +83,11 @@ import {
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
 import { isEmpty } from '../../utils/tools.js';
+import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import StoreCartBar from './components/StoreCartBar.vue';
 import StoreCartSheet from './components/StoreCartSheet.vue';
 import StoreContentTabs from './components/StoreContentTabs.vue';
+import StoreOrderList from './components/StoreOrderList.vue';
 import StoreProductList from './components/StoreProductList.vue';
 import StorePullRefresh from './components/StorePullRefresh.vue';
 import StoreSaleSuccess from './components/StoreSaleSuccess.vue';
@@ -89,6 +110,12 @@ const saleStep = ref(StoreSaleStep.LIST);
 const successShopName = ref('');
 const successItemCount = ref(0);
 const successAmountText = ref('0.00');
+const orderList = ref([]);
+const orderPageNumber = ref(PageSetting.DEFAULT_PAGE);
+const orderTotal = ref(0);
+const reviewList = ref([]);
+const reviewPageNumber = ref(PageSetting.DEFAULT_PAGE);
+const reviewTotal = ref(0);
 
 /**
  * 购物车件数。
@@ -230,8 +257,86 @@ async function refreshPage() {
 /**
  * 切换内容 Tab。
  */
-function selectContentTab(contentTab) {
+/**
+ * 按页查询我的销售单。
+ */
+async function loadMemberOrders(pageNumber) {
+  const orderPage = await request({
+    url: StoreApi.SALES,
+    method: 'GET',
+    data: { page: pageNumber, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
+  });
+  orderPageNumber.value = pageNumber;
+  if (isEmpty(orderPage)) {
+    orderList.value = [];
+    orderTotal.value = 0;
+    return;
+  }
+  orderList.value = isEmpty(orderPage.list) ? [] : orderPage.list;
+  orderTotal.value = orderPage.total;
+}
+
+/**
+ * 切换订单页。
+ */
+async function changeOrderPage(pageNumber) {
+  await loadMemberOrders(pageNumber);
+}
+
+/**
+ * 评价后刷新当前页订单。
+ */
+async function refreshMemberOrders() {
+  await loadMemberOrders(orderPageNumber.value);
+}
+
+/**
+ * 按页查询当前门店评价。
+ */
+async function loadShopReviews(pageNumber) {
+  if (isEmpty(currentShop.value) || isEmpty(currentShop.value.shopId)) {
+    reviewList.value = [];
+    reviewTotal.value = 0;
+    reviewPageNumber.value = pageNumber;
+    return;
+  }
+  const reviewPage = await request({
+    url: ShopReviewApi.REVIEWS,
+    method: 'GET',
+    data: {
+      shopId: currentShop.value.shopId,
+      page: pageNumber,
+      pageSize: PageSetting.DEFAULT_PAGE_SIZE,
+    },
+  });
+  reviewPageNumber.value = pageNumber;
+  if (isEmpty(reviewPage)) {
+    reviewList.value = [];
+    reviewTotal.value = 0;
+    return;
+  }
+  reviewList.value = isEmpty(reviewPage.list) ? [] : reviewPage.list;
+  reviewTotal.value = reviewPage.total;
+}
+
+/**
+ * 切换评价页。
+ */
+async function changeReviewPage(pageNumber) {
+  await loadShopReviews(pageNumber);
+}
+
+/**
+ * 切换内容 Tab。进入订单或评价时重新拉取。
+ */
+async function selectContentTab(contentTab) {
   selectedContentTab.value = contentTab;
+  if (contentTab === StoreContentTab.ORDER) {
+    await loadMemberOrders(PageSetting.DEFAULT_PAGE);
+  }
+  if (contentTab === StoreContentTab.REVIEW) {
+    await loadShopReviews(PageSetting.DEFAULT_PAGE);
+  }
 }
 
 /**
