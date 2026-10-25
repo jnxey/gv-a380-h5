@@ -4,30 +4,34 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
-      <p class="icon-line">
-        <AppIcon :icon-name="AppIconName.BOOKING_SUMMARY" />
+      <p class="mark-line">
+        <span class="text-mark">唱</span>
         <span>{{ descriptionText('bookingSummary') }}</span>
       </p>
-      <p class="icon-line">
-        <AppIcon :icon-name="AppIconName.CANCEL_RULE" />
+      <p class="mark-line">
+        <span class="text-mark">退</span>
         <span>{{ descriptionText('cancelRule') }}</span>
       </p>
-      <label>预定人</label>
-      <input
-        class="field-input"
-        :value="guestName"
-        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-        placeholder="预定人"
-        @input="updateGuestName"
-      />
-      <label>联系方式</label>
-      <input
-        class="field-input"
-        :value="contact"
-        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
-        placeholder="联系方式"
-        @input="updateContact"
-      />
+      <div class="field-row">
+        <span class="field-label">预定人</span>
+        <input
+          class="field-input"
+          :value="guestName"
+          :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+          placeholder="预定人"
+          @input="updateGuestName"
+        />
+      </div>
+      <div class="field-row">
+        <span class="field-label">联系方式</span>
+        <input
+          class="field-input"
+          :value="contact"
+          :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+          placeholder="联系方式"
+          @input="updateContact"
+        />
+      </div>
       <label>{{ arrivalTimeLabel }}</label>
       <div class="slots">
         <button
@@ -64,8 +68,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import AppIcon from '../../../components/AppIcon/AppIcon.vue';
-import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
+import { HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const ArrivalSlotFold = {
@@ -233,25 +236,55 @@ function formatStartClock(slot) {
   font-size: 13px;
   color: #6b7280;
 }
-.icon-line {
+.mark-line {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   color: #111827;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.35;
 }
-.icon-line :deep(.app-icon) {
-  width: 14px;
-  height: 14px;
-  margin-top: 3px;
+.text-mark {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1px solid #6d28d9;
+  border-radius: 4px;
   color: #6d28d9;
+  font-size: 11px;
+  line-height: 1;
+  flex: 0 0 auto;
 }
-.icon-line span {
+.mark-line > span:last-child {
   min-width: 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.field-label {
+  flex: 0 0 auto;
+  color: #6b7280;
+  font-size: 13px;
+}
+.field-row .field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: right;
 }
 .desc-value {
   margin: 0;

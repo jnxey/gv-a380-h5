@@ -14,7 +14,7 @@
         <h2>{{ roomType.typeName }}</h2>
         <p v-if="isEmpty(roomSpecText(roomType)) !== true" class="room-brief">{{ roomSpecText(roomType) }}</p>
         <div class="price-line">
-          <strong>每晚 ¥{{ formatNightlyPrice(roomType) }}</strong>
+          <strong>{{ formatNightlyPrice(roomType) }} / 晚</strong>
         </div>
       </div>
     </li>

@@ -32,28 +32,38 @@
           <span>{{ descriptionText('freeParking') }}</span>
         </span>
       </div>
-      <label>预定人</label>
-      <input
-        class="field-input"
-        :value="guestName"
-        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-        placeholder="预定人"
-        @input="updateGuestName"
-      />
-      <label>联系方式</label>
-      <input
-        class="field-input"
-        :value="contact"
-        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
-        placeholder="联系方式"
-        @input="updateContact"
-      />
-      <label>入住日期</label>
-      <p class="value">{{ checkInDate }}</p>
+      <div class="field-row">
+        <span class="field-label">预定人</span>
+        <input
+          class="field-input"
+          :value="guestName"
+          :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+          placeholder="预定人"
+          @input="updateGuestName"
+        />
+      </div>
+      <div class="field-row">
+        <span class="field-label">联系方式</span>
+        <input
+          class="field-input"
+          :value="contact"
+          :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+          placeholder="联系方式"
+          @input="updateContact"
+        />
+      </div>
+      <div class="date-row">
+        <span class="date-item">
+          <span>入住日期</span>
+          <strong>{{ checkInDate }}</strong>
+        </span>
+        <span class="date-item">
+          <span>离店日期</span>
+          <strong>{{ checkOutDate }}</strong>
+        </span>
+      </div>
       <label>入住晚数</label>
       <p class="value">{{ nightCount }} 晚</p>
-      <label>离店日期</label>
-      <p class="value">{{ checkOutDate }}</p>
       <label>预订须知</label>
       <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
@@ -186,6 +196,17 @@ function updateContact(event) {
   font-size: 13px;
   color: #5e6b64;
 }
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.field-label {
+  flex: 0 0 auto;
+  color: #5e6b64;
+  font-size: 13px;
+}
 .field-input {
   box-sizing: border-box;
   width: 100%;
@@ -196,6 +217,38 @@ function updateContact(event) {
   color: #14241c;
   font: inherit;
   font-size: 15px;
+}
+.field-row .field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: right;
+}
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  white-space: nowrap;
+}
+.date-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 0;
+  color: #5e6b64;
+  font-size: 13px;
+}
+.date-item strong {
+  overflow: hidden;
+  color: #14241c;
+  font-size: 15px;
+  text-overflow: ellipsis;
 }
 .value {
   margin: 0;
