@@ -1,7 +1,7 @@
 <template>
   <div v-if="isEmpty(productList)" class="empty">暂无可售商品</div>
   <div v-else class="menu-layout">
-    <aside class="category-side">
+    <aside ref="categorySideElement" class="category-side">
       <button
         v-for="categoryGroup in productGroupList"
         :key="categoryGroup.categoryId"
@@ -88,6 +88,7 @@ const props = defineProps({
 const emit = defineEmits(['add', 'change']);
 
 const activeCategoryId = ref('');
+const categorySideElement = ref(null);
 const sectionRefMap = ref({});
 const scrollingByClick = ref(false);
 const detailOpen = ref(false);
@@ -207,16 +208,18 @@ function cartQuantity(productId) {
 }
 
 /**
- * 读取吸顶相对顶部的安全距离（像素）。
+ * 读取分类栏吸顶后的顶部位置。已包含安全距离和选项栏高度。
  */
 function stickyTopOffsetPx() {
-  const rootStyle = window.getComputedStyle(document.documentElement);
-  const safeTopText = rootStyle.getPropertyValue('--ct-safe-top').trim();
-  const safeTopValue = Number.parseFloat(safeTopText);
-  if (Number.isFinite(safeTopValue) !== true) {
+  if (isEmpty(categorySideElement.value)) {
     return 0;
   }
-  return safeTopValue;
+  const topText = window.getComputedStyle(categorySideElement.value).top;
+  const topValue = Number.parseFloat(topText);
+  if (Number.isFinite(topValue) !== true) {
+    return 0;
+  }
+  return topValue;
 }
 
 /**
@@ -303,12 +306,12 @@ onUnmounted(() => {
 }
 .category-side {
   position: sticky;
-  top: var(--ct-safe-top, 0px);
+  top: calc(var(--ct-safe-top, 0px) + var(--store-tab-bar-height, 0px));
   z-index: 2;
   flex: none;
   align-self: flex-start;
   width: 88px;
-  max-height: calc(100vh - var(--ct-safe-top, 0px));
+  max-height: calc(100vh - var(--ct-safe-top, 0px) - var(--store-tab-bar-height, 0px));
   overflow-y: auto;
   border-top-left-radius: 16px;
   background: #f3f4f6;
@@ -344,11 +347,11 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 .product-section {
-  scroll-margin-top: var(--ct-safe-top, 0px);
+  scroll-margin-top: calc(var(--ct-safe-top, 0px) + var(--store-tab-bar-height, 0px));
 }
 .section-title {
   position: sticky;
-  top: var(--ct-safe-top, 0px);
+  top: calc(var(--ct-safe-top, 0px) + var(--store-tab-bar-height, 0px));
   z-index: 1;
   margin: 0;
   padding: 12px 0 8px;

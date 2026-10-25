@@ -1,14 +1,16 @@
 <template>
-  <div class="tabs">
-    <button
-      v-for="tabItem in StoreContentTabItemList"
-      :key="tabItem.contentTab"
-      type="button"
-      :class="{ active: tabItem.contentTab === selectedContentTab }"
-      @click="emit('select', tabItem.contentTab)"
-    >
-      {{ tabItem.label }}
-    </button>
+  <div class="tabs-bar">
+    <div class="tabs">
+      <button
+        v-for="tabItem in StoreContentTabItemList"
+        :key="tabItem.contentTab"
+        type="button"
+        :class="{ active: tabItem.contentTab === selectedContentTab }"
+        @click="emit('select', tabItem.contentTab)"
+      >
+        {{ tabItem.label }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -25,10 +27,17 @@ const emit = defineEmits(['select']);
 </script>
 
 <style scoped>
+.tabs-bar {
+  position: sticky;
+  top: var(--ct-safe-top, 0px);
+  z-index: 3;
+  margin: -8px -12px 0;
+  padding: 0 12px 16px;
+}
 .tabs {
   display: flex;
   gap: 4px;
-  margin: -8px 0 16px;
+  margin: 0;
   padding: 4px;
   border-radius: 999px;
   background: #d8efe8;
