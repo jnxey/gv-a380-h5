@@ -4,7 +4,7 @@
       <p class="kicker">余额（元）</p>
       <h1>{{ memberSummary.balance }}</h1>
       <p v-if="isEmpty(memberSummary.username) !== true" class="account">
-        <span class="account-text">{{ displayAccount(memberSummary.username) }}</span>
+        <span class="account-text">账号：{{ displayAccount(memberSummary.username) }}</span>
         <button class="copy" type="button" aria-label="复制账号" @click="copyUsername">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
@@ -12,7 +12,6 @@
           </svg>
         </button>
       </p>
-      <p v-if="isEmpty(memberSummary.contact) !== true" class="contact">联系方式：{{ memberSummary.contact }}</p>
     </header>
     <p v-if="memberCenterLoaded && billList.length === 0" class="banner">暂无流水</p>
     <PageVirtualList
@@ -60,7 +59,6 @@ const accountMask = '******';
 const memberSummary = ref({
   username: '',
   nickname: '',
-  contact: '',
   balance: '0.00',
 });
 const billList = ref([]);
@@ -313,14 +311,6 @@ onMounted(() => {
 .copy svg {
   width: 18px;
   height: 18px;
-}
-
-.contact {
-  position: relative;
-  margin: 10px 0 0;
-  color: rgba(247, 243, 234, 0.72);
-  font-size: 14px;
-  word-break: break-all;
 }
 
 .banner {
