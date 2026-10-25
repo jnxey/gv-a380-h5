@@ -33,12 +33,12 @@
         </span>
       </div>
       <div class="field-row">
-        <span class="field-label">预定人</span>
+        <span class="field-label">预订人</span>
         <input
           class="field-input"
           :value="guestName"
           :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-          placeholder="预定人"
+          placeholder="预订人"
           @input="updateGuestName"
         />
       </div>
@@ -127,7 +127,7 @@ function descriptionText(fieldName) {
 }
 
 /**
- * 把输入框里的预定人交回页面。
+ * 把输入框里的预订人交回页面。
  */
 function updateGuestName(event) {
   if (isEmpty(event) || isEmpty(event.target)) {

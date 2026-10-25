@@ -10,7 +10,7 @@
       {{ itemRow.productName }} × {{ itemRow.quantity }}
     </div>
     <div class="order-foot">
-      <strong class="order-amount">¥{{ saleRow.amount }}</strong>
+      <strong class="order-amount">{{ saleRow.amount }}</strong>
       <button v-if="canReview(saleRow)" class="review-button" type="button" @click="openReview(saleRow)">去评价</button>
     </div>
   </div>

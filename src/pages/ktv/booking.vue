@@ -213,7 +213,7 @@ const reviewTotal = ref(0);
 const pageRefreshing = ref(false);
 
 /**
- * 底部预约栏只在预定 Tab，并且还没进入成功页时出现。
+ * 底部预约栏只在预订 Tab，并且还没进入成功页时出现。
  */
 const showBookingBar = computed(() => {
   if (bookingStep.value === KtvBookingStep.SUCCESS) {
@@ -323,7 +323,7 @@ const bottomAmountText = computed(() => {
   if (isEmpty(selectedRoomType.value)) {
     return '';
   }
-  return `¥${formatRoomAmount(selectedRoomType.value)}`;
+  return `${formatRoomAmount(selectedRoomType.value)}`;
 });
 
 /**
@@ -429,7 +429,7 @@ async function loadPage() {
 }
 
 /**
- * 用会员资料预填预定人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
+ * 用会员资料预填预订人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
  */
 async function loadMemberProfile() {
   let memberSummary = null;
@@ -725,7 +725,7 @@ function closeForm() {
 }
 
 /**
- * 提交预订。先核对预定人和联系方式，再校验安全密钥，并提交门店、包厢类型、开唱时间和时长。
+ * 提交预订。先核对预订人和联系方式，再校验安全密钥，并提交门店、包厢类型、开唱时间和时长。
  */
 async function submitBooking() {
   if (bookingSubmitting.value) {
@@ -751,11 +751,11 @@ async function submitBooking() {
     return;
   }
   if (isEmpty(guestNameText) || isEmpty(contactText)) {
-    formError.value = '请填写预定人和联系方式';
+    formError.value = '请填写预订人和联系方式';
     return;
   }
   if (guestNameText.length > HotelBookingGuest.NAME_MAX_LENGTH || contactText.length > HotelBookingGuest.CONTACT_MAX_LENGTH) {
-    formError.value = '预定人或联系方式过长';
+    formError.value = '预订人或联系方式过长';
     return;
   }
   bookingSubmitting.value = true;
@@ -770,7 +770,7 @@ async function submitBooking() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
-    // 3. 提交体带上门店、包厢类型、开唱时间、时长、预定人、联系方式和安全密钥密文
+    // 3. 提交体带上门店、包厢类型、开唱时间、时长、预订人、联系方式和安全密钥密文
     const createdOrder = await request({
       url: KtvApi.BOOKING_ORDERS,
       method: 'POST',

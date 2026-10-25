@@ -2,7 +2,7 @@
   <div class="bar">
     <button type="button" class="summary" @click="emit('open')">
       <p>{{ cartCount }} 件商品</p>
-      <strong>¥{{ cartAmountText }}</strong>
+      <strong>{{ cartAmountText }}</strong>
     </button>
     <button class="checkout" type="button" @click="emit('open')">去结算</button>
   </div>

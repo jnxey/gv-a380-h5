@@ -14,7 +14,7 @@
         <h2>{{ roomType.typeName }}</h2>
         <p v-if="isEmpty(bookingSummaryText(roomType)) !== true" class="room-brief">{{ bookingSummaryText(roomType) }}</p>
         <div class="price-line">
-          <strong>¥{{ formatRoomAmount(roomType) }}</strong>
+          <strong>{{ formatRoomAmount(roomType) }}</strong>
         </div>
       </div>
     </li>
@@ -56,7 +56,7 @@ function onRoomClick(roomType) {
 }
 
 /**
- * 名称下方的预定简述。没有时为空串。
+ * 名称下方的预订简述。没有时为空串。
  */
 function bookingSummaryText(roomType) {
   if (isEmpty(roomType) || isEmpty(roomType.description) || isEmpty(roomType.description.bookingSummary)) {

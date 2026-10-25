@@ -7,7 +7,7 @@
     </div>
     <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
     <div class="order-foot">
-      <strong class="order-amount">¥{{ order.amount }}</strong>
+      <strong class="order-amount">{{ order.amount }}</strong>
       <div class="order-actions">
         <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
           取消
@@ -32,7 +32,7 @@
       <div class="verify-detail">
         <div>{{ openedOrder.roomTypeName }} {{ statusLabel(openedOrder.orderStatus) }}</div>
         <div>{{ openedOrder.bookingDate }} {{ formatClockText(openedOrder.startTime) }} - {{ formatBookingEnd(openedOrder) }} {{ openedOrder.durationHours }}小时</div>
-        <div class="verify-amount">¥{{ openedOrder.amount }}</div>
+        <div class="verify-amount">{{ openedOrder.amount }}</div>
       </div>
       <button class="verify-close" type="button" @click="closeVerifyCode">关闭</button>
     </section>

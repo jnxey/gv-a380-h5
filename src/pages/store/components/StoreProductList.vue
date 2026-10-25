@@ -33,7 +33,7 @@
           </div>
           <div class="product-main" @click="openDetail(productRow)">
             <div class="product-name">{{ productRow.productName }}</div>
-            <div class="product-price">¥{{ productRow.salePrice }}</div>
+            <div class="product-price">{{ productRow.salePrice }}</div>
             <div class="product-meta">
               <template v-if="productRow.stockQuantity < 1">售罄</template>
               <template v-else>库存 {{ productRow.stockQuantity }}</template>
@@ -177,7 +177,7 @@ function openDetail(productRow) {
     return;
   }
   detailTitle.value = isEmpty(productRow.productName) ? '' : productRow.productName;
-  detailPriceText.value = `¥${productRow.salePrice}`;
+  detailPriceText.value = `${productRow.salePrice}`;
   detailDescription.value = isEmpty(productRow.description) || isEmpty(productRow.description.content) ? '' : productRow.description.content;
   detailImageList.value = isEmpty(productRow.imageList) ? [] : productRow.imageList;
   detailOpen.value = true;

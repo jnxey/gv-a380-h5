@@ -7,7 +7,7 @@
       <div>{{ successSummary.shopName }} · {{ successSummary.roomTypeName }}</div>
       <div>{{ successSummary.checkInDate }} 至 {{ successSummary.checkOutDate }}</div>
       <div>{{ successSummary.nightCount }} 晚</div>
-      <div>¥{{ successSummary.amount }}</div>
+      <div>{{ successSummary.amount }}</div>
     </div>
     <button type="button" @click="emit('again')">再订一间</button>
   </section>

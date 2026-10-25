@@ -6,7 +6,7 @@
     <div class="summary">
       <div v-if="isEmpty(shopName) !== true">{{ shopName }}</div>
       <div>共 {{ itemCount }} 件</div>
-      <div class="amount">¥{{ amountText }}</div>
+      <div class="amount">{{ amountText }}</div>
     </div>
     <button type="button" @click="emit('again')">继续选购</button>
   </section>

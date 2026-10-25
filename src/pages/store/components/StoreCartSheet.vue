@@ -10,7 +10,7 @@
         <div class="cart-line-main">
           <div class="product-name">{{ cartLine.productName }}</div>
           <div class="product-meta">
-            单价 ¥{{ cartLine.salePrice }} · 小计 ¥{{ (Number(cartLine.salePrice) * cartLine.quantity).toFixed(2) }}
+            单价 {{ cartLine.salePrice }} · 小计 {{ (Number(cartLine.salePrice) * cartLine.quantity).toFixed(2) }}
           </div>
         </div>
         <div class="qty">
@@ -32,7 +32,7 @@
     </label>
     <div class="sheet-total">
       <span>合计</span>
-      <strong>¥{{ cartAmountText }}</strong>
+      <strong>{{ cartAmountText }}</strong>
     </div>
     <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>

@@ -171,7 +171,7 @@ const reviewTotal = ref(0);
 const pageRefreshing = ref(false);
 
 /**
- * 底部预订栏只在预定 Tab，并且还没进入成功页时出现。
+ * 底部预订栏只在预订 Tab，并且还没进入成功页时出现。
  */
 const showBookingBar = computed(() => {
   if (bookingStep.value === HotelBookingStep.SUCCESS) {
@@ -274,7 +274,7 @@ const bottomAmountText = computed(() => {
     return '';
   }
   const totalAmount = Number(nightlyPrice) * nightCount.value;
-  return `¥${totalAmount.toFixed(2)}`;
+  return `${totalAmount.toFixed(2)}`;
 });
 
 /**
@@ -483,7 +483,7 @@ async function refreshMemberOrders() {
 }
 
 /**
- * 用会员资料预填预定人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
+ * 用会员资料预填预订人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
  */
 async function loadMemberProfile() {
   let memberSummary = null;
@@ -631,7 +631,7 @@ function closeForm() {
 }
 
 /**
- * 提交预订。先核对预定人和联系方式，再校验安全密钥，并按晚数扣会员余额。
+ * 提交预订。先核对预订人和联系方式，再校验安全密钥，并按晚数扣会员余额。
  */
 async function submitBooking() {
   if (bookingSubmitting.value) {
@@ -654,11 +654,11 @@ async function submitBooking() {
     return;
   }
   if (isEmpty(guestNameText) || isEmpty(contactText)) {
-    formError.value = '请填写预定人和联系方式';
+    formError.value = '请填写预订人和联系方式';
     return;
   }
   if (guestNameText.length > HotelBookingGuest.NAME_MAX_LENGTH || contactText.length > HotelBookingGuest.CONTACT_MAX_LENGTH) {
-    formError.value = '预定人或联系方式过长';
+    formError.value = '预订人或联系方式过长';
     return;
   }
   bookingSubmitting.value = true;
@@ -673,7 +673,7 @@ async function submitBooking() {
     if (isEmpty(securityKeyCipherText)) {
       return;
     }
-    // 3. 提交门店、房型、入住日、离店日、预定人、联系方式和安全密钥密文
+    // 3. 提交门店、房型、入住日、离店日、预订人、联系方式和安全密钥密文
     const createdOrder = await request({
       url: HotelApi.BOOKING_ORDERS,
       method: 'POST',

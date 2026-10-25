@@ -10,7 +10,7 @@
     <div class="summary">
       <div>{{ successSummary.shopName }} · {{ successSummary.roomTypeName }}</div>
       <div>{{ successSummary.bookingDate }} {{ successSummary.arrivalLabel }}</div>
-      <div>¥{{ successSummary.amount }}</div>
+      <div>{{ successSummary.amount }}</div>
     </div>
     <button type="button" @click="emit('again')">再约一间</button>
   </section>

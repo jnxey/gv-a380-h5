@@ -127,7 +127,7 @@ export const KtvContentTab = {
 };
 
 export const KtvContentTabItemList = [
-  { contentTab: KtvContentTab.BOOKING, label: '预定' },
+  { contentTab: KtvContentTab.BOOKING, label: '预订' },
   { contentTab: KtvContentTab.ORDER, label: '订单' },
   { contentTab: KtvContentTab.REVIEW, label: '评价' },
   { contentTab: KtvContentTab.SHOP, label: '店铺' }
@@ -195,7 +195,7 @@ export const HotelContentTab = {
 };
 
 export const HotelContentTabItemList = [
-  { contentTab: HotelContentTab.BOOKING, label: '预定' },
+  { contentTab: HotelContentTab.BOOKING, label: '预订' },
   { contentTab: HotelContentTab.ORDER, label: '订单' },
   { contentTab: HotelContentTab.REVIEW, label: '评价' },
   { contentTab: HotelContentTab.SHOP, label: '店铺' }

@@ -24,7 +24,7 @@ const pageTitle = computed(() => {
 });
 
 /**
- * KTV 预定页、酒店预定页、商铺选购页、会员中心和积分明细不显示标题栏。浏览器标题仍使用页面标题。
+ * KTV 预订页、酒店预订页、商铺选购页、会员中心和积分明细不显示标题栏。浏览器标题仍使用页面标题。
  */
 const showPageHead = computed(() => {
   const routePath = currentRoute.path;
