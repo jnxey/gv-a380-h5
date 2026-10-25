@@ -27,11 +27,23 @@
           class="product-card"
           :class="{ disabled: productRow.stockQuantity < 1 }"
         >
-          <div class="product-cover">
+          <div
+            class="product-cover"
+            @touchstart.passive="onTouchStart(productRow, $event)"
+            @touchmove.passive="onTouchMove"
+            @touchend="onTouchEnd"
+            @touchcancel="onTouchEnd"
+          >
             <img v-if="isEmpty(coverImageUrl(productRow)) !== true" :src="coverImageUrl(productRow)" alt="" />
             <span v-else class="product-cover-empty">暂无图片</span>
           </div>
-          <div class="product-main">
+          <div
+            class="product-main"
+            @touchstart.passive="onTouchStart(productRow, $event)"
+            @touchmove.passive="onTouchMove"
+            @touchend="onTouchEnd"
+            @touchcancel="onTouchEnd"
+          >
             <div class="product-name">{{ productRow.productName }}</div>
             <div class="product-price">¥{{ productRow.salePrice }}</div>
             <div class="product-meta">
@@ -53,10 +65,22 @@
       </section>
     </div>
   </div>
+  <ItemDetailSheet
+    :open="detailOpen"
+    :title="detailTitle"
+    :price-text="detailPriceText"
+    :description="detailDescription"
+    :image-list="detailImageList"
+    :accent="ItemDetailAccent.STORE"
+    @close="closeDetail"
+  />
 </template>
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import ItemDetailSheet from '../../../components/ItemDetailSheet/ItemDetailSheet.vue';
+import { useItemPress } from '../../../hooks/item-press.js';
+import { ItemDetailAccent } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const otherCategoryId = '__other__';
@@ -79,6 +103,17 @@ const emit = defineEmits(['add', 'change']);
 const activeCategoryId = ref('');
 const sectionRefMap = ref({});
 const scrollingByClick = ref(false);
+const detailOpen = ref(false);
+const detailTitle = ref('');
+const detailPriceText = ref('');
+const detailDescription = ref('');
+const detailImageList = ref([]);
+
+const { onTouchStart, onTouchMove, onTouchEnd } = useItemPress({
+  onLongPress(productRow) {
+    openDetail(productRow);
+  },
+});
 
 /**
  * 按启用分类排序分块；无分类归属的商品归到「其他」。
@@ -150,6 +185,27 @@ function coverImageUrl(productRow) {
     return '';
   }
   return firstProductImage.imageUrl;
+}
+
+/**
+ * 打开商品详情半屏。
+ */
+function openDetail(productRow) {
+  if (isEmpty(productRow)) {
+    return;
+  }
+  detailTitle.value = isEmpty(productRow.productName) ? '' : productRow.productName;
+  detailPriceText.value = `¥${productRow.salePrice}`;
+  detailDescription.value = isEmpty(productRow.description) ? '' : productRow.description;
+  detailImageList.value = isEmpty(productRow.imageList) ? [] : productRow.imageList;
+  detailOpen.value = true;
+}
+
+/**
+ * 关闭详情半屏。
+ */
+function closeDetail() {
+  detailOpen.value = false;
 }
 
 /**
@@ -342,6 +398,8 @@ onUnmounted(() => {
   overflow: hidden;
   border-radius: 12px;
   background: #f3f4f6;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .product-cover img {
   width: 100%;
@@ -357,6 +415,8 @@ onUnmounted(() => {
 .product-main {
   min-width: 0;
   flex: 1 1 auto;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .product-name {
   display: -webkit-box;

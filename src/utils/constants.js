@@ -92,6 +92,23 @@ export const ConfirmDialogAccent = {
 };
 
 /**
+ * 包厢 / 房型 / 商品详情半屏主色。
+ */
+export const ItemDetailAccent = {
+  KTV: 'ktv',
+  HOTEL: 'hotel',
+  STORE: 'store'
+};
+
+/**
+ * 长按触发时长与滑动取消阈值。
+ */
+export const LongPressDelay = {
+  MS: 450,
+  MOVE_PX: 10
+};
+
+/**
  * 商铺销售单状态。与服务端一致。
  */
 export const StoreSaleStatus = {

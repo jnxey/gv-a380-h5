@@ -7,7 +7,11 @@
       :key="roomType.id"
       class="room"
       :class="{ picked: roomType.id === selectedRoomTypeId }"
-      @click="emit('select', roomType.id)"
+      @click="onClick(roomType)"
+      @touchstart.passive="onTouchStart(roomType, $event)"
+      @touchmove.passive="onTouchMove"
+      @touchend="onTouchEnd"
+      @touchcancel="onTouchEnd"
     >
       <div class="cover" :style="coverStyle(roomType)"></div>
       <div>
@@ -18,12 +22,25 @@
       </div>
     </li>
   </ul>
+  <ItemDetailSheet
+    :open="detailOpen"
+    :title="detailTitle"
+    :price-text="detailPriceText"
+    :description="detailDescription"
+    :image-list="detailImageList"
+    :accent="ItemDetailAccent.KTV"
+    @close="closeDetail"
+  />
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import ItemDetailSheet from '../../../components/ItemDetailSheet/ItemDetailSheet.vue';
+import { useItemPress } from '../../../hooks/item-press.js';
+import { ItemDetailAccent } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
-defineProps({
+const props = defineProps({
   currentShop: {
     default: null,
   },
@@ -44,6 +61,24 @@ defineProps({
 
 const emit = defineEmits(['select']);
 
+const detailOpen = ref(false);
+const detailTitle = ref('');
+const detailPriceText = ref('');
+const detailDescription = ref('');
+const detailImageList = ref([]);
+
+const { onClick, onTouchStart, onTouchMove, onTouchEnd } = useItemPress({
+  onClick(roomType) {
+    if (isEmpty(roomType) || isEmpty(roomType.id)) {
+      return;
+    }
+    emit('select', roomType.id);
+  },
+  onLongPress(roomType) {
+    openDetail(roomType);
+  },
+});
+
 /**
  * 封面背景。用包厢类型的第一张图，没有图片时留给样式里的紫色。
  */
@@ -56,6 +91,27 @@ function coverStyle(roomType) {
     return {};
   }
   return { backgroundImage: `url("${firstRoomTypeImage.imageUrl}")` };
+}
+
+/**
+ * 打开包厢详情半屏。
+ */
+function openDetail(roomType) {
+  if (isEmpty(roomType)) {
+    return;
+  }
+  detailTitle.value = isEmpty(roomType.typeName) ? '' : roomType.typeName;
+  detailPriceText.value = `¥${props.formatRoomAmount(roomType)}`;
+  detailDescription.value = isEmpty(roomType.description) ? '' : roomType.description;
+  detailImageList.value = isEmpty(roomType.imageList) ? [] : roomType.imageList;
+  detailOpen.value = true;
+}
+
+/**
+ * 关闭详情半屏。
+ */
+function closeDetail() {
+  detailOpen.value = false;
 }
 </script>
 
@@ -86,6 +142,8 @@ function coverStyle(roomType) {
   border: 1px solid transparent;
   border-radius: 16px;
   background: #fff;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .room.picked {
   box-shadow: 0 0 0 2px #6d28d9;
