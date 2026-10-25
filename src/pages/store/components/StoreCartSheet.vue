@@ -20,8 +20,31 @@
         </div>
       </div>
     </div>
-    <label class="delivery-field">
-      <span class="delivery-label">收货地址</span>
+    <div class="field-row">
+      <span class="field-label">收货人</span>
+      <input
+        class="field-input"
+        :value="receiverName"
+        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+        placeholder="收货人"
+        @input="updateReceiverName"
+      />
+    </div>
+    <div class="field-row">
+      <span class="field-label">联系方式</span>
+      <input
+        class="field-input"
+        :value="contact"
+        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+        placeholder="联系方式"
+        @input="updateContact"
+      />
+    </div>
+    <div class="delivery-field">
+      <div class="delivery-label-row">
+        <span class="delivery-label">收货地址</span>
+        <button v-if="isEmpty(addressHistory) !== true" class="address-pick" type="button" @click="openAddressPicker">选择</button>
+      </div>
       <textarea
         class="delivery-input"
         rows="2"
@@ -29,7 +52,7 @@
         :value="deliveryAddress"
         @input="emit('update:deliveryAddress', $event.target.value)"
       ></textarea>
-    </label>
+    </div>
     <div class="sheet-total">
       <span>合计</span>
       <strong>{{ cartAmountText }}</strong>
@@ -37,20 +60,48 @@
     <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
   </section>
+  <div v-if="addressPickerOpen === true" class="address-mask" @click="closeAddressPicker">
+    <section class="address-card" @click.stop>
+      <h3>选择收货地址</h3>
+      <button
+        v-for="addressText in addressHistory"
+        :key="addressText"
+        class="address-option"
+        :class="{ active: isSelectedAddress(addressText) }"
+        type="button"
+        @click="selectAddress(addressText)"
+      >
+        {{ addressText }}
+      </button>
+    </section>
+  </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { HotelBookingGuest } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
-defineProps({
+const props = defineProps({
   cartLineList: {
     default: () => [],
   },
   cartAmountText: {
     default: '0.00',
   },
+  receiverName: {
+    default: '',
+  },
+  contact: {
+    default: '',
+  },
   deliveryAddress: {
     default: '',
+  },
+  addressHistory: {
+    default() {
+      return [];
+    },
   },
   formError: {
     default: '',
@@ -60,7 +111,59 @@ defineProps({
   },
 });
 
-const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']);
+const emit = defineEmits(['close', 'change', 'submit', 'update:receiverName', 'update:contact', 'update:deliveryAddress']);
+
+const addressPickerOpen = ref(false);
+
+/**
+ * 把输入框里的收货人交回页面。
+ */
+function updateReceiverName(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:receiverName', event.target.value);
+}
+
+/**
+ * 把输入框里的联系方式交回页面。
+ */
+function updateContact(event) {
+  if (isEmpty(event) || isEmpty(event.target)) {
+    return;
+  }
+  emit('update:contact', event.target.value);
+}
+
+/**
+ * 打开收货地址选择层。
+ */
+function openAddressPicker() {
+  addressPickerOpen.value = true;
+}
+
+/**
+ * 关掉收货地址选择层。
+ */
+function closeAddressPicker() {
+  addressPickerOpen.value = false;
+}
+
+/**
+ * 当前输入和这条记住的地址相同。
+ */
+function isSelectedAddress(addressText) {
+  const currentAddress = isEmpty(props.deliveryAddress) ? '' : props.deliveryAddress.trim();
+  return currentAddress === addressText;
+}
+
+/**
+ * 选中一条记住的地址，写回输入框并关掉选择层。
+ */
+function selectAddress(addressText) {
+  emit('update:deliveryAddress', addressText);
+  addressPickerOpen.value = false;
+}
 </script>
 
 <style scoped>
@@ -154,16 +257,62 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   background: #1f8a70;
   color: #fff;
 }
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.field-label {
+  flex: 0 0 auto;
+  color: #6b7280;
+  font-size: 15px;
+}
+.field-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 17px;
+}
+.field-row .field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: right;
+}
 .delivery-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
 }
+.delivery-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .delivery-label {
   color: #374151;
   font-size: 15px;
   font-weight: 600;
+}
+.address-pick {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1f8a70;
+  font: inherit;
+  font-size: 15px;
 }
 .delivery-input {
   box-sizing: border-box;
@@ -218,5 +367,48 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
 }
 .solid:disabled {
   opacity: 0.45;
+}
+.address-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 36, 28, 0.46);
+}
+.address-card {
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  max-height: min(60vh, 420px);
+  overflow: auto;
+  padding: 16px 16px calc(16px + var(--ct-safe-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: #fff;
+}
+.address-card h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #111827;
+}
+.address-option {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #111827;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: left;
+  word-break: break-word;
+}
+.address-option.active {
+  border-color: #1f8a70;
+  background: #d8efe8;
+  color: #1f8a70;
 }
 </style>

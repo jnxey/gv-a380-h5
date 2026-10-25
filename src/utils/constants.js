@@ -383,6 +383,14 @@ export const StoreShopQuery = {
   ADDRESS: 'a'
 };
 
+/**
+ * 本机记住的商铺收货地址。最新的一条放在最前。
+ */
+export const StoreDeliveryAddressHistory = {
+  MAX_COUNT: 5,
+  STORAGE_KEY: 'gv-a380-store-delivery-address-list'
+};
+
 export const statusLabelMap = {
   RECHARGE: '充值',
   KTV_BOOKING: 'KTV预订',

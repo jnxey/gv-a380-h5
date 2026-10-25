@@ -47,7 +47,10 @@
       v-if="cartSheetOpen"
       :cart-line-list="cartLineList"
       :cart-amount-text="cartAmountText"
+      v-model:receiver-name="receiverName"
+      v-model:contact="contact"
       v-model:delivery-address="deliveryAddress"
+      :address-history="deliveryAddressHistory"
       :form-error="formError"
       :submitting="submitting"
       @close="closeCartSheet"
@@ -67,6 +70,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { ShopReviewApi } from '../../api/shop-review.js';
 import { StoreApi } from '../../api/store.js';
@@ -74,15 +78,17 @@ import { request } from '../../utils/request.js';
 import { verifyConsumerDoorLock } from 'gv-sdk';
 import {
   BookingShopQuery,
+  HotelBookingGuest,
   PageSetting,
   ShopType,
   StoreContentTab,
+  StoreDeliveryAddressHistory,
   StoreSaleStep,
   StoreShopQuery,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
-import { isEmpty } from '../../utils/tools.js';
+import { isEmpty, nationalContactText } from '../../utils/tools.js';
 import ShopReviewList from '../../components/ShopReviewList/ShopReviewList.vue';
 import StoreCartBar from './components/StoreCartBar.vue';
 import StoreCartSheet from './components/StoreCartSheet.vue';
@@ -101,7 +107,10 @@ const categoryList = ref([]);
 const productList = ref([]);
 const cartLineList = ref([]);
 const cartSheetOpen = ref(false);
+const receiverName = ref('');
+const contact = ref('');
 const deliveryAddress = ref('');
+const deliveryAddressHistory = ref([]);
 const submitting = ref(false);
 const formError = ref('');
 const pageRefreshing = ref(false);
@@ -192,6 +201,86 @@ function readDeliveryAddressFromQuery() {
 }
 
 /**
+ * 读出本机记住的收货地址。解析失败或不是数组时当成空列表。
+ */
+function readDeliveryAddressHistory() {
+  let storedText = '';
+  try {
+    storedText = window.localStorage.getItem(StoreDeliveryAddressHistory.STORAGE_KEY);
+  } catch {
+    return [];
+  }
+  if (isEmpty(storedText)) {
+    return [];
+  }
+  let parsedAddressList = null;
+  try {
+    parsedAddressList = JSON.parse(storedText);
+  } catch {
+    return [];
+  }
+  if (Array.isArray(parsedAddressList) !== true) {
+    return [];
+  }
+  const addressList = [];
+  for (let addressIndex = 0; addressIndex < parsedAddressList.length; addressIndex += 1) {
+    const addressText = parsedAddressList[addressIndex];
+    if (isEmpty(addressText)) {
+      continue;
+    }
+    const trimmedAddress = String(addressText).trim();
+    if (isEmpty(trimmedAddress) || addressList.indexOf(trimmedAddress) !== -1) {
+      continue;
+    }
+    addressList.push(trimmedAddress);
+    if (addressList.length >= StoreDeliveryAddressHistory.MAX_COUNT) {
+      break;
+    }
+  }
+  return addressList;
+}
+
+/**
+ * 输入框还是空时，填入记住的第一条地址。
+ */
+function fillRememberedDeliveryAddress() {
+  if (isEmpty(deliveryAddress.value) !== true && isEmpty(deliveryAddress.value.trim()) !== true) {
+    return;
+  }
+  if (isEmpty(deliveryAddressHistory.value)) {
+    return;
+  }
+  deliveryAddress.value = deliveryAddressHistory.value[0];
+}
+
+/**
+ * 把本次收货地址插到最前。已有相同地址先去掉，再只留 5 条。
+ */
+function rememberDeliveryAddress(addressText) {
+  const trimmedAddress = isEmpty(addressText) ? '' : addressText.trim();
+  if (isEmpty(trimmedAddress)) {
+    return;
+  }
+  const nextAddressList = [trimmedAddress];
+  for (let addressIndex = 0; addressIndex < deliveryAddressHistory.value.length; addressIndex += 1) {
+    const historyAddress = deliveryAddressHistory.value[addressIndex];
+    if (historyAddress === trimmedAddress) {
+      continue;
+    }
+    nextAddressList.push(historyAddress);
+    if (nextAddressList.length >= StoreDeliveryAddressHistory.MAX_COUNT) {
+      break;
+    }
+  }
+  deliveryAddressHistory.value = nextAddressList;
+  try {
+    window.localStorage.setItem(StoreDeliveryAddressHistory.STORAGE_KEY, JSON.stringify(nextAddressList));
+  } catch {
+    return;
+  }
+}
+
+/**
  * 在启用门店列表里按入口门店编号找到对应门店。
  */
 function findShopByCode(shopList) {
@@ -239,6 +328,29 @@ async function loadPage() {
   ]);
   categoryList.value = nextCategoryList;
   productList.value = nextProductList;
+  // 用已绑定会员的昵称和联系方式预填，已手改过的不覆盖
+  await loadMemberProfile();
+}
+
+/**
+ * 用会员资料预填收货人和联系方式。手机号带 +86 时去掉区号。请求失败时留空，仍可手填。
+ */
+async function loadMemberProfile() {
+  let memberSummary = null;
+  try {
+    memberSummary = await request({ url: MemberApi.SUMMARY, method: 'GET' });
+  } catch {
+    return;
+  }
+  if (isEmpty(memberSummary)) {
+    return;
+  }
+  if (isEmpty(receiverName.value) && isEmpty(memberSummary.nickname) !== true) {
+    receiverName.value = memberSummary.nickname;
+  }
+  if (isEmpty(contact.value) && isEmpty(memberSummary.contact) !== true) {
+    contact.value = nationalContactText(memberSummary.contact);
+  }
 }
 
 /**
@@ -423,10 +535,11 @@ function openCartSheet() {
   if (isEmpty(cartLineList.value)) {
     return;
   }
-  // 结算时若地址仍空，再按当前 URL 预填一次。
+  // 结算时若地址仍空，先按当前 URL 预填，再没有才用记住的第一条。
   if (isEmpty(deliveryAddress.value) || isEmpty(deliveryAddress.value.trim())) {
     readDeliveryAddressFromQuery();
   }
+  fillRememberedDeliveryAddress();
   formError.value = '';
   cartSheetOpen.value = true;
   lockPageScroll();
@@ -447,7 +560,17 @@ async function confirmSale() {
   if (submitting.value || isEmpty(currentShop.value) || isEmpty(cartLineList.value)) {
     return;
   }
+  const receiverNameText = isEmpty(receiverName.value) ? '' : receiverName.value.trim();
+  const contactText = isEmpty(contact.value) ? '' : contact.value.trim();
   const trimmedDeliveryAddress = isEmpty(deliveryAddress.value) ? '' : deliveryAddress.value.trim();
+  if (isEmpty(receiverNameText) || isEmpty(contactText)) {
+    formError.value = '请填写收货人和联系方式';
+    return;
+  }
+  if (receiverNameText.length > HotelBookingGuest.NAME_MAX_LENGTH || contactText.length > HotelBookingGuest.CONTACT_MAX_LENGTH) {
+    formError.value = '收货人或联系方式过长';
+    return;
+  }
   if (isEmpty(trimmedDeliveryAddress)) {
     formError.value = '请填写收货地址';
     return;
@@ -473,6 +596,8 @@ async function confirmSale() {
       data: {
         shopId: currentShop.value.shopId,
         cipherText: securityKeyCipherText,
+        receiverName: receiverNameText,
+        contact: contactText,
         deliveryAddress: trimmedDeliveryAddress,
         itemList: cartLineList.value.map((cartLine) => ({
           productId: cartLine.productId,
@@ -480,6 +605,7 @@ async function confirmSale() {
         })),
       },
     });
+    rememberDeliveryAddress(trimmedDeliveryAddress);
     cartLineList.value = [];
     closeCartSheet();
     successShopName.value = paidShopName;
@@ -507,7 +633,9 @@ async function continueShopping() {
 
 onMounted(() => {
   readShopCode();
+  deliveryAddressHistory.value = readDeliveryAddressHistory();
   readDeliveryAddressFromQuery();
+  fillRememberedDeliveryAddress();
   loadPage();
 });
 
@@ -533,6 +661,7 @@ watch(
   () => currentRoute.query[StoreShopQuery.ADDRESS],
   () => {
     readDeliveryAddressFromQuery();
+    fillRememberedDeliveryAddress();
   },
 );
 </script>
