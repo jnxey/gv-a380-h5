@@ -33,7 +33,6 @@ const emit = defineEmits(['select']);
   z-index: 2;
   margin: -8px -16px 0;
   padding: 0 16px 16px;
-  background: #f5f6f8;
 }
 .tabs {
   display: flex;
