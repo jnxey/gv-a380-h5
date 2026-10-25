@@ -31,8 +31,8 @@ const emit = defineEmits(['select']);
   position: sticky;
   top: var(--ct-safe-top, 0px);
   z-index: 3;
-  margin: -8px -12px 0;
-  padding: 0 12px 16px;
+  margin: -8px -12px 16px;
+  padding: 0 12px 0;
 }
 .tabs {
   display: flex;

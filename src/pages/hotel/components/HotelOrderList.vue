@@ -16,7 +16,7 @@
         </div>
         <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
         <div class="order-foot">
-          <strong class="order-amount">房费 {{ order.amount }}</strong>
+          <strong class="order-amount">{{ order.amount }}</strong>
           <div class="order-actions">
             <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
               取消

@@ -550,6 +550,6 @@ watch(
   padding: 16px 12px 24px;
   border-radius: 22px 22px 0 0;
   background: #f5f6f8;
-  --store-tab-bar-height: 56px;
+  --store-tab-bar-height: 40px;
 }
 </style>
