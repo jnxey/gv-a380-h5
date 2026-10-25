@@ -5,34 +5,11 @@
     :style="{ height: `${pullDistance}px`, '--pull-progress': pullProgress }"
   >
     <div v-if="pullRefreshState !== PullRefreshState.IDLE" class="pull-refresh-body">
-      <svg
-        class="pull-mark"
-        :class="pullRefreshState"
-        :viewBox="`0 0 ${PullRefreshSetting.RING_SIZE} ${PullRefreshSetting.RING_SIZE}`"
-      >
-        <circle
-          class="pull-ring-face"
-          :cx="PullRefreshSetting.RING_CENTER"
-          :cy="PullRefreshSetting.RING_CENTER"
-          :r="PullRefreshSetting.RING_RADIUS"
-        />
-        <circle
-          class="pull-ring-track"
-          :cx="PullRefreshSetting.RING_CENTER"
-          :cy="PullRefreshSetting.RING_CENTER"
-          :r="PullRefreshSetting.RING_RADIUS"
-        />
-        <circle
-          class="pull-ring-progress"
-          :cx="PullRefreshSetting.RING_CENTER"
-          :cy="PullRefreshSetting.RING_CENTER"
-          :r="PullRefreshSetting.RING_RADIUS"
-          :stroke-dasharray="ringCircumference"
-          :stroke-dashoffset="ringDashOffset"
-        />
-        <path class="pull-arrow-path" d="M18 11.5v11M13.2 17.2 18 22.5l4.8-5.3" />
-      </svg>
-      <span>{{ pullRefreshText }}</span>
+      <span class="pull-dots" :class="pullRefreshState">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </div>
   </div>
 </template>
@@ -56,7 +33,6 @@ const emit = defineEmits(['refresh']);
 const pullDistance = ref(0);
 const pullRefreshState = ref(PullRefreshState.IDLE);
 const pullFollowingFinger = ref(false);
-const ringCircumference = 2 * Math.PI * PullRefreshSetting.RING_RADIUS;
 
 let touchStartY = 0;
 let touchPulling = false;
@@ -89,26 +65,6 @@ const pullProgress = computed(() => {
     return 1;
   }
   return progress;
-});
-
-/**
- * 进度环缺口。拉得越多，缺口越小。
- */
-const ringDashOffset = computed(() => {
-  return ringCircumference * (1 - pullProgress.value);
-});
-
-/**
- * 指示文案。下拉中、松开和刷新中各一句。
- */
-const pullRefreshText = computed(() => {
-  if (pullRefreshState.value === PullRefreshState.REFRESHING) {
-    return '刷新中';
-  }
-  if (pullRefreshState.value === PullRefreshState.READY) {
-    return '松开刷新';
-  }
-  return '下拉刷新';
 });
 
 /**
@@ -239,25 +195,20 @@ onUnmounted(() => {
 
 <style scoped>
 .pull-refresh {
-  overflow: hidden;
+  overflow: visible;
   transition: height 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .pull-refresh.is-ktv {
   --pull-ink: #f5f3ff;
-  --pull-ink-face: rgba(245, 243, 255, 0.16);
-  --pull-ink-track: rgba(245, 243, 255, 0.35);
-  background: linear-gradient(180deg, #7453f3 0%, #540fbf 42%, #3b117c 100%);
+  background: #6d28d9;
+  background-image: linear-gradient(180deg, #6d28d9 0%, #4c1d95 100%);
 }
 .pull-refresh.is-hotel {
   --pull-ink: #f7f3ea;
-  --pull-ink-face: rgba(247, 243, 234, 0.16);
-  --pull-ink-track: rgba(247, 243, 234, 0.35);
   background: #14241c;
 }
 .pull-refresh.is-store {
   --pull-ink: #f7f3ea;
-  --pull-ink-face: rgba(247, 243, 234, 0.16);
-  --pull-ink-track: rgba(247, 243, 234, 0.35);
   background: linear-gradient(180deg, #2aa882 0%, #1f8a70 42%, #145c4b 100%);
 }
 .pull-refresh.following {
@@ -267,76 +218,42 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   height: 100%;
   color: var(--pull-ink);
-  font-size: 13px;
-  font-weight: 500;
   opacity: var(--pull-progress);
-  transform: scale(calc(0.86 + 0.14 * var(--pull-progress)));
 }
-.pull-mark {
-  width: 28px;
-  height: 28px;
-  overflow: visible;
+.pull-dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
-.pull-mark.ready {
-  animation: pull-ready 0.28s ease;
+.pull-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+  transform: scale(calc(0.55 + 0.45 * var(--pull-progress)));
 }
-.pull-ring-face {
-  fill: var(--pull-ink-face);
+.pull-dots.refreshing span {
+  animation: pull-dot 0.9s ease-in-out infinite;
 }
-.pull-ring-track,
-.pull-ring-progress {
-  fill: none;
-  stroke-width: 2.4;
+.pull-dots.refreshing span:nth-child(2) {
+  animation-delay: 0.15s;
 }
-.pull-ring-track {
-  stroke: var(--pull-ink-track);
+.pull-dots.refreshing span:nth-child(3) {
+  animation-delay: 0.3s;
 }
-.pull-ring-progress {
-  stroke: var(--pull-ink);
-  stroke-linecap: round;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: rotate(-90deg);
-}
-.pull-arrow-path {
-  fill: none;
-  stroke: var(--pull-ink);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: rotate(calc(var(--pull-progress) * 180deg));
-  transition: transform 0.12s ease;
-}
-.pull-mark.refreshing .pull-ring-progress {
-  stroke-dasharray: 24 64;
-  stroke-dashoffset: 0;
-  animation: pull-spin 0.7s linear infinite;
-}
-.pull-mark.refreshing .pull-arrow-path {
-  opacity: 0;
-}
-@keyframes pull-ready {
-  0% {
-    transform: scale(0.92);
-  }
-  55% {
-    transform: scale(1.08);
-  }
+@keyframes pull-dot {
+  0%,
+  80%,
   100% {
-    transform: scale(1);
+    opacity: 0.35;
+    transform: translateY(0) scale(0.6);
   }
-}
-@keyframes pull-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+  40% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1);
   }
 }
 </style>

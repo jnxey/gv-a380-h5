@@ -152,10 +152,7 @@ export const PullRefreshState = {
 export const PullRefreshSetting = {
   THRESHOLD: 56,
   MAX_DISTANCE: 120,
-  RESISTANCE: 0.4,
-  RING_SIZE: 36,
-  RING_CENTER: 18,
-  RING_RADIUS: 14
+  RESISTANCE: 0.4
 };
 
 export const AppIconName = {
