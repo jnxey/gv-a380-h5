@@ -21,7 +21,10 @@
           </div>
         </button>
         <div class="order-foot">
-          <strong class="order-amount">{{ saleRow.amount }}</strong>
+          <div>
+            <strong class="order-amount">{{ readPaidAmount(saleRow) }}</strong>
+            <p v-if="hasPointDeduct(saleRow)" class="order-deduct">积分抵扣 {{ saleRow.pointDeductAmount }} 元</p>
+          </div>
           <div class="order-actions">
             <button v-if="canCancel(saleRow)" class="cancel-button" type="button" @click="openCancel(saleRow)">取消</button>
             <button v-if="canReceive(saleRow)" class="review-button" type="button" @click="openReceive(saleRow)">确认收货</button>
@@ -63,6 +66,8 @@
       <p v-if="isEmpty(detailSale.deliveryNo) !== true" class="detail-line">送货号 {{ detailSale.deliveryNo }}</p>
       <p v-if="isEmpty(detailSale.deliveryRemark) !== true" class="detail-line">送货备注 {{ detailSale.deliveryRemark }}</p>
       <p v-if="hasDeliveryInfo(detailSale) !== true" class="detail-line">暂无</p>
+      <p class="detail-line">实付 {{ readPaidAmount(detailSale) }}</p>
+      <p v-if="hasPointDeduct(detailSale)" class="detail-line">积分抵扣 {{ detailSale.pointDeductAmount }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
   </div>
@@ -131,6 +136,29 @@ function hasDeliveryInfo(saleRow) {
     || isEmpty(saleRow.courierContact) !== true
     || isEmpty(saleRow.deliveryNo) !== true
     || isEmpty(saleRow.deliveryRemark) !== true;
+}
+
+/**
+ * 实付金额。原价减去本单记下的积分抵扣。
+ */
+function readPaidAmount(saleRow) {
+  if (isEmpty(saleRow) || isEmpty(saleRow.amount)) {
+    return '';
+  }
+  const goodsAmount = Number(saleRow.amount);
+  const deductAmount = isEmpty(saleRow.pointDeductAmount) ? 0 : Number(saleRow.pointDeductAmount);
+  if (Number.isFinite(goodsAmount) !== true) {
+    return saleRow.amount;
+  }
+  const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
+  return paidAmount.toFixed(2);
+}
+
+/**
+ * 这笔订单是否用积分抵扣了一部分。
+ */
+function hasPointDeduct(saleRow) {
+  return isEmpty(saleRow) !== true && isEmpty(saleRow.pointDeductPoints) !== true && saleRow.pointDeductPoints > 0;
 }
 
 /**
@@ -356,6 +384,11 @@ function onReviewSaved() {
   color: #0f766e;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
+}
+.order-deduct {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .order-actions {

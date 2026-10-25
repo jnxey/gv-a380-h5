@@ -18,7 +18,10 @@
           <p class="order-sub">{{ order.checkInDate }} 至 {{ order.checkOutDate }}</p>
         </button>
         <div class="order-foot">
-          <strong class="order-amount">{{ order.amount }}</strong>
+          <div>
+            <strong class="order-amount">{{ readPaidAmount(order) }}</strong>
+            <p v-if="hasPointDeduct(order)" class="order-deduct">积分抵扣 {{ order.pointDeductAmount }} 元</p>
+          </div>
           <div class="order-actions">
             <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
               取消
@@ -42,7 +45,8 @@
       <p v-if="isEmpty(detailOrder.guestName) !== true" class="detail-line">预订人 {{ detailOrder.guestName }}</p>
       <p v-if="isEmpty(detailOrder.contact) !== true" class="detail-line">联系方式 {{ detailOrder.contact }}</p>
       <p v-if="hasBookingInfo(detailOrder) !== true" class="detail-line">暂无</p>
-      <p class="detail-line">房费 {{ detailOrder.amount }}</p>
+      <p class="detail-line">房费 {{ readPaidAmount(detailOrder) }}</p>
+      <p v-if="hasPointDeduct(detailOrder)" class="detail-line">积分抵扣 {{ detailOrder.pointDeductAmount }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
   </div>
@@ -110,6 +114,29 @@ function hasBookingInfo(order) {
     return false;
   }
   return isEmpty(order.guestName) !== true || isEmpty(order.contact) !== true;
+}
+
+/**
+ * 实付金额。原价减去本单记下的积分抵扣。
+ */
+function readPaidAmount(orderRow) {
+  if (isEmpty(orderRow) || isEmpty(orderRow.amount)) {
+    return '';
+  }
+  const goodsAmount = Number(orderRow.amount);
+  const deductAmount = isEmpty(orderRow.pointDeductAmount) ? 0 : Number(orderRow.pointDeductAmount);
+  if (Number.isFinite(goodsAmount) !== true) {
+    return orderRow.amount;
+  }
+  const paidAmount = goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0);
+  return paidAmount.toFixed(2);
+}
+
+/**
+ * 这笔订单是否用积分抵扣了一部分。
+ */
+function hasPointDeduct(orderRow) {
+  return isEmpty(orderRow) !== true && isEmpty(orderRow.pointDeductPoints) !== true && orderRow.pointDeductPoints > 0;
 }
 
 /**
@@ -272,6 +299,11 @@ async function submitCancelOrder() {
   color: #1f8a70;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
+}
+.order-deduct {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 12px;
 }
 .order-actions {
   display: flex;
