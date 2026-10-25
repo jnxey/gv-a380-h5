@@ -100,7 +100,7 @@
     </div>
     <div v-show="sheetInputFocused !== true" class="actions">
       <button class="ghost" type="button" @click="emit('close')">取消</button>
-      <button class="solid" type="button" @click="emit('submit')">确认预订</button>
+      <button class="solid" type="button" :disabled="submitting === true" @click="emit('submit')">确认预订</button>
     </div>
   </section>
 </template>
@@ -145,6 +145,9 @@ const props = defineProps({
     }
   },
   usePointDeduct: {
+    default: false
+  },
+  submitting: {
     default: false
   }
 });
@@ -420,5 +423,8 @@ function updateContact(event) {
 .solid {
   background: #1f8a70;
   color: #fffdf9;
+}
+.solid:disabled {
+  opacity: 0.45;
 }
 </style>

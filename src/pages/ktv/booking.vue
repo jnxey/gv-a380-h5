@@ -66,6 +66,7 @@
       :form-error="formError"
       :point-plan="pointPlan"
       :use-point-deduct="usePointDeduct"
+      :submitting="bookingSubmitting"
       @update:use-point-deduct="usePointDeduct = $event"
       @select-slot="selectArrivalSlot"
       @close="closeForm"
@@ -117,6 +118,7 @@ import {
   timeZoneLabel,
 } from '../../utils/constants.js';
 import { showToast } from '../../utils/toast.js';
+import { hidePageLoading, showPageLoading } from '../../utils/loading.js';
 import { lockPageScroll, unlockPageScroll } from '../../utils/pageScrollLock.js';
 import { isEmpty, multiplyMoney, nationalContactText, subtractMoney } from '../../utils/tools.js';
 
@@ -861,6 +863,7 @@ async function submitBooking() {
     return;
   }
   bookingSubmitting.value = true;
+  showPageLoading();
   try {
     // 2. 弹出安全密钥。取消或没拿到密文时不下单
     let securityKeyCipherText = '';
@@ -906,6 +909,7 @@ async function submitBooking() {
     bookingStep.value = KtvBookingStep.SUCCESS;
   } finally {
     bookingSubmitting.value = false;
+    hidePageLoading();
   }
 }
 

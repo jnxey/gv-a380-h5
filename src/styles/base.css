@@ -81,3 +81,28 @@ label {
   font-size: 14px;
   z-index: 2000;
 }
+
+.app-page-loading {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.35);
+}
+
+.app-page-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: app-page-loading-spin 0.8s linear infinite;
+}
+
+@keyframes app-page-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
