@@ -1,23 +1,30 @@
 <template>
   <p v-if="isEmpty(orderList)" class="empty">暂无订单</p>
-  <div v-for="saleRow in orderList" :key="saleRow.saleId" class="order-row">
-    <div class="order-head">
-      <h2>{{ saleRow.saleNo }}</h2>
-      <span>{{ statusLabel(saleRow.saleStatus) }}</span>
-    </div>
-    <p class="order-sub">{{ saleRow.createdAt }}</p>
-    <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
-      {{ itemRow.productName }} × {{ itemRow.quantity }}
-    </div>
-    <div class="order-foot">
-      <strong class="order-amount">{{ saleRow.amount }}</strong>
-      <button v-if="canReview(saleRow)" class="review-button" type="button" @click="openReview(saleRow)">去评价</button>
-    </div>
-  </div>
-  <div class="pager">
-    <button type="button" :disabled="previousPageDisabled" @click="emit('change-page', orderPageNumber - 1)">上一页</button>
-    <button type="button" :disabled="nextPageDisabled" @click="emit('change-page', orderPageNumber + 1)">下一页</button>
-  </div>
+  <PageVirtualList
+    v-else
+    :item-list="orderList"
+    item-key="saleId"
+    :has-more="hasMoreOrders"
+    :loading="orderLoading"
+    @load-more="emit('load-more')"
+  >
+    <template #default="{ item: saleRow }">
+      <div class="order-row">
+        <div class="order-head">
+          <h2>{{ saleRow.saleNo }}</h2>
+          <span>{{ statusLabel(saleRow.saleStatus) }}</span>
+        </div>
+        <p class="order-sub">{{ saleRow.createdAt }}</p>
+        <div v-for="itemRow in saleRow.itemList" :key="`${saleRow.saleId}-${itemRow.productId}`" class="order-item">
+          {{ itemRow.productName }} × {{ itemRow.quantity }}
+        </div>
+        <div class="order-foot">
+          <strong class="order-amount">{{ saleRow.amount }}</strong>
+          <button v-if="canReview(saleRow)" class="review-button" type="button" @click="openReview(saleRow)">去评价</button>
+        </div>
+      </div>
+    </template>
+  </PageVirtualList>
   <ShopReviewDialog
     :open="isEmpty(pendingReviewSale) !== true"
     :biz-type="ShopReviewBizType.STORE_SALE"
@@ -29,8 +36,9 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
-import { PageSetting, ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
+import { ShopReviewBizType, StoreSaleStatus, statusLabel } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
 const props = defineProps({
@@ -39,36 +47,23 @@ const props = defineProps({
       return [];
     },
   },
-  orderPageNumber: {
-    default: PageSetting.DEFAULT_PAGE,
-  },
   orderTotal: {
     default: 0,
   },
-  orderPageSize: {
-    default: PageSetting.DEFAULT_PAGE_SIZE,
+  orderLoading: {
+    default: false,
   },
 });
 
-const emit = defineEmits(['change-page', 'refresh-orders']);
+const emit = defineEmits(['load-more', 'refresh-orders']);
 
 const pendingReviewSale = ref(null);
 
 /**
- * 第 1 页或没有订单时，上一页不可点。
+ * 已加载条数还没到总数时，滚到底可以继续加载。
  */
-const previousPageDisabled = computed(() => {
-  if (props.orderTotal <= 0) {
-    return true;
-  }
-  return props.orderPageNumber <= PageSetting.DEFAULT_PAGE;
-});
-
-/**
- * 当前页已经覆盖全部订单时，下一页不可点。
- */
-const nextPageDisabled = computed(() => {
-  return props.orderPageNumber * props.orderPageSize >= props.orderTotal;
+const hasMoreOrders = computed(() => {
+  return props.orderList.length < Number(props.orderTotal);
 });
 
 /**
@@ -159,8 +154,7 @@ function onReviewSaved() {
   font-variant-numeric: tabular-nums;
 }
 
-.review-button,
-.pager button {
+.review-button {
   border: 0;
   border-radius: 999px;
   font: inherit;
@@ -172,22 +166,5 @@ function onReviewSaved() {
   background: #0f766e;
   color: #fff;
   font-size: 13px;
-}
-
-.pager {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.pager button {
-  flex: 1;
-  padding: 10px 0;
-  background: #f2f4f7;
-  color: #344054;
-}
-
-.pager button:disabled {
-  opacity: 0.45;
 }
 </style>

@@ -1,22 +1,29 @@
 <template>
   <p v-if="isEmpty(reviewList)" class="empty">暂无评价</p>
-  <div v-for="reviewRow in reviewList" :key="reviewRow.reviewId" class="review-row">
-    <div class="review-head">
-      <strong>{{ maskUsername(reviewRow.username) }}</strong>
-      <span class="review-star">{{ starText(reviewRow.starRating) }}</span>
-    </div>
-    <p v-if="isEmpty(reviewRow.content) !== true" class="review-content">{{ reviewRow.content }}</p>
-    <p class="review-time">{{ reviewRow.createdAt }}</p>
-  </div>
-  <div v-if="isEmpty(reviewList) !== true" class="pager">
-    <button type="button" :disabled="previousPageDisabled" @click="emit('change-page', reviewPageNumber - 1)">上一页</button>
-    <button type="button" :disabled="nextPageDisabled" @click="emit('change-page', reviewPageNumber + 1)">下一页</button>
-  </div>
+  <PageVirtualList
+    v-else
+    :item-list="reviewList"
+    item-key="reviewId"
+    :has-more="hasMoreReviews"
+    :loading="reviewLoading"
+    @load-more="emit('load-more')"
+  >
+    <template #default="{ item: reviewRow }">
+      <div class="review-row">
+        <div class="review-head">
+          <strong>{{ maskUsername(reviewRow.username) }}</strong>
+          <span class="review-star">{{ starText(reviewRow.starRating) }}</span>
+        </div>
+        <p v-if="isEmpty(reviewRow.content) !== true" class="review-content">{{ reviewRow.content }}</p>
+        <p class="review-time">{{ reviewRow.createdAt }}</p>
+      </div>
+    </template>
+  </PageVirtualList>
 </template>
 
 <script setup>
 import { computed } from 'vue';
-import { PageSetting } from '../../utils/constants.js';
+import PageVirtualList from '../PageVirtualList/PageVirtualList.vue';
 import { isEmpty } from '../../utils/tools.js';
 
 const props = defineProps({
@@ -25,34 +32,21 @@ const props = defineProps({
       return [];
     },
   },
-  reviewPageNumber: {
-    default: PageSetting.DEFAULT_PAGE,
-  },
   reviewTotal: {
     default: 0,
   },
-  reviewPageSize: {
-    default: PageSetting.DEFAULT_PAGE_SIZE,
+  reviewLoading: {
+    default: false,
   },
 });
 
-const emit = defineEmits(['change-page']);
+const emit = defineEmits(['load-more']);
 
 /**
- * 第 1 页或没有数据时，上一页不可点。
+ * 已加载条数还没到总数时，滚到底可以继续加载。
  */
-const previousPageDisabled = computed(() => {
-  if (props.reviewTotal <= 0) {
-    return true;
-  }
-  return props.reviewPageNumber <= PageSetting.DEFAULT_PAGE;
-});
-
-/**
- * 当前页已经覆盖全部评价时，下一页不可点。
- */
-const nextPageDisabled = computed(() => {
-  return props.reviewPageNumber * props.reviewPageSize >= props.reviewTotal;
+const hasMoreReviews = computed(() => {
+  return props.reviewList.length < Number(props.reviewTotal);
 });
 
 /**
@@ -124,25 +118,5 @@ function maskUsername(username) {
   margin: 6px 0 0;
   color: #98a2b3;
   font-size: 12px;
-}
-
-.pager {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.pager button {
-  min-width: 88px;
-  padding: 8px 12px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  background: #fff;
-  color: #344054;
-}
-
-.pager button:disabled {
-  opacity: 0.45;
 }
 </style>

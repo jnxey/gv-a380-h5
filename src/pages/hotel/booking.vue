@@ -27,19 +27,17 @@
         <HotelOrderList
           v-if="selectedContentTab === HotelContentTab.ORDER"
           :order-list="orderList"
-          :order-page-number="orderPageNumber"
           :order-total="orderTotal"
-          :order-page-size="PageSetting.DEFAULT_PAGE_SIZE"
-          @change-page="changeOrderPage"
+          :order-loading="orderLoading"
+          @load-more="loadMoreOrders"
           @refresh-orders="refreshMemberOrders"
         />
         <ShopReviewList
           v-if="selectedContentTab === HotelContentTab.REVIEW"
           :review-list="reviewList"
-          :review-page-number="reviewPageNumber"
           :review-total="reviewTotal"
-          :review-page-size="PageSetting.DEFAULT_PAGE_SIZE"
-          @change-page="changeReviewPage"
+          :review-loading="reviewLoading"
+          @load-more="loadMoreReviews"
         />
         <HotelShopDetail v-if="selectedContentTab === HotelContentTab.SHOP" :current-shop="currentShop" />
       </div>
@@ -165,9 +163,11 @@ const successSummary = ref(null);
 const orderList = ref([]);
 const orderPageNumber = ref(PageSetting.DEFAULT_PAGE);
 const orderTotal = ref(0);
+const orderLoading = ref(false);
 const reviewList = ref([]);
 const reviewPageNumber = ref(PageSetting.DEFAULT_PAGE);
 const reviewTotal = ref(0);
+const reviewLoading = ref(false);
 const pageRefreshing = ref(false);
 
 /**
@@ -450,36 +450,51 @@ async function refreshPage() {
 }
 
 /**
- * 按页查询当前会员的酒店订单。
+ * 按页查询当前会员的酒店订单。第一页替换列表，之后追加。空页时不再继续翻。
  */
 async function loadMemberOrders(pageNumber) {
+  // 1. 按页拉取当前会员的酒店订单
   const orderPage = await request({
     url: HotelApi.BOOKING_ORDERS,
     method: 'GET',
     data: { page: pageNumber, pageSize: PageSetting.DEFAULT_PAGE_SIZE },
   });
-  orderPageNumber.value = pageNumber;
-  if (isEmpty(orderPage)) {
-    orderList.value = [];
-    orderTotal.value = 0;
+  const nextList = isEmpty(orderPage) || isEmpty(orderPage.list) ? [] : orderPage.list;
+  const nextTotal = isEmpty(orderPage) || isEmpty(orderPage.total) ? 0 : Number(orderPage.total);
+  // 2. 第一页覆盖，后续页接到后面。这一页没有数据就停在已有条数
+  if (pageNumber !== PageSetting.DEFAULT_PAGE && nextList.length === 0) {
+    orderTotal.value = orderList.value.length;
     return;
   }
-  orderList.value = isEmpty(orderPage.list) ? [] : orderPage.list;
-  orderTotal.value = orderPage.total;
+  if (pageNumber === PageSetting.DEFAULT_PAGE) {
+    orderList.value = nextList;
+  } else {
+    orderList.value = orderList.value.concat(nextList);
+  }
+  orderTotal.value = Number.isFinite(nextTotal) ? nextTotal : orderList.value.length;
+  orderPageNumber.value = pageNumber;
 }
 
 /**
- * 切换订单页。
+ * 加载下一页订单。正在请求或已经到末页时不重复请求。
  */
-async function changeOrderPage(pageNumber) {
-  await loadMemberOrders(pageNumber);
+async function loadMoreOrders() {
+  if (orderLoading.value === true || orderList.value.length >= orderTotal.value) {
+    return;
+  }
+  orderLoading.value = true;
+  try {
+    await loadMemberOrders(orderPageNumber.value + 1);
+  } finally {
+    orderLoading.value = false;
+  }
 }
 
 /**
- * 取消订单后按当前页重新拉取。
+ * 取消或评价后，从第 1 页重新拉取并替换整表。
  */
 async function refreshMemberOrders() {
-  await loadMemberOrders(orderPageNumber.value);
+  await loadMemberOrders(PageSetting.DEFAULT_PAGE);
 }
 
 /**
@@ -528,7 +543,7 @@ function ensureSelection() {
 }
 
 /**
- * 按页查询当前门店评价。
+ * 按页查询当前门店评价。第一页替换列表，之后追加。空页时不再继续翻。
  */
 async function loadShopReviews(pageNumber) {
   if (isEmpty(currentShop.value) || isEmpty(currentShop.value.shopId)) {
@@ -537,6 +552,7 @@ async function loadShopReviews(pageNumber) {
     reviewPageNumber.value = pageNumber;
     return;
   }
+  // 1. 按页拉取当前门店评价
   const reviewPage = await request({
     url: ShopReviewApi.REVIEWS,
     method: 'GET',
@@ -546,31 +562,45 @@ async function loadShopReviews(pageNumber) {
       pageSize: PageSetting.DEFAULT_PAGE_SIZE,
     },
   });
-  reviewPageNumber.value = pageNumber;
-  if (isEmpty(reviewPage)) {
-    reviewList.value = [];
-    reviewTotal.value = 0;
+  const nextList = isEmpty(reviewPage) || isEmpty(reviewPage.list) ? [] : reviewPage.list;
+  const nextTotal = isEmpty(reviewPage) || isEmpty(reviewPage.total) ? 0 : Number(reviewPage.total);
+  // 2. 第一页覆盖，后续页接到后面。这一页没有数据就停在已有条数
+  if (pageNumber !== PageSetting.DEFAULT_PAGE && nextList.length === 0) {
+    reviewTotal.value = reviewList.value.length;
     return;
   }
-  reviewList.value = isEmpty(reviewPage.list) ? [] : reviewPage.list;
-  reviewTotal.value = reviewPage.total;
+  if (pageNumber === PageSetting.DEFAULT_PAGE) {
+    reviewList.value = nextList;
+  } else {
+    reviewList.value = reviewList.value.concat(nextList);
+  }
+  reviewTotal.value = Number.isFinite(nextTotal) ? nextTotal : reviewList.value.length;
+  reviewPageNumber.value = pageNumber;
 }
 
 /**
- * 切换评价页。
+ * 加载下一页评价。正在请求或已经到末页时不重复请求。
  */
-async function changeReviewPage(pageNumber) {
-  await loadShopReviews(pageNumber);
+async function loadMoreReviews() {
+  if (reviewLoading.value === true || reviewList.value.length >= reviewTotal.value) {
+    return;
+  }
+  reviewLoading.value = true;
+  try {
+    await loadShopReviews(reviewPageNumber.value + 1);
+  } finally {
+    reviewLoading.value = false;
+  }
 }
 
 /**
- * 切换内容 Tab。进入订单或评价时重新拉取。
+ * 切换内容 Tab。进入订单或评价时从第 1 页重新拉取。
  */
 async function selectContentTab(contentTab) {
   selectedContentTab.value = contentTab;
   dateSheetOpen.value = false;
   if (contentTab === HotelContentTab.ORDER) {
-    await loadMemberOrders(orderPageNumber.value);
+    await loadMemberOrders(PageSetting.DEFAULT_PAGE);
   }
   if (contentTab === HotelContentTab.REVIEW) {
     await loadShopReviews(PageSetting.DEFAULT_PAGE);

@@ -15,26 +15,36 @@
       <p v-if="isEmpty(memberSummary.contact) !== true" class="contact">联系方式：{{ memberSummary.contact }}</p>
     </header>
     <p v-if="memberCenterLoaded && billList.length === 0" class="banner">暂无流水</p>
-    <ul v-else class="list">
-      <li v-for="bill in billList" :key="bill.id" class="row" :class="isIncome(bill.direction) ? 'increase' : 'decrease'">
-        <div class="mark">{{ isIncome(bill.direction) ? '+' : '−' }}</div>
-        <div>
-          <div class="name">{{ statusLabel(bill.bizType) }}</div>
-          <div class="time">{{ bill.createdAt }}</div>
-          <div v-if="isEmpty(bill.remark) !== true" class="remark">{{ bill.remark }}</div>
+    <PageVirtualList
+      v-else
+      class="list"
+      :item-list="billList"
+      item-key="id"
+      :has-more="hasMoreBills"
+      :loading="billLoading"
+      @load-more="loadMoreBills"
+    >
+      <template #default="{ item: bill }">
+        <div class="row" :class="isIncome(bill.direction) ? 'increase' : 'decrease'">
+          <div class="mark">{{ isIncome(bill.direction) ? '+' : '−' }}</div>
+          <div>
+            <div class="name">{{ statusLabel(bill.bizType) }}</div>
+            <div class="time">{{ bill.createdAt }}</div>
+            <div v-if="isEmpty(bill.remark) !== true" class="remark">{{ bill.remark }}</div>
+          </div>
+          <div class="money">
+            <strong>{{ formatBillAmount(bill) }}</strong>
+            <div v-if="isEmpty(bill.balanceAfter) !== true" class="after">余额 {{ bill.balanceAfter }}</div>
+          </div>
         </div>
-        <div class="money">
-          <strong>{{ formatBillAmount(bill) }}</strong>
-          <div v-if="isEmpty(bill.balanceAfter) !== true" class="after">余额 {{ bill.balanceAfter }}</div>
-        </div>
-      </li>
-    </ul>
-    <button v-if="hasMoreBills" class="more" type="button" :disabled="billLoading" @click="loadMoreBills">{{ billLoading ? '加载中' : '加载更多' }}</button>
+      </template>
+    </PageVirtualList>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import PageVirtualList from '../../components/PageVirtualList/PageVirtualList.vue';
 import { MemberApi } from '../../api/member.js';
 import { request } from '../../utils/request.js';
 import { FinanceDirection, PageSetting, statusLabel } from '../../utils/constants.js';
@@ -394,21 +404,5 @@ onMounted(() => {
 
 .after {
   font-variant-numeric: tabular-nums;
-}
-
-.more {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  padding: 13px 16px;
-  border: 1px solid rgba(20, 36, 28, 0.08);
-  border-radius: 999px;
-  background: transparent;
-  color: #14241c;
-  font-size: 14px;
-}
-
-.more:disabled {
-  opacity: 0.55;
 }
 </style>

@@ -1,30 +1,37 @@
 <template>
   <p v-if="isEmpty(orderList)" class="empty">暂无订单</p>
-  <div v-for="order in orderList" :key="order.bookingOrderId" class="order-row">
-    <div class="order-head">
-      <h2>{{ order.roomTypeName }}</h2>
-      <span>{{ statusLabel(order.orderStatus) }}</span>
-    </div>
-    <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
-    <div class="order-foot">
-      <strong class="order-amount">{{ order.amount }}</strong>
-      <div class="order-actions">
-        <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
-          取消
-        </button>
-        <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
-          核销码
-        </button>
-        <button v-if="canReview(order)" class="review-button" type="button" @click="openReview(order)">
-          去评价
-        </button>
+  <PageVirtualList
+    v-else
+    :item-list="orderList"
+    item-key="bookingOrderId"
+    :has-more="hasMoreOrders"
+    :loading="orderLoading"
+    @load-more="emit('load-more')"
+  >
+    <template #default="{ item: order }">
+      <div class="order-row">
+        <div class="order-head">
+          <h2>{{ order.roomTypeName }}</h2>
+          <span>{{ statusLabel(order.orderStatus) }}</span>
+        </div>
+        <p class="order-sub">{{ order.bookingDate }} {{ formatClockText(order.startTime) }} - {{ formatBookingEnd(order) }} {{ order.durationHours }}小时</p>
+        <div class="order-foot">
+          <strong class="order-amount">{{ order.amount }}</strong>
+          <div class="order-actions">
+            <button v-if="order.canCancel === true" class="cancel-button" type="button" @click="cancelOrder(order)">
+              取消
+            </button>
+            <button v-if="canShowVerifyCode(order)" class="verify-button" type="button" @click="openVerifyCode(order)">
+              核销码
+            </button>
+            <button v-if="canReview(order)" class="review-button" type="button" @click="openReview(order)">
+              去评价
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="pager">
-    <button type="button" :disabled="previousPageDisabled" @click="emit('change-page', orderPageNumber - 1)">上一页</button>
-    <button type="button" :disabled="nextPageDisabled" @click="emit('change-page', orderPageNumber + 1)">下一页</button>
-  </div>
+    </template>
+  </PageVirtualList>
   <div v-if="isEmpty(openedOrder) !== true" class="verify-mask" @click="closeVerifyCode">
     <section class="verify-card" @click.stop>
       <img v-if="isEmpty(verifyCodeImageUrl) !== true" class="verify-image" :src="verifyCodeImageUrl" alt="" />
@@ -58,12 +65,12 @@
 import { computed, ref } from 'vue';
 import QRCode from 'qrcode';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
+import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
 import { KtvApi } from '../../../api/ktv.js';
 import {
   ConfirmDialogAccent,
   KtvOrderStatus,
-  PageSetting,
   ShopReviewBizType,
   statusLabel,
 } from '../../../utils/constants.js';
@@ -79,18 +86,15 @@ const props = defineProps({
       return [];
     },
   },
-  orderPageNumber: {
-    default: PageSetting.DEFAULT_PAGE,
-  },
   orderTotal: {
     default: 0,
   },
-  orderPageSize: {
-    default: PageSetting.DEFAULT_PAGE_SIZE,
+  orderLoading: {
+    default: false,
   },
 });
 
-const emit = defineEmits(['change-page', 'refresh-order', 'refresh-orders']);
+const emit = defineEmits(['load-more', 'refresh-order', 'refresh-orders']);
 
 const cancelSubmitting = ref(false);
 const pendingCancelOrder = ref(null);
@@ -100,20 +104,10 @@ const openedOrder = ref(null);
 const verifyCodeImageUrl = ref('');
 
 /**
- * 第 1 页或没有订单时，上一页不可点。
+ * 已加载条数还没到总数时，滚到底可以继续加载。
  */
-const previousPageDisabled = computed(() => {
-  if (props.orderTotal <= 0) {
-    return true;
-  }
-  return props.orderPageNumber <= PageSetting.DEFAULT_PAGE;
-});
-
-/**
- * 当前页已经覆盖全部订单时，下一页不可点。
- */
-const nextPageDisabled = computed(() => {
-  return props.orderPageNumber * props.orderPageSize >= props.orderTotal;
+const hasMoreOrders = computed(() => {
+  return props.orderList.length < Number(props.orderTotal);
 });
 
 /**
@@ -310,7 +304,6 @@ function closeVerifyCode() {
 .verify-button,
 .review-button,
 .cancel-button,
-.pager button,
 .verify-close {
   border: 0;
   border-radius: 999px;
@@ -331,21 +324,6 @@ function closeVerifyCode() {
 .cancel-button {
   background: #f3f4f6;
   color: #6b7280;
-}
-.pager {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-.pager button {
-  flex: 1;
-  padding: 10px 0;
-  background: #ede9fe;
-  color: #111827;
-  font-size: 14px;
-}
-.pager button:disabled {
-  opacity: 0.4;
 }
 .verify-mask {
   box-sizing: border-box;
