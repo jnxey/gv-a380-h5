@@ -97,7 +97,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
 }
 .sheet-head h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
 }
 .close {
   border: 0;
@@ -105,7 +105,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   background: transparent;
   color: #6b7280;
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
 }
 .cart-list {
   overflow: auto;
@@ -126,7 +126,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   flex: 1 1 auto;
 }
 .product-name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   color: #111827;
   word-break: break-word;
@@ -134,7 +134,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
 .product-meta {
   margin-top: 4px;
   color: #6b7280;
-  font-size: 12px;
+  font-size: 14px;
 }
 .qty {
   display: flex;
@@ -162,7 +162,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
 }
 .delivery-label {
   color: #374151;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
 }
 .delivery-input {
@@ -173,7 +173,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   border-radius: 12px;
   resize: none;
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.45;
   color: #111827;
   background: #f9fafb;
@@ -193,17 +193,17 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
 }
 .sheet-total span {
   color: #6b7280;
-  font-size: 13px;
+  font-size: 15px;
 }
 .sheet-total strong {
   color: #1f8a70;
-  font-size: 22px;
+  font-size: 24px;
   font-variant-numeric: tabular-nums;
 }
 .form-error {
   margin: 8px 0 0;
   color: #dc2626;
-  font-size: 13px;
+  font-size: 15px;
 }
 .solid {
   width: 100%;
@@ -214,7 +214,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   background: #1f8a70;
   color: #fff;
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
 }
 .solid:disabled {
   opacity: 0.45;

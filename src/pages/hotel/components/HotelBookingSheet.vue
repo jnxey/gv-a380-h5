@@ -182,18 +182,18 @@ function updateContact(event) {
 }
 .sheet h2 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: 20px;
   color: #14241c;
 }
 .hint {
   margin: 0 0 14px;
   color: #5e6b64;
-  font-size: 13px;
+  font-size: 15px;
 }
 .sheet label {
   display: block;
   margin: 12px 0 6px;
-  font-size: 13px;
+  font-size: 15px;
   color: #5e6b64;
 }
 .field-row {
@@ -205,7 +205,7 @@ function updateContact(event) {
 .field-label {
   flex: 0 0 auto;
   color: #5e6b64;
-  font-size: 13px;
+  font-size: 15px;
 }
 .field-input {
   box-sizing: border-box;
@@ -216,7 +216,7 @@ function updateContact(event) {
   background: #fff;
   color: #14241c;
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
 }
 .field-row .field-input {
   flex: 1 1 auto;
@@ -242,18 +242,18 @@ function updateContact(event) {
   min-width: 0;
   flex: 1 1 0;
   color: #5e6b64;
-  font-size: 13px;
+  font-size: 15px;
 }
 .date-item strong {
   overflow: hidden;
   color: #14241c;
-  font-size: 15px;
+  font-size: 17px;
   text-overflow: ellipsis;
 }
 .value {
   margin: 0;
   color: #14241c;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 .spec-row {
@@ -261,7 +261,7 @@ function updateContact(event) {
   align-items: center;
   margin: 0 0 8px;
   color: #14241c;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -278,8 +278,8 @@ function updateContact(event) {
   margin-left: 8px;
 }
 .spec-item :deep(.app-icon) {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
   color: #1f8a70;
 }
@@ -291,7 +291,7 @@ function updateContact(event) {
 .desc-value {
   margin: 0;
   color: #14241c;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
@@ -305,12 +305,12 @@ function updateContact(event) {
   gap: 8px;
   padding: 12px 16px 0;
   border-top: 1px solid rgba(20, 36, 28, 0.08);
-  font-size: 16px;
+  font-size: 18px;
   color: #14241c;
 }
 .amount-line span,
 .amount-line strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 .amount-line strong {
   color: #1f8a70;
@@ -319,7 +319,7 @@ function updateContact(event) {
 .form-error {
   margin: 8px 0 0;
   color: #c2412d;
-  font-size: 13px;
+  font-size: 15px;
 }
 .actions {
   box-sizing: border-box;
@@ -335,7 +335,7 @@ function updateContact(event) {
   border: 0;
   border-radius: 999px;
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
 }
 .ghost {
   background: rgba(31, 138, 112, 0.12);

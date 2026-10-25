@@ -223,17 +223,17 @@ function formatStartClock(slot) {
 }
 .sheet h2 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: 20px;
 }
 .hint {
   margin: 0 0 14px;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 15px;
 }
 .sheet label {
   display: block;
   margin: 12px 0 6px;
-  font-size: 13px;
+  font-size: 15px;
   color: #6b7280;
 }
 .mark-line {
@@ -242,7 +242,7 @@ function formatStartClock(slot) {
   gap: 8px;
   margin: 0 0 6px;
   color: #111827;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.35;
 }
 .text-mark {
@@ -250,13 +250,13 @@ function formatStartClock(slot) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin-top: 1px;
   border: 1px solid #6d28d9;
   border-radius: 4px;
   color: #6d28d9;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   flex: 0 0 auto;
 }
@@ -274,7 +274,7 @@ function formatStartClock(slot) {
 .field-label {
   flex: 0 0 auto;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 15px;
 }
 .field-row .field-input {
   flex: 1 1 auto;
@@ -289,7 +289,7 @@ function formatStartClock(slot) {
 .desc-value {
   margin: 0;
   color: #111827;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
@@ -303,7 +303,7 @@ function formatStartClock(slot) {
   background: #fff;
   color: #111827;
   font: inherit;
-  font-size: 15px;
+  font-size: 17px;
 }
 .slots {
   display: grid;
@@ -326,7 +326,7 @@ function formatStartClock(slot) {
   padding: 4px 0;
   background: transparent;
   color: #6d28d9;
-  font-size: 13px;
+  font-size: 15px;
 }
 .slot-toggle-icon {
   width: 6px;
@@ -344,7 +344,7 @@ function formatStartClock(slot) {
   border-radius: 999px;
   background: #ede9fe;
   color: #111827;
-  font-size: 13px;
+  font-size: 15px;
 }
 .slots button.active {
   background: #6d28d9;
@@ -352,7 +352,7 @@ function formatStartClock(slot) {
 }
 .leave-time {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 .amount-line {
@@ -364,11 +364,11 @@ function formatStartClock(slot) {
   gap: 8px;
   padding: 12px 16px 0;
   border-top: 1px solid rgba(17, 24, 39, 0.08);
-  font-size: 16px;
+  font-size: 18px;
 }
 .amount-line span,
 .amount-line strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 .amount-line strong {
   color: #6d28d9;
@@ -377,7 +377,7 @@ function formatStartClock(slot) {
 .form-error {
   margin: 8px 0 0;
   color: #b45309;
-  font-size: 13px;
+  font-size: 15px;
 }
 .actions {
   box-sizing: border-box;
@@ -391,7 +391,7 @@ function formatStartClock(slot) {
   flex: 1;
   padding: 13px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: 17px;
 }
 .ghost {
   background: #ede9fe;
