@@ -9,6 +9,7 @@ import PointPage from './pages/point/index.vue';
 import StoreShopPage from './pages/store/shop.vue';
 import { BookingShopQuery, H5PagePath, PageTitle } from './utils/constants.js';
 import { enterMiniProgramApp, setToastHandler } from 'gv-sdk';
+import { installEdgeSwipeBack } from './utils/edgeSwipeBack.js';
 import { showToast } from './utils/toast.js';
 
 /**
@@ -75,9 +76,11 @@ async function startApp() {
     const VConsole = vConsoleModule.default;
     new VConsole();
   }
+  const pageRouter = createPageRouter();
   const app = createApp(App);
-  app.use(createPageRouter());
+  app.use(pageRouter);
   app.mount('#app');
+  installEdgeSwipeBack(pageRouter);
   setToastHandler(showToast);
   enterMiniProgramApp();
 }
