@@ -64,8 +64,8 @@ watch(
   box-sizing: border-box;
   min-height: 70vh;
   padding: 48px 24px;
-  padding-top: calc(48px + var(--gv-safe-top, 0px));
-  padding-bottom: calc(48px + var(--gv-safe-bottom, 0px));
+  padding-top: calc(48px + var(--ct-safe-top, 0px));
+  padding-bottom: calc(48px + var(--ct-safe-bottom, 0px));
   text-align: center;
   background: #fff;
 }

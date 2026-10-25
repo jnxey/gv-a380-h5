@@ -334,8 +334,8 @@ function closeVerifyCode() {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  padding-top: calc(16px + var(--gv-safe-top, 0px));
-  padding-bottom: calc(16px + var(--gv-safe-bottom, 0px));
+  padding-top: calc(16px + var(--ct-safe-top, 0px));
+  padding-bottom: calc(16px + var(--ct-safe-bottom, 0px));
   background: rgba(18, 12, 24, 0.46);
 }
 .verify-card {

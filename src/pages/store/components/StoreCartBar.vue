@@ -33,7 +33,7 @@ const emit = defineEmits(['open']);
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px calc(12px + var(--gv-safe-bottom, 0px));
+  padding: 12px 16px calc(12px + var(--ct-safe-bottom, 0px));
   background: rgba(255, 255, 255, 0.96);
   border-top: 1px solid rgba(17, 24, 39, 0.08);
   z-index: 10;

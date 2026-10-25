@@ -83,7 +83,7 @@ const emit = defineEmits(['close', 'change', 'submit', 'update:deliveryAddress']
   flex-direction: column;
   overflow: visible;
   overscroll-behavior: none;
-  padding: 16px 16px calc(16px + var(--gv-safe-bottom, 0px));
+  padding: 16px 16px calc(16px + var(--ct-safe-bottom, 0px));
   border-radius: 22px 22px 0 0;
   background: #fff;
   z-index: 21;

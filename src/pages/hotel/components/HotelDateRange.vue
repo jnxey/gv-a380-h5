@@ -408,7 +408,7 @@ function confirmDates() {
   border-radius: 0 10px 10px 0;
 }
 .actions {
-  padding: 12px 16px calc(12px + var(--gv-safe-bottom, 0px));
+  padding: 12px 16px calc(12px + var(--ct-safe-bottom, 0px));
 }
 .solid {
   width: 100%;

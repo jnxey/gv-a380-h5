@@ -146,7 +146,7 @@ const accentClassName = computed(() => {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 0 16px calc(20px + var(--gv-safe-bottom, 0px));
+  padding: 0 16px calc(20px + var(--ct-safe-bottom, 0px));
 }
 .desc-block {
   margin-top: 16px;

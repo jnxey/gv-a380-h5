@@ -164,7 +164,7 @@ function updateContact(event) {
   display: flex;
   flex-direction: column;
   width: min(520px, 100%);
-  max-height: calc(100vh - var(--gv-safe-top, 0px));
+  max-height: calc(100vh - var(--ct-safe-top, 0px));
   overflow: visible;
   overscroll-behavior: none;
   border-radius: 22px 22px 0 0;
@@ -326,7 +326,7 @@ function updateContact(event) {
   display: flex;
   flex: 0 0 auto;
   gap: 10px;
-  padding: 12px 16px calc(12px + var(--gv-safe-bottom, 0px));
+  padding: 12px 16px calc(12px + var(--ct-safe-bottom, 0px));
   background: #fffdf9;
 }
 .actions button {

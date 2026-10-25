@@ -29,7 +29,7 @@ const emit = defineEmits(['select']);
 <style scoped>
 .tabs-bar {
   position: sticky;
-  top: var(--gv-safe-top, 0px);
+  top: var(--ct-safe-top, 0px);
   z-index: 2;
   margin: -8px -16px 0;
   padding: 0 16px 16px;

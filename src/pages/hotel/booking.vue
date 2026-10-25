@@ -815,7 +815,7 @@ watch(
   background: #f3efe8;
 }
 .page-with-bar {
-  padding-bottom: calc(88px + var(--gv-safe-bottom, 0px));
+  padding-bottom: calc(88px + var(--ct-safe-bottom, 0px));
 }
 .panel {
   box-sizing: border-box;

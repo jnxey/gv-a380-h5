@@ -211,7 +211,7 @@ function cartQuantity(productId) {
  */
 function stickyTopOffsetPx() {
   const rootStyle = window.getComputedStyle(document.documentElement);
-  const safeTopText = rootStyle.getPropertyValue('--gv-safe-top').trim();
+  const safeTopText = rootStyle.getPropertyValue('--ct-safe-top').trim();
   const safeTopValue = Number.parseFloat(safeTopText);
   if (Number.isFinite(safeTopValue) !== true) {
     return 0;
@@ -303,12 +303,12 @@ onUnmounted(() => {
 }
 .category-side {
   position: sticky;
-  top: var(--gv-safe-top, 0px);
+  top: var(--ct-safe-top, 0px);
   z-index: 2;
   flex: none;
   align-self: flex-start;
   width: 88px;
-  max-height: calc(100vh - var(--gv-safe-top, 0px));
+  max-height: calc(100vh - var(--ct-safe-top, 0px));
   overflow-y: auto;
   border-top-left-radius: 16px;
   background: #f3f4f6;
@@ -344,11 +344,11 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 .product-section {
-  scroll-margin-top: var(--gv-safe-top, 0px);
+  scroll-margin-top: var(--ct-safe-top, 0px);
 }
 .section-title {
   position: sticky;
-  top: var(--gv-safe-top, 0px);
+  top: var(--ct-safe-top, 0px);
   z-index: 1;
   margin: 0;
   padding: 12px 0 8px;

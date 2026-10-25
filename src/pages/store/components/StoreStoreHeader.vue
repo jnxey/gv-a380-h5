@@ -161,9 +161,9 @@ function callShopPhone() {
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
-  height: calc(162px + var(--gv-safe-top, 0px));
+  height: calc(162px + var(--ct-safe-top, 0px));
   padding: 16px 16px 28px;
-  padding-top: calc(16px + var(--gv-safe-top, 0px));
+  padding-top: calc(16px + var(--ct-safe-top, 0px));
   color: #f7f3ea;
   background: linear-gradient(160deg, #1f8a70 0%, #145c4b 100%);
 }

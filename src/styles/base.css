@@ -8,6 +8,8 @@ html {
   height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  --ct-safe-top: calc(var(--gv-safe-top, 0px) + 4px);
+  --ct-safe-bottom: calc(var(--gv-safe-bottom, 0px) + 4px);
 }
 
 body {
