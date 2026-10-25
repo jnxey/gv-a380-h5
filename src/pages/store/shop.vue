@@ -165,7 +165,7 @@ const cartAmountText = computed(() => {
 });
 
 /**
- * 购物车里可抵扣商品的合计。余额不够整单所需积分时不能勾选。
+ * 购物车里可抵扣商品的合计。没有可抵扣商品时不显示，余额不够时只显示积分不足。
  */
 const pointPlan = computed(() => {
   let deductAmount = 0;
@@ -199,10 +199,11 @@ const sheetAmountText = computed(() => {
   return payableAmount.toFixed(2);
 });
 
+/**
+ * 能抵扣时默认选中。变成不足时取消；手动取消后，可用状态不变就保持取消。
+ */
 watch(() => pointPlan.value.enabled, (enabled) => {
-  if (enabled !== true) {
-    usePointDeduct.value = false;
-  }
+  usePointDeduct.value = enabled === true;
 });
 
 /**
@@ -624,7 +625,7 @@ function openCartSheet() {
   if (isEmpty(cartLineList.value)) {
     return;
   }
-  usePointDeduct.value = false;
+  usePointDeduct.value = pointPlan.value.enabled === true;
   void loadPointsBalance();
   // 结算时若地址仍空，先按当前 URL 预填，再没有才用记住的第一条。
   if (isEmpty(deliveryAddress.value) || isEmpty(deliveryAddress.value.trim())) {

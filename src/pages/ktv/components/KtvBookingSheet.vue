@@ -69,20 +69,19 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
-    <button
-      v-if="pointPlan.visible === true"
-      v-show="sheetInputFocused !== true"
-      class="point-line"
-      type="button"
-      :disabled="pointPlan.enabled !== true"
-      @click="togglePointDeduct"
-    >
-      <span class="point-mark" :class="{ on: usePointDeduct === true && pointPlan.enabled === true }"></span>
-      <span>{{ pointPlan.hint }}</span>
-    </button>
     <div v-if="isEmpty(amountText) !== true" v-show="sheetInputFocused !== true" class="amount-line">
       <span>合计</span>
       <strong>{{ amountText }}</strong>
+      <button
+        v-if="pointPlan.visible === true && pointPlan.enabled === true"
+        class="point-tag"
+        :class="{ on: usePointDeduct === true }"
+        type="button"
+        @click="togglePointDeduct"
+      >
+        积分抵扣{{ pointPlan.amountText }}元
+      </button>
+      <span v-else-if="pointPlan.visible === true" class="point-tag short">积分不足</span>
     </div>
     <div v-show="sheetInputFocused !== true" class="actions">
       <button class="ghost" type="button" @click="emit('close')">取消</button>
@@ -148,7 +147,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'select-slot', 'submit', 'update:guestName', 'update:contact', 'update:usePointDeduct']);
 
 /**
- * 切换是否使用本单积分抵扣。余额不够时按钮不可点。
+ * 切换是否使用本单积分抵扣。积分不足时标签不可点。
  */
 function togglePointDeduct() {
   if (props.pointPlan.enabled !== true) {
@@ -421,44 +420,36 @@ function formatStartClock(slot) {
   font-size: 18px;
   font-weight: 600;
 }
-.point-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 16px;
-  padding: 12px 0 0;
-  border: 0;
-  background: transparent;
-  color: #111827;
-  font-size: 15px;
-  text-align: left;
+.point-tag {
+  padding: 2px 8px;
+  border: 1px solid #6d28d9;
+  border-radius: 999px;
+  background: #fff;
+  color: #6d28d9;
+  font-size: 12px;
+  line-height: 1.4;
 }
-.point-line:disabled {
-  color: #9ca3af;
-}
-.point-mark {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  flex: 0 0 auto;
-}
-.point-mark.on {
-  border-color: #6d28d9;
+.point-tag.on {
   background: #6d28d9;
+  color: #fff;
+}
+.point-tag.short {
+  border-color: transparent;
+  background: #f3f4f6;
+  color: #9ca3af;
 }
 .amount-line {
   box-sizing: border-box;
   display: flex;
   flex: 0 0 auto;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-start;
   gap: 8px;
   padding: 12px 16px 0;
   border-top: 1px solid rgba(17, 24, 39, 0.08);
   font-size: 18px;
 }
-.amount-line span,
+.amount-line > span:first-child,
 .amount-line strong {
   font-size: 18px;
 }
