@@ -646,12 +646,11 @@ async function confirmSale() {
 }
 
 /**
- * 成功页继续选购。
+ * 查看订单时离开成功页，切到订单 Tab，并从第 1 页重新拉取。
  */
 async function continueShopping() {
   saleStep.value = StoreSaleStep.LIST;
-  selectedContentTab.value = StoreContentTab.SHOPPING;
-  await loadPage();
+  await selectContentTab(StoreContentTab.ORDER);
 }
 
 onMounted(() => {

@@ -9,7 +9,7 @@
       <div>{{ successSummary.nightCount }} 晚</div>
       <div>{{ successSummary.amount }}</div>
     </div>
-    <button type="button" @click="emit('again')">再订一间</button>
+    <button type="button" @click="emit('again')">查看订单</button>
   </section>
 </template>
 

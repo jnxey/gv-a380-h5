@@ -740,15 +740,14 @@ async function submitBooking() {
 }
 
 /**
- * 再订一间时回到选房，并刷新我的订单。
+ * 查看订单时离开成功页，切到订单 Tab，并从第 1 页重新拉取。
  */
 async function bookAgain() {
   bookingStep.value = HotelBookingStep.LIST;
   selectedRoomTypeId.value = '';
   formError.value = '';
   successSummary.value = null;
-  refreshCheckInDates();
-  await loadPage();
+  await selectContentTab(HotelContentTab.ORDER);
 }
 
 /**

@@ -8,7 +8,7 @@
       <div>共 {{ itemCount }} 件</div>
       <div class="amount">{{ amountText }}</div>
     </div>
-    <button type="button" @click="emit('again')">继续选购</button>
+    <button type="button" @click="emit('again')">查看订单</button>
   </section>
 </template>
 
