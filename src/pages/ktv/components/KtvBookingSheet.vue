@@ -4,15 +4,17 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
-      <p class="mark-line">
-        <span class="text-mark">唱</span>
-        <span>{{ descriptionText('bookingSummary') }}</span>
-      </p>
-      <p class="mark-line">
-        <span class="text-mark">退</span>
-        <span>{{ descriptionText('cancelRule') }}</span>
-      </p>
-      <div class="field-group">
+      <div class="sheet-card">
+        <p class="mark-line">
+          <span class="text-mark">唱</span>
+          <span>{{ descriptionText('bookingSummary') }}</span>
+        </p>
+        <p class="mark-line">
+          <span class="text-mark">退</span>
+          <span>{{ descriptionText('cancelRule') }}</span>
+        </p>
+      </div>
+      <div class="sheet-card">
         <div class="field-row">
           <span class="field-label">预订人</span>
           <input
@@ -34,27 +36,31 @@
           />
         </div>
       </div>
-      <label>{{ arrivalTimeLabel }}</label>
-      <div class="slots">
-        <button
-          v-for="slot in visibleArrivalSlotList"
-          :key="slot.slotKey"
-          type="button"
-          :class="{ active: slot.slotKey === selectedSlotKey }"
-          @click="emit('select-slot', slot.slotKey)"
-        >
-          {{ formatStartClock(slot) }}
+      <div class="sheet-card">
+        <label>{{ arrivalTimeLabel }}</label>
+        <div class="slots">
+          <button
+            v-for="slot in visibleArrivalSlotList"
+            :key="slot.slotKey"
+            type="button"
+            :class="{ active: slot.slotKey === selectedSlotKey }"
+            @click="emit('select-slot', slot.slotKey)"
+          >
+            {{ formatStartClock(slot) }}
+          </button>
+        </div>
+        <button v-if="showArrivalSlotToggle" class="slot-toggle" type="button" @click="toggleArrivalSlots">
+          {{ arrivalSlotExpanded ? '收起' : '展开' }}
+          <span class="slot-toggle-icon" :class="{ expanded: arrivalSlotExpanded }"></span>
         </button>
+        <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
+        <label>离店时间</label>
+        <p class="leave-time">{{ leaveTimeText }}</p>
       </div>
-      <button v-if="showArrivalSlotToggle" class="slot-toggle" type="button" @click="toggleArrivalSlots">
-        {{ arrivalSlotExpanded ? '收起' : '展开' }}
-        <span class="slot-toggle-icon" :class="{ expanded: arrivalSlotExpanded }"></span>
-      </button>
-      <p v-if="isEmpty(arrivalSlotList)" class="form-error">当前日期没有可预约时间</p>
-      <label>离店时间</label>
-      <p class="leave-time">{{ leaveTimeText }}</p>
-      <label class="notice-label">预订须知</label>
-      <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
+      <div class="sheet-card">
+        <label>预订须知</label>
+        <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
+      </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
     <div v-if="isEmpty(amountText) !== true" class="amount-line">
@@ -222,15 +228,27 @@ function formatStartClock(slot) {
   overflow: auto;
   overscroll-behavior: contain;
   padding: 8px 16px 16px;
+  border-radius: 22px 22px 0 0;
+  background: #f5f3ff;
 }
 .sheet h2 {
   margin: 0 0 4px;
   font-size: 20px;
 }
 .hint {
-  margin: 0 0 14px;
+  margin: 0;
   color: #6b7280;
   font-size: 15px;
+}
+.sheet-card {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+}
+.sheet-card > label:first-child,
+.sheet-card > .field-row:first-child {
+  margin-top: 0;
 }
 .sheet label {
   display: block;
@@ -267,11 +285,8 @@ function formatStartClock(slot) {
   white-space: pre-wrap;
   word-break: break-word;
 }
-.field-group {
-  margin-top: 12px;
-  padding: 4px 0;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
-  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+.mark-line:last-child {
+  margin-bottom: 0;
 }
 .field-row {
   display: flex;
@@ -279,7 +294,7 @@ function formatStartClock(slot) {
   gap: 12px;
   margin-top: 10px;
 }
-.field-group .field-row + .field-row {
+.field-row + .field-row {
   margin-top: 0;
 }
 .field-label {
@@ -365,11 +380,6 @@ function formatStartClock(slot) {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-}
-.notice-label {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
 }
 .amount-line {
   box-sizing: border-box;

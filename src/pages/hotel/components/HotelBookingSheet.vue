@@ -4,35 +4,37 @@
     <div class="sheet-body">
       <h2>{{ selectedRoomType.typeName }}</h2>
       <p class="hint">{{ formHintText }}</p>
-      <div class="spec-row">
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.BED" />
-          <span>{{ descriptionText('bedType') }}</span>
-        </span>
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.ROOM_SIZE" />
-          <span>{{ descriptionText('roomSize') }}</span>
-        </span>
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.FLOOR" />
-          <span>{{ descriptionText('floorText') }}</span>
-        </span>
+      <div class="sheet-card">
+        <div class="spec-row">
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.BED" />
+            <span>{{ descriptionText('bedType') }}</span>
+          </span>
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.ROOM_SIZE" />
+            <span>{{ descriptionText('roomSize') }}</span>
+          </span>
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.FLOOR" />
+            <span>{{ descriptionText('floorText') }}</span>
+          </span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.GUEST" />
+            <span>{{ descriptionText('guestCount') }}</span>
+          </span>
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.BREAKFAST" />
+            <span>{{ descriptionText('breakfast') }}</span>
+          </span>
+          <span class="spec-item">
+            <AppIcon :icon-name="AppIconName.PARKING" />
+            <span>{{ descriptionText('freeParking') }}</span>
+          </span>
+        </div>
       </div>
-      <div class="spec-row">
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.GUEST" />
-          <span>{{ descriptionText('guestCount') }}</span>
-        </span>
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.BREAKFAST" />
-          <span>{{ descriptionText('breakfast') }}</span>
-        </span>
-        <span class="spec-item">
-          <AppIcon :icon-name="AppIconName.PARKING" />
-          <span>{{ descriptionText('freeParking') }}</span>
-        </span>
-      </div>
-      <div class="field-group">
+      <div class="sheet-card">
         <div class="field-row">
           <span class="field-label">预订人</span>
           <input
@@ -54,22 +56,26 @@
           />
         </div>
       </div>
-      <div class="date-row">
-        <span class="date-item">
-          <span>入住日期</span>
-          <strong>{{ checkInDate }}</strong>
-        </span>
-        <span class="date-item">
-          <span>离店日期</span>
-          <strong>{{ checkOutDate }}</strong>
-        </span>
-        <span class="date-item">
-          <span>入住晚数</span>
-          <strong>{{ nightCount }} 晚</strong>
-        </span>
+      <div class="sheet-card">
+        <div class="date-row">
+          <span class="date-item">
+            <span>入住日期</span>
+            <strong>{{ checkInDate }}</strong>
+          </span>
+          <span class="date-item">
+            <span>离店日期</span>
+            <strong>{{ checkOutDate }}</strong>
+          </span>
+          <span class="date-item">
+            <span>入住晚数</span>
+            <strong>{{ nightCount }} 晚</strong>
+          </span>
+        </div>
       </div>
-      <label class="notice-label">预订须知</label>
-      <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
+      <div class="sheet-card">
+        <label>预订须知</label>
+        <p class="desc-value">{{ descriptionText('bookingNotice') }}</p>
+      </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
     <div v-if="isEmpty(amountText) !== true" class="amount-line">
@@ -183,6 +189,8 @@ function updateContact(event) {
   overflow: auto;
   overscroll-behavior: contain;
   padding: 8px 16px 16px;
+  border-radius: 22px 22px 0 0;
+  background: #f3efe6;
 }
 .sheet h2 {
   margin: 0 0 4px;
@@ -190,9 +198,19 @@ function updateContact(event) {
   color: #14241c;
 }
 .hint {
-  margin: 0 0 14px;
+  margin: 0;
   color: #5e6b64;
   font-size: 15px;
+}
+.sheet-card {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+}
+.sheet-card > label:first-child,
+.sheet-card > .field-row:first-child {
+  margin-top: 0;
 }
 .sheet label {
   display: block;
@@ -200,19 +218,13 @@ function updateContact(event) {
   font-size: 15px;
   color: #5e6b64;
 }
-.field-group {
-  margin-top: 12px;
-  padding: 4px 0;
-  border-top: 1px solid rgba(20, 36, 28, 0.08);
-  border-bottom: 1px solid rgba(20, 36, 28, 0.08);
-}
 .field-row {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: 10px;
 }
-.field-group .field-row + .field-row {
+.field-row + .field-row {
   margin-top: 0;
 }
 .field-label {
@@ -245,7 +257,6 @@ function updateContact(event) {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-top: 12px;
 }
 .date-item {
   display: flex;
@@ -266,11 +277,6 @@ function updateContact(event) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.notice-label {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(20, 36, 28, 0.08);
-}
 .spec-row {
   display: flex;
   align-items: center;
@@ -280,17 +286,15 @@ function updateContact(event) {
   line-height: 1.4;
   white-space: nowrap;
 }
+.spec-row:last-child {
+  margin-bottom: 0;
+}
 .spec-item {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
   flex: 1 1 0;
-}
-.spec-item + .spec-item {
-  padding-left: 8px;
-  border-left: 1px solid rgba(20, 36, 28, 0.16);
-  margin-left: 8px;
 }
 .spec-item :deep(.app-icon) {
   width: 16px;

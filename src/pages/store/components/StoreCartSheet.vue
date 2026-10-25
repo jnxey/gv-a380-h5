@@ -1,63 +1,69 @@
 <template>
   <div class="mask" @click="emit('close')"></div>
   <section class="sheet">
-    <div class="sheet-head">
-      <h2>购物车</h2>
-      <button type="button" class="close" @click="emit('close')">关闭</button>
-    </div>
-    <div class="cart-list">
-      <div v-for="cartLine in cartLineList" :key="cartLine.productId" class="cart-line">
-        <div class="cart-line-main">
-          <div class="product-name">{{ cartLine.productName }}</div>
-          <div class="product-meta">
-            单价 {{ cartLine.salePrice }} · 小计 {{ (Number(cartLine.salePrice) * cartLine.quantity).toFixed(2) }}
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <h2>购物车</h2>
+        <button type="button" class="close" @click="emit('close')">关闭</button>
+      </div>
+      <div class="sheet-card">
+        <div v-for="cartLine in cartLineList" :key="cartLine.productId" class="cart-line">
+          <div class="cart-line-main">
+            <div class="product-name">{{ cartLine.productName }}</div>
+            <div class="product-meta">
+              单价 {{ cartLine.salePrice }} · 小计 {{ (Number(cartLine.salePrice) * cartLine.quantity).toFixed(2) }}
+            </div>
+          </div>
+          <div class="qty">
+            <button type="button" @click="emit('change', cartLine.productId, -1)">-</button>
+            <span>{{ cartLine.quantity }}</span>
+            <button type="button" class="add" @click="emit('change', cartLine.productId, 1)">+</button>
           </div>
         </div>
-        <div class="qty">
-          <button type="button" @click="emit('change', cartLine.productId, -1)">-</button>
-          <span>{{ cartLine.quantity }}</span>
-          <button type="button" class="add" @click="emit('change', cartLine.productId, 1)">+</button>
+      </div>
+      <div class="sheet-card">
+        <div class="field-row">
+          <span class="field-label">收货人</span>
+          <input
+            class="field-input"
+            :value="receiverName"
+            :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
+            placeholder="收货人"
+            @input="updateReceiverName"
+          />
+        </div>
+        <div class="field-row">
+          <span class="field-label">联系方式</span>
+          <input
+            class="field-input"
+            :value="contact"
+            :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
+            placeholder="联系方式"
+            @input="updateContact"
+          />
         </div>
       </div>
-    </div>
-    <div class="field-row">
-      <span class="field-label">收货人</span>
-      <input
-        class="field-input"
-        :value="receiverName"
-        :maxlength="HotelBookingGuest.NAME_MAX_LENGTH"
-        placeholder="收货人"
-        @input="updateReceiverName"
-      />
-    </div>
-    <div class="field-row">
-      <span class="field-label">联系方式</span>
-      <input
-        class="field-input"
-        :value="contact"
-        :maxlength="HotelBookingGuest.CONTACT_MAX_LENGTH"
-        placeholder="联系方式"
-        @input="updateContact"
-      />
-    </div>
-    <div class="delivery-field">
-      <div class="delivery-label-row">
-        <span class="delivery-label">收货地址</span>
-        <button v-if="isEmpty(addressHistory) !== true" class="address-pick" type="button" @click="openAddressPicker">选择</button>
+      <div class="sheet-card">
+        <div class="delivery-field">
+          <div class="delivery-label-row">
+            <span class="delivery-label">收货地址</span>
+            <button v-if="isEmpty(addressHistory) !== true" class="address-pick" type="button" @click="openAddressPicker">选择</button>
+          </div>
+          <textarea
+            class="delivery-input"
+            rows="2"
+            placeholder="请填写收货地址"
+            :value="deliveryAddress"
+            @input="emit('update:deliveryAddress', $event.target.value)"
+          ></textarea>
+        </div>
       </div>
-      <textarea
-        class="delivery-input"
-        rows="2"
-        placeholder="请填写收货地址"
-        :value="deliveryAddress"
-        @input="emit('update:deliveryAddress', $event.target.value)"
-      ></textarea>
+      <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
     <div class="sheet-total">
       <span>合计</span>
       <strong>{{ cartAmountText }}</strong>
     </div>
-    <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
   </section>
   <div v-if="addressPickerOpen === true" class="address-mask" @click="closeAddressPicker">
@@ -186,17 +192,34 @@ function selectAddress(addressText) {
   flex-direction: column;
   overflow: visible;
   overscroll-behavior: none;
-  padding: 16px 16px calc(16px + var(--ct-safe-bottom, 0px));
   border-radius: 22px 22px 0 0;
   background: #fff;
   z-index: 21;
+}
+.sheet-body {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 16px 16px 16px;
+  border-radius: 22px 22px 0 0;
+  background: #eef4f1;
 }
 .sheet-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+}
+.sheet-card {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+}
+.sheet-card > .field-row:first-child {
+  margin-top: 0;
 }
 .sheet-head h2 {
   margin: 0;
@@ -210,19 +233,12 @@ function selectAddress(addressText) {
   font: inherit;
   font-size: 16px;
 }
-.cart-list {
-  overflow: auto;
-  overscroll-behavior: contain;
-  flex: 1 1 auto;
-  min-height: 0;
-}
 .cart-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid #f1f5f9;
 }
 .cart-line-main {
   min-width: 0;
@@ -263,6 +279,9 @@ function selectAddress(addressText) {
   gap: 12px;
   margin-top: 10px;
 }
+.field-row + .field-row {
+  margin-top: 0;
+}
 .field-label {
   flex: 0 0 auto;
   color: #6b7280;
@@ -283,7 +302,7 @@ function selectAddress(addressText) {
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
-  padding: 8px 0;
+  padding: 4px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -293,7 +312,6 @@ function selectAddress(addressText) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
 }
 .delivery-label-row {
   display: flex;
@@ -337,8 +355,9 @@ function selectAddress(addressText) {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
-  padding-top: 12px;
+  padding: 12px 16px 0;
+  border-top: 1px solid rgba(20, 36, 28, 0.08);
+  background: #fff;
 }
 .sheet-total span {
   color: #6b7280;
@@ -355,8 +374,8 @@ function selectAddress(addressText) {
   font-size: 15px;
 }
 .solid {
-  width: 100%;
-  margin-top: 12px;
+  width: calc(100% - 32px);
+  margin: 12px 16px calc(12px + var(--ct-safe-bottom, 0px));
   padding: 13px;
   border: 0;
   border-radius: 999px;
