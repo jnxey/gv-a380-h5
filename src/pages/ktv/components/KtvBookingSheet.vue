@@ -69,6 +69,17 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
+    <button
+      v-if="pointPlan.visible === true"
+      v-show="sheetInputFocused !== true"
+      class="point-line"
+      type="button"
+      :disabled="pointPlan.enabled !== true"
+      @click="togglePointDeduct"
+    >
+      <span class="point-mark" :class="{ on: usePointDeduct === true && pointPlan.enabled === true }"></span>
+      <span>{{ pointPlan.hint }}</span>
+    </button>
     <div v-if="isEmpty(amountText) !== true" v-show="sheetInputFocused !== true" class="amount-line">
       <span>合计</span>
       <strong>{{ amountText }}</strong>
@@ -123,10 +134,28 @@ const props = defineProps({
   },
   formError: {
     default: ''
+  },
+  pointPlan: {
+    default() {
+      return { visible: false, enabled: false, hint: '' };
+    }
+  },
+  usePointDeduct: {
+    default: false
   }
 });
 
-const emit = defineEmits(['close', 'select-slot', 'submit', 'update:guestName', 'update:contact']);
+const emit = defineEmits(['close', 'select-slot', 'submit', 'update:guestName', 'update:contact', 'update:usePointDeduct']);
+
+/**
+ * 切换是否使用本单积分抵扣。余额不够时按钮不可点。
+ */
+function togglePointDeduct() {
+  if (props.pointPlan.enabled !== true) {
+    return;
+  }
+  emit('update:usePointDeduct', props.usePointDeduct !== true);
+}
 
 const { sheetElement, sheetInputFocused, handleSheetFocusIn, handleSheetFocusOut } = useSheetInputFocus();
 
@@ -391,6 +420,32 @@ function formatStartClock(slot) {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+}
+.point-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px;
+  padding: 12px 0 0;
+  border: 0;
+  background: transparent;
+  color: #111827;
+  font-size: 15px;
+  text-align: left;
+}
+.point-line:disabled {
+  color: #9ca3af;
+}
+.point-mark {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+.point-mark.on {
+  border-color: #6d28d9;
+  background: #6d28d9;
 }
 .amount-line {
   box-sizing: border-box;

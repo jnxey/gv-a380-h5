@@ -47,7 +47,9 @@
     <StoreCartSheet
       v-if="cartSheetOpen"
       :cart-line-list="cartLineList"
-      :cart-amount-text="cartAmountText"
+      :cart-amount-text="sheetAmountText"
+      :point-plan="pointPlan"
+      :use-point-deduct="usePointDeduct"
       v-model:receiver-name="receiverName"
       v-model:contact="contact"
       v-model:delivery-address="deliveryAddress"
@@ -56,6 +58,7 @@
       :submitting="submitting"
       @close="closeCartSheet"
       @change="changeQuantity"
+      @update:use-point-deduct="usePointDeduct = $event"
       @submit="confirmSale"
     />
     <StoreSaleSuccess
@@ -79,6 +82,7 @@ import { useRoute } from 'vue-router';
 import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { ShopReviewApi } from '../../api/shop-review.js';
+import { PointApi } from '../../api/point.js';
 import { StoreApi } from '../../api/store.js';
 import { request } from '../../utils/request.js';
 import { verifyConsumerDoorLock } from 'gv-sdk';
@@ -114,6 +118,8 @@ const currentShop = ref(null);
 const categoryList = ref([]);
 const productList = ref([]);
 const cartLineList = ref([]);
+const pointsBalance = ref(0);
+const usePointDeduct = ref(false);
 const cartSheetOpen = ref(false);
 const receiverName = ref('');
 const contact = ref('');
@@ -156,6 +162,47 @@ const cartAmountText = computed(() => {
     totalAmount += Number(cartLine.salePrice) * cartLine.quantity;
   }
   return totalAmount.toFixed(2);
+});
+
+/**
+ * 购物车里可抵扣商品的合计。余额不够整单所需积分时不能勾选。
+ */
+const pointPlan = computed(() => {
+  let deductAmount = 0;
+  let deductPoints = 0;
+  for (const cartLine of cartLineList.value) {
+    const unitAmount = Number(cartLine.pointDeductAmount);
+    const unitPoints = Number(cartLine.pointDeductPoints);
+    if (Number.isFinite(unitAmount) === true && unitAmount > 0 && Number.isInteger(unitPoints) === true && unitPoints > 0) {
+      deductAmount += unitAmount * cartLine.quantity;
+      deductPoints += unitPoints * cartLine.quantity;
+    }
+  }
+  if (deductPoints <= 0) {
+    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+  }
+  const amountText = deductAmount.toFixed(2);
+  if (pointsBalance.value < deductPoints) {
+    return { visible: true, enabled: false, amountText, hint: `积分不足，还差${deductPoints - pointsBalance.value}` };
+  }
+  return { visible: true, enabled: true, amountText, hint: `抵扣${amountText}元，消耗${deductPoints}积分` };
+});
+
+/**
+ * 结算合计。勾选抵扣后显示实付。
+ */
+const sheetAmountText = computed(() => {
+  if (usePointDeduct.value !== true || pointPlan.value.enabled !== true) {
+    return cartAmountText.value;
+  }
+  const payableAmount = Number(cartAmountText.value) - Number(pointPlan.value.amountText);
+  return payableAmount.toFixed(2);
+});
+
+watch(() => pointPlan.value.enabled, (enabled) => {
+  if (enabled !== true) {
+    usePointDeduct.value = false;
+  }
 });
 
 /**
@@ -519,6 +566,8 @@ function addCartLine(productRow) {
       productId: productRow.productId,
       productName: productRow.productName,
       salePrice: productRow.salePrice,
+      pointDeductAmount: isEmpty(productRow.pointDeductAmount) ? '0' : productRow.pointDeductAmount,
+      pointDeductPoints: isEmpty(productRow.pointDeductPoints) ? 0 : Number(productRow.pointDeductPoints),
       stockQuantity: productRow.stockQuantity,
       quantity: 1,
     });
@@ -555,12 +604,28 @@ function changeQuantity(productId, delta) {
 }
 
 /**
+ * 读取当前会员积分余额，用来决定抵扣开关能不能点。
+ */
+async function loadPointsBalance() {
+  try {
+    const summary = await request({ url: PointApi.SUMMARY, method: 'GET' });
+    const balanceText = isEmpty(summary) || isEmpty(summary.balance) ? '0' : summary.balance;
+    const balanceNumber = Number(balanceText);
+    pointsBalance.value = Number.isFinite(balanceNumber) === true ? Math.trunc(balanceNumber) : 0;
+  } catch {
+    pointsBalance.value = 0;
+  }
+}
+
+/**
  * 打开结算层。打开前再读一次地址，避免进入页时 query 尚未就绪。
  */
 function openCartSheet() {
   if (isEmpty(cartLineList.value)) {
     return;
   }
+  usePointDeduct.value = false;
+  void loadPointsBalance();
   // 结算时若地址仍空，先按当前 URL 预填，再没有才用记住的第一条。
   if (isEmpty(deliveryAddress.value) || isEmpty(deliveryAddress.value.trim())) {
     readDeliveryAddressFromQuery();
@@ -614,7 +679,7 @@ async function confirmSale() {
       return;
     }
     const paidItemCount = cartCount.value;
-    const paidAmountText = cartAmountText.value;
+    const paidAmountText = sheetAmountText.value;
     const paidShopName = isEmpty(currentShop.value) ? '' : currentShop.value.shopName;
     await request({
       url: StoreApi.SALES,
@@ -625,6 +690,7 @@ async function confirmSale() {
         receiverName: receiverNameText,
         contact: contactText,
         deliveryAddress: trimmedDeliveryAddress,
+        usePointDeduct: usePointDeduct.value === true && pointPlan.value.enabled === true,
         itemList: cartLineList.value.map((cartLine) => ({
           productId: cartLine.productId,
           quantity: cartLine.quantity,

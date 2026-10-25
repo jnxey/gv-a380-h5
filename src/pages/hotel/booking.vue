@@ -64,8 +64,11 @@
       :check-in-date="selectedCheckInDate"
       :night-count="nightCount"
       :check-out-date="selectedCheckOutDate"
-      :amount-text="bottomAmountText"
+      :amount-text="sheetAmountText"
       :form-error="formError"
+      :point-plan="pointPlan"
+      :use-point-deduct="usePointDeduct"
+      @update:use-point-deduct="usePointDeduct = $event"
       @close="closeForm"
       @submit="submitBooking"
     />
@@ -81,6 +84,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { HotelApi } from '../../api/hotel.js';
+import { PointApi } from '../../api/point.js';
 import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { request } from '../../utils/request.js';
@@ -163,6 +167,8 @@ const selectedCheckOutDate = ref('');
 const dateSheetOpen = ref(false);
 const guestName = ref('');
 const bookingContact = ref('');
+const pointsBalance = ref(0);
+const usePointDeduct = ref(false);
 const formError = ref('');
 const bookingSubmitting = ref(false);
 const bookingStep = ref(HotelBookingStep.LIST);
@@ -283,6 +289,44 @@ const bottomAmountText = computed(() => {
   }
   const totalAmount = Number(nightlyPrice) * nightCount.value;
   return `${totalAmount.toFixed(2)}`;
+});
+
+/**
+ * 当前房型和晚数对应的积分抵扣。余额不够时只展示还差多少，不能勾选。
+ */
+const pointPlan = computed(() => {
+  const roomType = selectedRoomType.value;
+  if (isEmpty(roomType) || nightCount.value < 1) {
+    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+  }
+  const unitAmount = Number(roomType.pointDeductAmount);
+  const unitPoints = Number(roomType.pointDeductPoints);
+  if (Number.isFinite(unitAmount) !== true || unitAmount <= 0 || Number.isInteger(unitPoints) !== true || unitPoints <= 0) {
+    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+  }
+  const points = unitPoints * nightCount.value;
+  const amountText = (unitAmount * nightCount.value).toFixed(2);
+  if (pointsBalance.value < points) {
+    return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
+  }
+  return { visible: true, enabled: true, amountText, hint: `抵扣${amountText}元，消耗${points}积分` };
+});
+
+/**
+ * 弹层合计。勾选抵扣后显示实付。
+ */
+const sheetAmountText = computed(() => {
+  if (usePointDeduct.value !== true || pointPlan.value.enabled !== true || isEmpty(bottomAmountText.value)) {
+    return bottomAmountText.value;
+  }
+  const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
+  return payableAmount.toFixed(2);
+});
+
+watch(() => pointPlan.value.enabled, (enabled) => {
+  if (enabled !== true) {
+    usePointDeduct.value = false;
+  }
 });
 
 /**
@@ -653,12 +697,28 @@ function selectRoomType(roomTypeId) {
 }
 
 /**
+ * 读取当前会员积分余额，用来决定抵扣开关能不能点。
+ */
+async function loadPointsBalance() {
+  try {
+    const summary = await request({ url: PointApi.SUMMARY, method: 'GET' });
+    const balanceText = isEmpty(summary) || isEmpty(summary.balance) ? '0' : summary.balance;
+    const balanceNumber = Number(balanceText);
+    pointsBalance.value = Number.isFinite(balanceNumber) === true ? Math.trunc(balanceNumber) : 0;
+  } catch {
+    pointsBalance.value = 0;
+  }
+}
+
+/**
  * 打开确认层。没选房型时不打开。
  */
 function openForm() {
   if (isEmpty(selectedRoomType.value)) {
     return;
   }
+  usePointDeduct.value = false;
+  void loadPointsBalance();
   dateSheetOpen.value = false;
   formError.value = '';
   bookingStep.value = HotelBookingStep.FORM;
@@ -726,10 +786,16 @@ async function submitBooking() {
         checkOutDate: nextCheckOutDate,
         guestName: guestNameText,
         contact: contactText,
+        usePointDeduct: usePointDeduct.value === true && pointPlan.value.enabled === true,
         cipherText: securityKeyCipherText,
       },
     });
-    // 4. 成功后记下单号、房费和入住离店
+    // 4. 成功后记下单号、实付房费和入住离店
+    const goodsAmount = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? Number.NaN : Number(createdOrder.amount);
+    const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
+    const paidAmount = Number.isFinite(goodsAmount) === true
+      ? (goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0)).toFixed(2)
+      : '';
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
       shopName: shop.shopName,
@@ -737,7 +803,7 @@ async function submitBooking() {
       checkInDate,
       checkOutDate: nextCheckOutDate,
       nightCount: stayNightCount,
-      amount: isEmpty(createdOrder) ? '' : createdOrder.amount,
+      amount: paidAmount,
     };
     bookingStep.value = HotelBookingStep.SUCCESS;
   } finally {

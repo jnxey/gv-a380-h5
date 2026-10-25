@@ -60,6 +60,17 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
+    <button
+      v-if="pointPlan.visible === true"
+      v-show="sheetInputFocused !== true"
+      class="point-line"
+      type="button"
+      :disabled="pointPlan.enabled !== true"
+      @click="togglePointDeduct"
+    >
+      <span class="point-mark" :class="{ on: usePointDeduct === true && pointPlan.enabled === true }"></span>
+      <span>{{ pointPlan.hint }}</span>
+    </button>
     <div v-show="sheetInputFocused !== true" class="sheet-total">
       <span>合计</span>
       <strong>{{ cartAmountText }}</strong>
@@ -116,9 +127,27 @@ const props = defineProps({
   submitting: {
     default: false,
   },
+  pointPlan: {
+    default() {
+      return { visible: false, enabled: false, hint: '' };
+    },
+  },
+  usePointDeduct: {
+    default: false,
+  },
 });
 
-const emit = defineEmits(['close', 'change', 'submit', 'update:receiverName', 'update:contact', 'update:deliveryAddress']);
+const emit = defineEmits(['close', 'change', 'submit', 'update:receiverName', 'update:contact', 'update:deliveryAddress', 'update:usePointDeduct']);
+
+/**
+ * 切换是否使用本单积分抵扣。余额不够时按钮不可点。
+ */
+function togglePointDeduct() {
+  if (props.pointPlan.enabled !== true) {
+    return;
+  }
+  emit('update:usePointDeduct', props.usePointDeduct !== true);
+}
 
 const addressPickerOpen = ref(false);
 const { sheetElement, sheetInputFocused, handleSheetFocusIn, handleSheetFocusOut } = useSheetInputFocus();
@@ -353,6 +382,32 @@ function selectAddress(addressText) {
   outline: none;
   border-color: #1f8a70;
   background: #fff;
+}
+.point-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #111827;
+  font-size: 15px;
+  text-align: left;
+}
+.point-line:disabled {
+  color: #9ca3af;
+}
+.point-mark {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+.point-mark.on {
+  border-color: #1f8a70;
+  background: #1f8a70;
 }
 .sheet-total {
   display: flex;

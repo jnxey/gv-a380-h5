@@ -62,8 +62,11 @@
       :arrival-slot-list="arrivalSlotList"
       :selected-slot-key="selectedSlotKey"
       :leave-time-text="leaveTimeText"
-      :amount-text="bottomAmountText"
+      :amount-text="sheetAmountText"
       :form-error="formError"
+      :point-plan="pointPlan"
+      :use-point-deduct="usePointDeduct"
+      @update:use-point-deduct="usePointDeduct = $event"
       @select-slot="selectArrivalSlot"
       @close="closeForm"
       @submit="submitBooking"
@@ -80,6 +83,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { KtvApi } from '../../api/ktv.js';
+import { PointApi } from '../../api/point.js';
 import { MemberApi } from '../../api/member.js';
 import { ShopApi } from '../../api/shop.js';
 import { request } from '../../utils/request.js';
@@ -205,6 +209,8 @@ const selectedDurationHours = ref(KtvBookingDuration.DEFAULT_HOURS);
 const selectedSlotKey = ref('');
 const guestName = ref('');
 const bookingContact = ref('');
+const pointsBalance = ref(0);
+const usePointDeduct = ref(false);
 const formError = ref('');
 const bookingSubmitting = ref(false);
 const bookingStep = ref(KtvBookingStep.LIST);
@@ -332,6 +338,45 @@ const bottomAmountText = computed(() => {
     return '';
   }
   return `${formatRoomAmount(selectedRoomType.value)}`;
+});
+
+/**
+ * 当前包厢时长对应的积分抵扣。余额不够时只展示还差多少，不能勾选。
+ */
+const pointPlan = computed(() => {
+  const roomType = selectedRoomType.value;
+  if (isEmpty(roomType)) {
+    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+  }
+  const unitAmount = Number(roomType.pointDeductAmount);
+  const unitPoints = Number(roomType.pointDeductPoints);
+  const unitCount = selectedDurationHours.value;
+  if (Number.isFinite(unitAmount) !== true || unitAmount <= 0 || Number.isInteger(unitPoints) !== true || unitPoints <= 0) {
+    return { visible: false, enabled: false, amountText: '0.00', hint: '' };
+  }
+  const points = unitPoints * unitCount;
+  const amountText = (unitAmount * unitCount).toFixed(2);
+  if (pointsBalance.value < points) {
+    return { visible: true, enabled: false, amountText, hint: `积分不足，还差${points - pointsBalance.value}` };
+  }
+  return { visible: true, enabled: true, amountText, hint: `抵扣${amountText}元，消耗${points}积分` };
+});
+
+/**
+ * 弹层合计。勾选抵扣后显示实付。
+ */
+const sheetAmountText = computed(() => {
+  if (usePointDeduct.value !== true || pointPlan.value.enabled !== true) {
+    return bottomAmountText.value;
+  }
+  const payableAmount = Number(bottomAmountText.value) - Number(pointPlan.value.amountText);
+  return payableAmount.toFixed(2);
+});
+
+watch(() => pointPlan.value.enabled, (enabled) => {
+  if (enabled !== true) {
+    usePointDeduct.value = false;
+  }
 });
 
 /**
@@ -744,12 +789,28 @@ function selectArrivalSlot(slotKey) {
 }
 
 /**
+ * 读取当前会员积分余额，用来决定抵扣开关能不能点。
+ */
+async function loadPointsBalance() {
+  try {
+    const summary = await request({ url: PointApi.SUMMARY, method: 'GET' });
+    const balanceText = isEmpty(summary) || isEmpty(summary.balance) ? '0' : summary.balance;
+    const balanceNumber = Number(balanceText);
+    pointsBalance.value = Number.isFinite(balanceNumber) === true ? Math.trunc(balanceNumber) : 0;
+  } catch {
+    pointsBalance.value = 0;
+  }
+}
+
+/**
  * 打开预约弹层。到店时间默认落在当天第一档可预约刻度。
  */
 function openForm() {
   if (isEmpty(selectedRoomType.value)) {
     return;
   }
+  usePointDeduct.value = false;
+  void loadPointsBalance();
   const arrivalStillExists = arrivalSlotList.value.some((slot) => slot.slotKey === selectedSlotKey.value);
   if (arrivalStillExists !== true) {
     selectedSlotKey.value = isEmpty(arrivalSlotList.value) ? '' : arrivalSlotList.value[0].slotKey;
@@ -824,15 +885,22 @@ async function submitBooking() {
         durationHours: durationHourCount,
         guestName: guestNameText,
         contact: contactText,
+        usePointDeduct: usePointDeduct.value === true && pointPlan.value.enabled === true,
         cipherText: securityKeyCipherText,
       },
     });
-    // 4. 成功后记下接口返回的单号、核销码和金额
+    // 4. 成功后记下接口返回的单号、核销码和实付金额
     const fallbackAmount = formatRoomAmount(roomType);
+    const goodsAmountText = isEmpty(createdOrder) || isEmpty(createdOrder.amount) ? fallbackAmount : createdOrder.amount;
+    const deductAmount = isEmpty(createdOrder) || isEmpty(createdOrder.pointDeductAmount) ? 0 : Number(createdOrder.pointDeductAmount);
+    const goodsAmount = Number(goodsAmountText);
+    const paidAmount = Number.isFinite(goodsAmount) === true
+      ? (goodsAmount - (Number.isFinite(deductAmount) === true ? deductAmount : 0)).toFixed(2)
+      : fallbackAmount;
     successSummary.value = {
       orderNo: isEmpty(createdOrder) ? '' : createdOrder.orderNo,
       verifyCode: isEmpty(createdOrder) ? '' : createdOrder.verifyCode,
-      amount: isEmpty(createdOrder) ? fallbackAmount : createdOrder.amount,
+      amount: paidAmount,
       shopName: shop.shopName,
       roomTypeName: roomType.typeName,
       bookingDate: slot.bookingDate,
