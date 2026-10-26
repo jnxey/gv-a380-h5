@@ -25,7 +25,7 @@
           v-for="productRow in categoryGroup.productList"
           :key="productRow.productId"
           class="product-card"
-          :class="{ disabled: productRow.stockQuantity < 1, 'has-qty': cartQuantity(productRow.productId) > 0 }"
+          :class="{ disabled: productRow.stockQuantity < 1 }"
         >
           <div class="product-cover" @click="openDetail(productRow)">
             <img v-if="isEmpty(coverImageUrl(productRow)) !== true" :src="coverImageUrl(productRow)" alt="" />
@@ -405,9 +405,6 @@ onUnmounted(() => {
   user-select: none;
 }
 .product-card:not(.disabled) .product-main {
-  padding-right: 40px;
-}
-.product-card.has-qty .product-main {
   padding-right: 102px;
 }
 .product-name {
