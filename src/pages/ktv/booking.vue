@@ -203,6 +203,7 @@ const currentRoute = useRoute();
 const shopCode = ref('');
 const currentShop = ref(null);
 const roomTypeList = ref([]);
+const roomTypeRequestSerial = ref(0);
 const selectedRoomTypeId = ref('');
 const slotList = ref([]);
 const slotBaseTime = ref(new Date());
@@ -441,21 +442,38 @@ function formatRoomAmount(roomType) {
 }
 
 /**
- * 按当前门店加载可预订的包厢类型。
+ * 按当前门店、日期和时长加载包厢类型。没有空位的类型也会返回。
  */
 async function loadRoomTypes() {
   const shop = currentShop.value;
-  if (isEmpty(shop)) {
+  if (isEmpty(shop) || shop.status !== RecordStatus.ENABLED) {
     roomTypeList.value = [];
     selectedRoomTypeId.value = '';
     return;
   }
-  roomTypeList.value = await request({
+  if (isEmpty(selectedBookingDate.value)) {
+    roomTypeList.value = [];
+    selectedRoomTypeId.value = '';
+    return;
+  }
+  // 1. 只采纳最后一次请求，避免快速换日期时旧结果盖住新结果
+  const requestSerial = roomTypeRequestSerial.value + 1;
+  roomTypeRequestSerial.value = requestSerial;
+  const nextRoomTypeList = await request({
     url: KtvApi.ROOM_TYPES,
     method: 'GET',
-    data: { shopId: shop.shopId },
+    data: {
+      shopId: shop.shopId,
+      bookingDate: selectedBookingDate.value,
+      durationHours: selectedDurationHours.value,
+    },
   });
-  if (isEmpty(selectedRoomType.value)) {
+  if (requestSerial !== roomTypeRequestSerial.value) {
+    return;
+  }
+  roomTypeList.value = nextRoomTypeList;
+  // 2. 选中的类型不在列表里，或这一天已经没有空位，就清掉选中
+  if (isEmpty(selectedRoomType.value) || selectedRoomType.value.bookable !== true) {
     selectedRoomTypeId.value = '';
   }
 }
@@ -766,6 +784,7 @@ async function selectContentTab(contentTab) {
 function selectBookingDate(bookingDate) {
   selectedBookingDate.value = bookingDate;
   ensureSelection();
+  void loadRoomTypes();
 }
 
 /**
@@ -773,12 +792,24 @@ function selectBookingDate(bookingDate) {
  */
 function selectDuration(hourCount) {
   selectedDurationHours.value = hourCount;
+  void loadRoomTypes();
 }
 
 /**
- * 选择包厢类型。再次点击已选中的类型时取消选中。
+ * 选择包厢类型。再次点击已选中的类型时取消选中。没有空位的类型不能选。
  */
 function selectRoomType(roomTypeId) {
+  let selectedRoomTypeRow = null;
+  for (let roomTypeIndex = 0; roomTypeIndex < roomTypeList.value.length; roomTypeIndex += 1) {
+    const roomType = roomTypeList.value[roomTypeIndex];
+    if (isEmpty(roomType) !== true && roomType.id === roomTypeId) {
+      selectedRoomTypeRow = roomType;
+      break;
+    }
+  }
+  if (isEmpty(selectedRoomTypeRow) || selectedRoomTypeRow.bookable !== true) {
+    return;
+  }
   if (selectedRoomTypeId.value === roomTypeId) {
     selectedRoomTypeId.value = '';
     return;

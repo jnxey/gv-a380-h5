@@ -6,7 +6,7 @@
       v-for="roomType in roomTypeList"
       :key="roomType.id"
       class="room"
-      :class="{ picked: roomType.id === selectedRoomTypeId }"
+      :class="{ picked: roomType.id === selectedRoomTypeId, unavailable: roomType.bookable !== true }"
       @click="onRoomClick(roomType)"
     >
       <div class="cover" :style="coverStyle(roomType)"></div>
@@ -16,6 +16,7 @@
         <div class="price-line">
           <strong>{{ formatRoomAmount(roomType) }}</strong>
         </div>
+        <p v-if="roomType.bookable !== true" class="room-unavailable">没有空闲</p>
       </div>
     </li>
   </ul>
@@ -46,10 +47,10 @@ defineProps({
 const emit = defineEmits(['select']);
 
 /**
- * 短按选中包厢。
+ * 短按选中包厢。没有空位的类型不能选。
  */
 function onRoomClick(roomType) {
-  if (isEmpty(roomType) || isEmpty(roomType.id)) {
+  if (isEmpty(roomType) || isEmpty(roomType.id) || roomType.bookable !== true) {
     return;
   }
   emit('select', roomType.id);
@@ -113,6 +114,14 @@ function coverStyle(roomType) {
 }
 .room.picked {
   box-shadow: 0 0 0 2px #6d28d9;
+}
+.room.unavailable {
+  opacity: 0.45;
+}
+.room-unavailable {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 13px;
 }
 .cover {
   height: 72px;
