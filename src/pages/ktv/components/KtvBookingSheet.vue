@@ -1,5 +1,10 @@
 <template>
-  <div class="mask" @click="emit('close')"></div>
+  <BottomSheet
+    :open="open"
+    mask-color="rgba(18, 12, 24, 0.46)"
+    :z-index="21"
+    @close="emit('close')"
+  >
   <section
     v-if="isEmpty(selectedRoomType) !== true"
     ref="sheetElement"
@@ -94,10 +99,12 @@
       </div>
     </div>
   </section>
+  </BottomSheet>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
+import BottomSheet from '../../../components/BottomSheet/BottomSheet.vue';
 import { HotelBookingGuest } from '../../../utils/constants.js';
 import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
 import { isEmpty } from '../../../utils/tools.js';
@@ -108,6 +115,9 @@ const ArrivalSlotFold = {
 };
 
 const props = defineProps({
+  open: {
+    default: false,
+  },
   selectedRoomType: {
     default: null
   },
@@ -243,19 +253,9 @@ function formatStartClock(slot) {
 </script>
 
 <style scoped>
-.mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(18, 12, 24, 0.46);
-  z-index: 20;
-  overscroll-behavior: none;
-}
 .sheet {
   box-sizing: border-box;
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
+  position: relative;
   display: flex;
   flex-direction: column;
   width: min(520px, 100%);
@@ -264,7 +264,6 @@ function formatStartClock(slot) {
   overscroll-behavior: none;
   border-radius: 22px 22px 0 0;
   background: #fff;
-  z-index: 21;
 }
 .sheet-body {
   box-sizing: border-box;

@@ -45,7 +45,7 @@
       />
     </section>
     <StoreCartSheet
-      v-if="cartSheetOpen"
+      :open="cartSheetOpen"
       :cart-line-list="cartLineList"
       :cart-amount-text="sheetAmountText"
       :point-plan="pointPlan"

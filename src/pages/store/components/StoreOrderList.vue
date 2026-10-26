@@ -51,8 +51,14 @@
     @cancel="closeReceive"
     @confirm="submitReceive"
   />
-  <div v-if="isEmpty(detailSale) !== true" class="detail-mask" @click="closeOrderDetail">
-    <section class="detail-card" @click.stop>
+  <BottomSheet
+    :open="detailSheetOpen"
+    mask-color="rgba(20, 36, 28, 0.46)"
+    :z-index="30"
+    @close="closeOrderDetail"
+    @after-leave="clearOrderDetail"
+  >
+    <section v-if="isEmpty(detailSale) !== true" class="detail-card" @click.stop>
       <h2>订单详情</h2>
       <p class="detail-no">{{ detailSale.saleNo }}</p>
       <h3>收货信息</h3>
@@ -70,7 +76,7 @@
       <p v-if="hasPointDeduct(detailSale)" class="detail-line">积分抵扣 {{ formatMoney(detailSale.pointDeductAmount) }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
-  </div>
+  </BottomSheet>
   <ShopReviewDialog
     :open="isEmpty(pendingReviewSale) !== true"
     :biz-type="ShopReviewBizType.STORE_SALE"
@@ -82,6 +88,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import BottomSheet from '../../../components/BottomSheet/BottomSheet.vue';
 import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
@@ -113,6 +120,7 @@ const pendingReviewSale = ref(null);
 const pendingCancelSale = ref(null);
 const pendingReceiveSale = ref(null);
 const detailSale = ref(null);
+const detailSheetOpen = ref(false);
 const orderActionSubmitting = ref(false);
 
 /**
@@ -168,12 +176,23 @@ function openOrderDetail(saleRow) {
     return;
   }
   detailSale.value = saleRow;
+  detailSheetOpen.value = true;
 }
 
 /**
- * 关掉订单详情。
+ * 关掉订单详情。先收起弹层，数据等滑出结束后再清。
  */
 function closeOrderDetail() {
+  detailSheetOpen.value = false;
+}
+
+/**
+ * 订单详情滑出结束后清空数据。中途又打开时保留新的详情。
+ */
+function clearOrderDetail() {
+  if (detailSheetOpen.value === true) {
+    return;
+  }
   detailSale.value = null;
 }
 
@@ -417,16 +436,6 @@ function onReviewSaved() {
   background: #0f766e;
   color: #fff;
   font-size: 13px;
-}
-
-.detail-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(20, 36, 28, 0.46);
 }
 
 .detail-card {

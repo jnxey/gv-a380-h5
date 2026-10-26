@@ -1,5 +1,10 @@
 <template>
-  <div class="mask" @click="emit('close')"></div>
+  <BottomSheet
+    :open="open"
+    mask-color="rgba(20, 36, 28, 0.46)"
+    :z-index="21"
+    @close="emit('close')"
+  >
   <section ref="sheetElement" class="sheet" @focusin="handleSheetFocusIn" @focusout="handleSheetFocusOut">
     <div class="sheet-body">
       <div class="sheet-head">
@@ -87,7 +92,13 @@
       <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
     </div>
   </section>
-  <div v-if="addressPickerOpen === true" class="address-mask" @click="closeAddressPicker">
+  </BottomSheet>
+  <BottomSheet
+    :open="addressPickerOpen"
+    mask-color="rgba(20, 36, 28, 0.46)"
+    :z-index="30"
+    @close="closeAddressPicker"
+  >
     <section class="address-card" @click.stop>
       <h3>选择收货地址</h3>
       <button
@@ -101,17 +112,21 @@
         {{ addressText }}
       </button>
     </section>
-  </div>
+  </BottomSheet>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import AppIcon from '../../../components/AppIcon/AppIcon.vue';
+import BottomSheet from '../../../components/BottomSheet/BottomSheet.vue';
 import { AppIconName, HotelBookingGuest } from '../../../utils/constants.js';
 import { useSheetInputFocus } from '../../../utils/sheetInputFocus.js';
 import { formatMoney, isEmpty, multiplyMoney } from '../../../utils/tools.js';
 
 const props = defineProps({
+  open: {
+    default: false,
+  },
   cartLineList: {
     default: () => [],
   },
@@ -198,6 +213,18 @@ function closeAddressPicker() {
 }
 
 /**
+ * 购物车弹窗收起时，地址选择层一起关掉。以前整页拆掉购物车时地址层也会一起消失。
+ */
+watch(
+  () => props.open,
+  (sheetOpen) => {
+    if (sheetOpen !== true) {
+      addressPickerOpen.value = false;
+    }
+  }
+);
+
+/**
  * 当前输入和这条记住的地址相同。
  */
 function isSelectedAddress(addressText) {
@@ -215,19 +242,9 @@ function selectAddress(addressText) {
 </script>
 
 <style scoped>
-.mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(20, 36, 28, 0.46);
-  z-index: 20;
-  overscroll-behavior: none;
-}
 .sheet {
   box-sizing: border-box;
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
+  position: relative;
   width: min(520px, 100%);
   max-height: min(78vh, 640px);
   display: flex;
@@ -236,7 +253,6 @@ function selectAddress(addressText) {
   overscroll-behavior: none;
   border-radius: 22px 22px 0 0;
   background: #fff;
-  z-index: 21;
 }
 .sheet-body {
   box-sizing: border-box;
@@ -486,15 +502,6 @@ function selectAddress(addressText) {
 }
 .solid:disabled {
   opacity: 0.45;
-}
-.address-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(20, 36, 28, 0.46);
 }
 .address-card {
   box-sizing: border-box;

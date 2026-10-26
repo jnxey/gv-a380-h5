@@ -12,9 +12,12 @@
       <span class="stay-week">{{ formatStayWeekday(checkOutDate) }}</span>
     </span>
   </button>
-  <Teleport to="body">
-    <div v-if="sheetOpen" class="sheet-root">
-      <div class="mask" @click="emit('close')"></div>
+  <BottomSheet
+    :open="sheetOpen"
+    mask-color="rgba(20, 36, 28, 0.46)"
+    :z-index="30"
+    @close="emit('close')"
+  >
       <section class="sheet">
       <div class="sheet-head">
         <div>
@@ -53,12 +56,12 @@
         <button class="solid" type="button" :disabled="draftReady !== true" @click="confirmDates">确定</button>
       </div>
       </section>
-    </div>
-  </Teleport>
+  </BottomSheet>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import BottomSheet from '../../../components/BottomSheet/BottomSheet.vue';
 import { HotelDateLabel } from '../../../utils/constants.js';
 import { isEmpty } from '../../../utils/tools.js';
 
@@ -304,30 +307,15 @@ function confirmDates() {
   color: #1f8a70;
   font-size: 12px;
 }
-.sheet-root {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-}
-.mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(20, 36, 28, 0.46);
-  overscroll-behavior: none;
-}
 .sheet {
   box-sizing: border-box;
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
+  position: relative;
   display: flex;
   flex-direction: column;
   width: min(520px, 100%);
   height: 78vh;
   border-radius: 22px 22px 0 0;
   background: #fffdf9;
-  z-index: 21;
   overscroll-behavior: none;
 }
 .sheet-head {

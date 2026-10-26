@@ -1,8 +1,11 @@
 <template>
-  <Teleport to="body">
-    <div v-if="open === true" class="sheet-root" :class="accentClassName">
-      <div class="mask" @click="emit('close')"></div>
-      <section class="sheet" @click.stop>
+  <BottomSheet
+    :open="open"
+    mask-color="rgba(18, 12, 24, 0.46)"
+    :z-index="40"
+    @close="emit('close')"
+  >
+      <section class="sheet" :class="accentClassName" @click.stop>
         <div class="sheet-head">
           <div class="sheet-head-main">
             <h2>{{ title }}</h2>
@@ -18,12 +21,12 @@
           </div>
         </div>
       </section>
-    </div>
-  </Teleport>
+  </BottomSheet>
 </template>
 
 <script setup>
 import { computed } from 'vue';
+import BottomSheet from '../BottomSheet/BottomSheet.vue';
 import ImageGallery from '../ImageGallery/ImageGallery.vue';
 import { ItemDetailAccent } from '../../utils/constants.js';
 import { isEmpty } from '../../utils/tools.js';
@@ -78,30 +81,15 @@ const accentClassName = computed(() => {
 </script>
 
 <style scoped>
-.sheet-root {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-}
-.mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(18, 12, 24, 0.46);
-  overscroll-behavior: none;
-}
 .sheet {
   box-sizing: border-box;
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
+  position: relative;
   display: flex;
   flex-direction: column;
   width: min(520px, 100%);
   max-height: min(82vh, 720px);
   border-radius: 24px 24px 0 0;
   background: #fff;
-  z-index: 41;
   overflow: hidden;
   overscroll-behavior: none;
   box-shadow: 0 -12px 40px rgba(18, 12, 24, 0.12);
@@ -169,24 +157,24 @@ const accentClassName = computed(() => {
   word-break: break-word;
 }
 
-.is-ktv .sheet-price {
+.sheet.is-ktv .sheet-price {
   color: #6d28d9;
 }
 
-.is-hotel .sheet-price,
-.is-store .sheet-price {
+.sheet.is-hotel .sheet-price,
+.sheet.is-store .sheet-price {
   color: #1f8a70;
 }
-.is-hotel .sheet,
-.is-store .sheet {
+.sheet.is-hotel,
+.sheet.is-store {
   background: #fffdf9;
 }
-.is-hotel .desc-block,
-.is-store .desc-block {
+.sheet.is-hotel .desc-block,
+.sheet.is-store .desc-block {
   background: rgba(31, 138, 112, 0.08);
 }
-.is-hotel .desc-text,
-.is-store .desc-text {
+.sheet.is-hotel .desc-text,
+.sheet.is-store .desc-text {
   color: #14241c;
 }
 </style>

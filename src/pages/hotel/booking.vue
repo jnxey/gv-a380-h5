@@ -56,7 +56,7 @@
       />
     </section>
     <HotelBookingSheet
-      v-if="bookingStep === HotelBookingStep.FORM"
+      :open="bookingStep === HotelBookingStep.FORM"
       :selected-room-type="selectedRoomType"
       :form-hint-text="formHintText"
       v-model:guest-name="guestName"

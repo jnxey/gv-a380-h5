@@ -53,7 +53,7 @@
       />
     </section>
     <KtvBookingSheet
-      v-if="bookingStep === KtvBookingStep.FORM"
+      :open="bookingStep === KtvBookingStep.FORM"
       :selected-room-type="selectedRoomType"
       :form-hint-text="formHintText"
       v-model:guest-name="guestName"

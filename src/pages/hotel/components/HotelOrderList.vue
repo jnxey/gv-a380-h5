@@ -34,8 +34,14 @@
       </div>
     </template>
   </PageVirtualList>
-  <div v-if="isEmpty(detailOrder) !== true" class="detail-mask" @click="closeOrderDetail">
-    <section class="detail-card" @click.stop>
+  <BottomSheet
+    :open="detailSheetOpen"
+    mask-color="rgba(20, 36, 28, 0.46)"
+    :z-index="30"
+    @close="closeOrderDetail"
+    @after-leave="clearOrderDetail"
+  >
+    <section v-if="isEmpty(detailOrder) !== true" class="detail-card" @click.stop>
       <h2>订单详情</h2>
       <p class="detail-line">订单号 {{ detailOrder.orderNo }}</p>
       <p class="detail-line">房型 {{ detailOrder.typeName }}</p>
@@ -49,7 +55,7 @@
       <p v-if="hasPointDeduct(detailOrder)" class="detail-line">积分抵扣 {{ formatMoney(detailOrder.pointDeductAmount) }} 元</p>
       <button class="detail-close" type="button" @click="closeOrderDetail">关闭</button>
     </section>
-  </div>
+  </BottomSheet>
   <ConfirmDialog
     :open="isEmpty(pendingCancelOrder) !== true"
     :message="cancelConfirmMessage"
@@ -69,6 +75,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import BottomSheet from '../../../components/BottomSheet/BottomSheet.vue';
 import ConfirmDialog from '../../../components/ConfirmDialog/ConfirmDialog.vue';
 import PageVirtualList from '../../../components/PageVirtualList/PageVirtualList.vue';
 import ShopReviewDialog from '../../../components/ShopReviewDialog/ShopReviewDialog.vue';
@@ -105,6 +112,7 @@ const cancelSubmitting = ref(false);
 const pendingCancelOrder = ref(null);
 const pendingReviewOrder = ref(null);
 const detailOrder = ref(null);
+const detailSheetOpen = ref(false);
 
 /**
  * 预订人或联系方式有一项就算有预订信息。
@@ -146,12 +154,23 @@ function openOrderDetail(order) {
     return;
   }
   detailOrder.value = order;
+  detailSheetOpen.value = true;
 }
 
 /**
- * 关掉订单详情。
+ * 关掉订单详情。先收起弹层，数据等滑出结束后再清。
  */
 function closeOrderDetail() {
+  detailSheetOpen.value = false;
+}
+
+/**
+ * 订单详情滑出结束后清空数据。中途又打开时保留新的详情。
+ */
+function clearOrderDetail() {
+  if (detailSheetOpen.value === true) {
+    return;
+  }
   detailOrder.value = null;
 }
 
@@ -327,15 +346,6 @@ async function submitCancelOrder() {
 .review-button {
   background: #1f8a70;
   color: #fff;
-}
-.detail-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(20, 36, 28, 0.46);
 }
 .detail-card {
   box-sizing: border-box;
