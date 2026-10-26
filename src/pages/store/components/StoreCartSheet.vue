@@ -63,27 +63,29 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
-    <div v-show="sheetInputFocused !== true" class="sheet-total">
-      <span>合计</span>
-      <span class="total-side">
-        <strong>{{ cartAmountText }}</strong>
-        <span v-if="pointPlan.loading === true" class="point-tag loading">
-          积分
-          <i class="point-spinner" aria-hidden="true"></i>
+    <div v-show="sheetInputFocused !== true" class="sheet-foot">
+      <div class="sheet-total">
+        <span>合计</span>
+        <span class="total-side">
+          <strong>{{ cartAmountText }}</strong>
+          <span v-if="pointPlan.loading === true" class="point-tag loading">
+            积分
+            <i class="point-spinner" aria-hidden="true"></i>
+          </span>
+          <button
+            v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
+            class="point-tag"
+            :class="{ on: usePointDeduct === true }"
+            type="button"
+            @click="togglePointDeduct"
+          >
+            积分抵扣{{ pointPlan.amountText }}元
+          </button>
+          <span v-else-if="pointPlan.visible === true" class="point-tag short">积分不足</span>
         </span>
-        <button
-          v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
-          class="point-tag"
-          :class="{ on: usePointDeduct === true }"
-          type="button"
-          @click="togglePointDeduct"
-        >
-          积分抵扣{{ pointPlan.amountText }}元
-        </button>
-        <span v-else-if="pointPlan.visible === true" class="point-tag short">积分不足</span>
-      </span>
+      </div>
+      <button class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
     </div>
-    <button v-show="sheetInputFocused !== true" class="solid" type="button" :disabled="submitting" @click="emit('submit')">确认支付</button>
   </section>
   <div v-if="addressPickerOpen === true" class="address-mask" @click="closeAddressPicker">
     <section class="address-card" @click.stop>
@@ -242,7 +244,7 @@ function selectAddress(addressText) {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 16px 16px 16px;
+  padding: 16px 16px calc(128px + var(--ct-safe-bottom, 0px));
   border-radius: 22px 22px 0 0;
   background: #eef4f1;
 }
@@ -439,6 +441,14 @@ function selectAddress(addressText) {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.sheet-foot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flow-root;
+  background: #fff;
 }
 .sheet-total {
   display: flex;

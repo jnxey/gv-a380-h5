@@ -69,27 +69,29 @@
       </div>
       <p v-if="isEmpty(formError) !== true" class="form-error">{{ formError }}</p>
     </div>
-    <div v-if="isEmpty(amountText) !== true" v-show="sheetInputFocused !== true" class="amount-line">
-      <span>合计</span>
-      <strong>{{ amountText }}</strong>
-      <span v-if="pointPlan.loading === true" class="point-tag loading">
-        积分
-        <i class="point-spinner" aria-hidden="true"></i>
-      </span>
-      <button
-        v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
-        class="point-tag"
-        :class="{ on: usePointDeduct === true }"
-        type="button"
-        @click="togglePointDeduct"
-      >
-        积分抵扣{{ pointPlan.amountText }}元
-      </button>
-      <span v-else-if="pointPlan.visible === true" class="point-tag short">积分不足</span>
-    </div>
-    <div v-show="sheetInputFocused !== true" class="actions">
-      <button class="ghost" type="button" @click="emit('close')">取消</button>
-      <button class="solid" type="button" :disabled="submitting === true" @click="emit('submit')">确认预约</button>
+    <div v-show="sheetInputFocused !== true" class="sheet-foot">
+      <div v-if="isEmpty(amountText) !== true" class="amount-line">
+        <span>合计</span>
+        <strong>{{ amountText }}</strong>
+        <span v-if="pointPlan.loading === true" class="point-tag loading">
+          积分
+          <i class="point-spinner" aria-hidden="true"></i>
+        </span>
+        <button
+          v-else-if="pointPlan.visible === true && pointPlan.enabled === true"
+          class="point-tag"
+          :class="{ on: usePointDeduct === true }"
+          type="button"
+          @click="togglePointDeduct"
+        >
+          积分抵扣{{ pointPlan.amountText }}元
+        </button>
+        <span v-else-if="pointPlan.visible === true" class="point-tag short">积分不足</span>
+      </div>
+      <div class="actions">
+        <button class="ghost" type="button" @click="emit('close')">取消</button>
+        <button class="solid" type="button" :disabled="submitting === true" @click="emit('submit')">确认预约</button>
+      </div>
     </div>
   </section>
 </template>
@@ -271,7 +273,7 @@ function formatStartClock(slot) {
   max-height: 60vh;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 8px 16px 16px;
+  padding: 8px 16px calc(128px + var(--ct-safe-bottom, 0px));
   border-radius: 22px 22px 0 0;
   background: #f5f3ff;
 }
@@ -462,6 +464,13 @@ function formatStartClock(slot) {
   to {
     transform: rotate(360deg);
   }
+}
+.sheet-foot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #fff;
 }
 .amount-line {
   box-sizing: border-box;
