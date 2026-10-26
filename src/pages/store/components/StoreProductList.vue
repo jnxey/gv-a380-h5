@@ -25,7 +25,7 @@
           v-for="productRow in categoryGroup.productList"
           :key="productRow.productId"
           class="product-card"
-          :class="{ disabled: productRow.stockQuantity < 1 }"
+          :class="{ disabled: productRow.stockQuantity < 1, 'has-qty': cartQuantity(productRow.productId) > 0 }"
         >
           <div class="product-cover" @click="openDetail(productRow)">
             <img v-if="isEmpty(coverImageUrl(productRow)) !== true" :src="coverImageUrl(productRow)" alt="" />
@@ -361,6 +361,7 @@ onUnmounted(() => {
   color: #111827;
 }
 .product-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -403,6 +404,12 @@ onUnmounted(() => {
   -webkit-user-select: none;
   user-select: none;
 }
+.product-card:not(.disabled) .product-main {
+  padding-right: 40px;
+}
+.product-card.has-qty .product-main {
+  padding-right: 102px;
+}
 .product-name {
   display: -webkit-box;
   overflow: hidden;
@@ -427,10 +434,13 @@ onUnmounted(() => {
   font-size: 12px;
 }
 .product-actions {
+  position: absolute;
+  top: 50%;
+  right: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: none;
+  transform: translateY(-50%);
 }
 .step {
   width: 28px;
