@@ -6,6 +6,10 @@ const SheetTextInputTag = {
   TEXTAREA: 'TEXTAREA'
 };
 
+const SheetInputFocusDelay = {
+  RESTORE_MILLISECONDS: 300
+};
+
 /**
  * 预订弹窗里，输入框聚焦时收起底部合计和按钮。
  */
@@ -27,7 +31,8 @@ export function useSheetInputFocus() {
   }
 
   /**
-   * 输入框拿到焦点时收起底部合计和按钮，并把当前输入滚进内容区。
+   * 输入框拿到焦点时收起底部合计和按钮。
+   * iOS 会为了露出输入框去滚动整页，固定弹窗会被推成只剩底色。这里把页面拉回，只滚动弹窗内容区。
    */
   function handleSheetFocusIn(event) {
     if (isEmpty(event) || isSheetTextInputElement(event.target) !== true) {
@@ -35,12 +40,46 @@ export function useSheetInputFocus() {
     }
     sheetInputFocused.value = true;
     const focusedElement = event.target;
+    // 1. 下一帧先拉回。键盘动画结束后 iOS 还会再推一次，所以稍后再拉一次
     window.requestAnimationFrame(() => {
-      if (isEmpty(focusedElement) || isFunction(focusedElement.scrollIntoView) !== true) {
+      restoreSheetAfterInputFocus(focusedElement);
+    });
+    window.setTimeout(() => {
+      if (document.activeElement !== focusedElement) {
         return;
       }
-      focusedElement.scrollIntoView({ block: 'nearest' });
-    });
+      restoreSheetAfterInputFocus(focusedElement);
+    }, SheetInputFocusDelay.RESTORE_MILLISECONDS);
+  }
+
+  /**
+   * 取消 iOS 对整页的推移，再把输入框留在弹窗内容区里。
+   */
+  function restoreSheetAfterInputFocus(focusedElement) {
+    window.scrollTo(0, 0);
+    scrollFieldIntoSheetBody(focusedElement);
+  }
+
+  /**
+   * 只滚动弹窗内容区，让输入框落在可见范围里。不滚动页面和外层固定层。
+   */
+  function scrollFieldIntoSheetBody(focusedElement) {
+    if (isEmpty(focusedElement) || isFunction(focusedElement.closest) !== true) {
+      return;
+    }
+    const sheetBodyElement = focusedElement.closest('.sheet-body');
+    if (isEmpty(sheetBodyElement)) {
+      return;
+    }
+    const fieldRect = focusedElement.getBoundingClientRect();
+    const sheetBodyRect = sheetBodyElement.getBoundingClientRect();
+    if (fieldRect.top < sheetBodyRect.top) {
+      sheetBodyElement.scrollTop -= sheetBodyRect.top - fieldRect.top;
+      return;
+    }
+    if (fieldRect.bottom > sheetBodyRect.bottom) {
+      sheetBodyElement.scrollTop += fieldRect.bottom - sheetBodyRect.bottom;
+    }
   }
 
   /**
