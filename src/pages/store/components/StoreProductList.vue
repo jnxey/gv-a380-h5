@@ -405,7 +405,7 @@ onUnmounted(() => {
   user-select: none;
 }
 .product-card:not(.disabled) .product-main {
-  padding-right: 102px;
+  padding-right: 40px;
 }
 .product-name {
   display: -webkit-box;
